@@ -319,7 +319,7 @@ function renderCurrentTask() {
   let pdfBlock = '';
   if (task.pdfSkills && task.pdfSkills.length) {
     pdfBlock += '<div class="pdf-block">' +
-      '<div class="pdf-block-title">🧪 Навыки занятия <span class="pdf-block-src">(из «Таблицы навыков лагеря»)</span></div>' +
+      '<div class="pdf-block-title">🧪 Навыки занятия <span class="pdf-block-src">(из «Таблицы навыков каникул»)</span></div>' +
       '<ul class="pdf-list">' + task.pdfSkills.map(s => '<li>' + s + '</li>').join('') + '</ul>' +
     '</div>';
   }
@@ -923,7 +923,7 @@ function renderCareer(obs, badges) {
       clubs: ['📸 Медиастудия', '🎬 Digital-кино', '🎙️ Подкаст-студия']
     },
     english: {
-      icon:'🌍', title:'Английский лагерь',
+      icon:'🌍', title:'Английские каникулы',
       roles: ['Глобальный коммуникатор', 'Нарративный дизайнер', 'Ведущий мероприятий'],
       desc: 'Языковая практика, сторителлинг и публичные выступления на английском языке.',
       clubs: ['🗣️ Разговорный клуб', '📚 Story Cubes', '🎤 Talent Show']
@@ -1189,7 +1189,7 @@ function renderClubsSection(container, studentId) {
   const html = `
     <div class="clubs-section" style="margin-top:20px">
       <h3 style="font-size:0.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">
-        🏆 Клубы лагеря
+        🏆 Клубы каникул
       </h3>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
         ${clubs.map(club => `
@@ -1399,7 +1399,7 @@ function analyzeStudentProfile(obs, badges, compScores) {
     low: 'Показывает низкую вовлечённость. Рекомендуем поддержку и более частую обратную связь.'
   };
 
-  const trackNames = { bio: 'Биотехнологии', eng: 'Инженерии', media: 'Медиа', english: 'Английского лагеря' };
+  const trackNames = { bio: 'Биотехнологии', eng: 'Инженерии', media: 'Медиа', english: 'Английских каникул' };
   const trackIcons = { bio: '🧬', eng: '⚙️', media: '🎥', english: '🌍' };
   const trackDesc = {
     bio: 'Этот профиль показывает склонность к работе с природой, растениями и биологическими системами.',
@@ -1422,7 +1422,7 @@ function renderAIInsights(studentId) {
   const compScores = calcCompetencies(obs);
   const profile = analyzeStudentProfile(obs, badges, compScores);
 
-  const trackNames = { bio: 'Биотехнологии', eng: 'Инженерия', media: 'Медиа', english: 'Английский лагерь' };
+  const trackNames = { bio: 'Биотехнологии', eng: 'Инженерия', media: 'Медиа', english: 'Английские каникулы' };
   const trackIcons = { bio: '🧬', eng: '⚙️', media: '🎥', english: '🌍' };
   const engagementColors = { high: '#22C55E', moderate: '#FBBF24', low: '#EF4444' };
   const engagementLabels = { high: 'Высокая', moderate: 'Средняя', low: 'Низкая' };
@@ -1538,7 +1538,7 @@ async function generateOpenAIAnalysis(student, obs, badges, compScores) {
   const earnedBadges = badges.filter(b => b.earned);
 
   const prompt = `Ты — эксперт по детскому развитию и образовательным технологиям.
-Проанализируй профиль участника летнего лагеря и дай развёрнутые рекомендации.
+Проанализируй профиль участника летних каникул и дай развёрнутые рекомендации.
 
 УЧАСТНИК: ${student.first_name} ${student.last_name}
 ВОЗРАСТ: ${student.age} лет
@@ -1546,7 +1546,7 @@ async function generateOpenAIAnalysis(student, obs, badges, compScores) {
 КОЛИЧЕСТВО НАБЛЮДЕНИЙ: ${obs.length} дней
 СРЕДНИЙ БАЛЛ: ${avgScore}/5
 
-ДОМИНИРУЮЩИЙ ТРЕК: ${dominant[0] === 'bio' ? 'Биотехнологии 🧬' : dominant[0] === 'eng' ? 'Инженерия ⚙️' : dominant[0] === 'english' ? 'Английский лагерь 🌍' : 'Медиа 🎥'}
+ДОМИНИРУЮЩИЙ ТРЕК: ${dominant[0] === 'bio' ? 'Биотехнологии 🧬' : dominant[0] === 'eng' ? 'Инженерия ⚙️' : dominant[0] === 'english' ? 'Английские каникулы 🌍' : 'Медиа 🎥'}
 
 ТОП КОМПЕТЕНЦИИ (сильные стороны):
 ${topSkills.map(c => `- ${c.icon} ${c.name}: ${c.score}%`).join('\n')}
@@ -1560,7 +1560,7 @@ ${lowSkills.length > 0 ? lowSkills.map(c => `- ${c.icon} ${c.name}: ${c.score}%`
 - Биотехнологии: ${trackCounts.bio} занятий
 - Инженерия: ${trackCounts.eng} занятий
 - Медиа: ${trackCounts.media} занятий
-- Английский лагерь: ${trackCounts.english} занятий
+- Английские каникулы: ${trackCounts.english} занятий
 
 Верни анализ в формате JSON:
 {
@@ -1622,7 +1622,7 @@ function renderCampTeam(container) {
   const html = `
     <div class="team-section" style="margin-top:20px">
       <h3 style="font-size:0.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">
-        👥 Команда лагеря
+        👥 Команда каникул
       </h3>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">
         ${CAMP_TEAM.map(m => `
