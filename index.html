@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Каникулы с ONE! — Лагерь будущего</title>
-<meta property="og:title" content="Каникулы с ONE! — Лагерь будущего">
+<title>Каникулы с ONE! — Летние каникулы</title>
+<meta property="og:title" content="Каникулы с ONE! — Летние каникулы">
 <meta property="og:description" content="Современные летние каникулы для детей 7–12 лет. 10 смен, 7 направлений, Anglophone-среда, спорт, IT, биотех и защита собственных проектов.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="logo.svg">
@@ -86,32 +86,31 @@ body::after{
 
 /* ── Sidebar nav ── */
 .sidebar{
-  width:120px;
+  width:140px;
   background:rgba(255,255,255,0.12);
   border-right:1px solid var(--border);
   backdrop-filter:blur(24px);
   display:flex;flex-direction:column;align-items:center;
-  padding:16px 0;gap:10px;
+  padding:20px 0;gap:12px;
   position:fixed;top:0;left:0;bottom:0;z-index:100;
   transition:transform 0.3s ease;
 }
 .sidebar-logo{
-  font-family:'Orbitron',monospace;font-weight:900;font-size:0.7rem;
-  color:var(--orange);letter-spacing:0.15em;
-  writing-mode:vertical-lr;transform:rotate(180deg);
-  padding:10px 0 20px;border-bottom:1px solid var(--border);
-  width:100%;text-align:center;margin-bottom:8px;
-  line-height:1.3;
+  font-family:'Orbitron',monospace;font-weight:900;font-size:0.72rem;
+  color:var(--orange);letter-spacing:0.12em;
+  padding:12px 0 20px;border-bottom:1px solid var(--border);
+  width:100%;text-align:center;margin-bottom:10px;
+  line-height:1.4;
 }
 .nav-item{
-  width:100px;height:52px;border-radius:var(--r);
+  width:110px;height:56px;border-radius:var(--r);
   background:transparent;border:1px solid transparent;
   color:var(--muted);cursor:pointer;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:4px;transition:all 0.25s;position:relative;
-  font-size:1.2rem;
+  gap:5px;transition:all 0.25s;position:relative;
+  font-size:1.3rem;
 }
-.nav-item span{font-size:0.6rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:inherit}
+.nav-item span{font-size:0.62rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:inherit}
 .nav-item:hover{background:var(--glass-b);color:var(--white);border-color:var(--border-h)}
 .nav-item.active{background:var(--orange-dim);border-color:var(--border-h);color:var(--orange);box-shadow:0 0 20px rgba(237,118,21,0.15)}
 .nav-item.active::before{
@@ -134,7 +133,7 @@ body::after{
 .menu-overlay.show{display:block}
 
 /* ── Main content ── */
-.main{margin-left:120px;flex:1;padding:0;min-width:0}
+.main{margin-left:140px;flex:1;padding:0;min-width:0}
 
 /* ── Top bar ── */
 .topbar{
@@ -896,19 +895,27 @@ textarea:focus{border-color:var(--orange)}
   .mobile-menu-toggle{display:flex}
   .sidebar{
     transform:translateX(-100%);
-    width:240px;
+    width:260px;
     background:rgba(19,34,69,0.98);
+    padding:24px 0;
   }
   .sidebar.open{transform:translateX(0)}
   .main{margin-left:0}
-  .nav-item span{display:none}
-  .sidebar-logo{font-size:0.55rem}
-  .page-wrap{padding:12px}
+  .sidebar-logo{font-size:0.8rem}
+  .nav-item{width:100%;height:52px;flex-direction:row;gap:12px;justify-content:flex-start;padding:0 24px}
+  .nav-item span{display:inline;font-size:0.7rem}
+  .page-wrap{padding:16px}
   .talent-grid{grid-template-columns:1fr}
   .stats-row{grid-template-columns:repeat(2,1fr)!important}
   .db-student-grid{grid-template-columns:1fr!important}
   .badge-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))!important}
   .form-grid{grid-template-columns:1fr!important}
+  .shifts-grid{grid-template-columns:1fr}
+  .shift-detail-info{grid-template-columns:1fr}
+  .topbar{height:52px;padding:0 12px}
+  .topbar-title{font-size:0.6rem}
+  .shift-card-header{padding:18px 20px 14px}
+  .shift-card-body{padding:16px 20px 20px}
 }
 @media(max-width:480px){
   html{font-size:13px}
@@ -917,6 +924,7 @@ textarea:focus{border-color:var(--orange)}
   .stats-row{grid-template-columns:1fr!important}
   .day-tabs{font-size:0.65rem}
   .day-tab{padding:4px 8px}
+  .page-header h1{font-size:1.1rem}
 }
 </style>
 </head>
@@ -947,7 +955,7 @@ textarea:focus{border-color:var(--orange)}
     <div class="topbar">
       <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
       <div class="topbar-logo">
-        <img src="logo.svg" alt="Каникулы с ONE!" style="height:36px;width:auto">
+        <svg viewBox="0 0 200 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#ed7615"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><line x1="24" y1="4" x2="24" y2="1" stroke="#ed7615" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="8" x2="34" y2="6" stroke="#ed7615" stroke-width="1.5" stroke-linecap="round"/><line x1="36" y1="16" x2="39" y2="16" stroke="#ed7615" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="8" x2="14" y2="6" stroke="#ed7615" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="16" x2="9" y2="16" stroke="#ed7615" stroke-width="1.5" stroke-linecap="round"/><polygon points="24,22 18,32 30,32" fill="#ed7615" opacity="0.9"/><polygon points="24,22 20,32 24,31" fill="#d66a12" opacity="0.8"/><circle cx="16" cy="8" r="0.8" fill="#fff" opacity="0.5"/><circle cx="32" cy="6" r="0.6" fill="#fff" opacity="0.4"/></svg>
       </div>
       <div class="topbar-title">КАНИКУЛЫ С ONE!</div>
       <div class="search-wrap">
@@ -1139,7 +1147,7 @@ textarea:focus{border-color:var(--orange)}
       <div class="page-wrap">
         <div class="page-header">
           <h1>📊 ДАШБОРД ОТРЯДА</h1>
-          <p>Сводная статистика по лагерю</p>
+          <p>Сводная статистика по каникулам</p>
         </div>
         <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
 
@@ -1304,7 +1312,7 @@ textarea:focus{border-color:var(--orange)}
     </section>
 
     <footer class="rp-footer">
-      <span>Каникулы с ONE! · Лагерь будущего · сделано с ❤️ для участников</span>
+      <span>Каникулы с ONE! · сделано с ❤️ для участников</span>
       <span id="rp-date">—</span>
     </footer>
   </div>

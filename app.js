@@ -1,5 +1,5 @@
 // =============================================
-//  Каникулы с ONE! — Лагерь будущего 2026
+//  Каникулы с ONE! — Летние каникулы 2026
 // =============================================
 
 // -- Состояние приложения ----------------------
@@ -88,7 +88,7 @@ function navigateTo(page) {
     if (mainEl && state.currentPage === 'shift-detail') {
       mainEl.innerHTML = `<div class="topbar">
         <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
-        <div class="topbar-logo"><img src="logo.svg" alt="Каникулы с ONE!" style="height:36px;width:auto"></div>
+        <div class="topbar-logo"><svg viewBox="0 0 200 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#ed7615"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><polygon points="24,22 18,32 30,32" fill="#ed7615" opacity="0.9"/></svg></div>
         <div class="topbar-right"><div class="status-dot"></div></div>
       </div>
       <div class="page active" id="page-shifts">
