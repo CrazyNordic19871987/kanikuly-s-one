@@ -14,7 +14,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // ── OpenAI API Key (for AI Analytics) ──────────
 // Get your key at: https://platform.openai.com/api-keys
 // Leave empty to use local rule-based engine
-const OPENAI_API_KEY = ''; // Add your key here
+const OPENAI_API_KEY = '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'; // Add your key here
 
 const TABLES = {
   STUDENTS:     'students',
