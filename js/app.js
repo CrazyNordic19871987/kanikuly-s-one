@@ -112,6 +112,8 @@ function navigateTo(page) {
   if (navBtn) navBtn.classList.add('active');
   state.currentPage = page;
 
+  if (typeof syncBottomBar === 'function') syncBottomBar(page);
+
   if (page === 'achievements') populateStudentSelect('ach-student-select', onAchStudentChange);
   if (page === 'talents')      populateStudentSelect('talent-student-select', onTalentStudentChange);
   if (page === 'dashboard')    renderDashboard();
@@ -1140,6 +1142,7 @@ function openShiftDetail(shiftId) {
   const navBtn = document.querySelector('.nav-item[data-page="shifts"]');
   if (navBtn) navBtn.classList.add('active');
   state.currentPage = 'shift-detail';
+  if (typeof syncBottomBar === 'function') syncBottomBar('shifts');
 
   let html = `<div class="page-wrap shift-detail">
     <button class="shift-detail-back" onclick="navigateTo('shifts')">← Назад к сменам</button>

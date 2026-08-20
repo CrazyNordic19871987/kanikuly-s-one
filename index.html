@@ -894,11 +894,38 @@ textarea:focus{border-color:var(--orange)}
 }
 
 /* ═══════════════════════════════════════════
+   BOTTOM TAB BAR (mobile)
+═══════════════════════════════════════════ */
+.bottom-bar{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  height:64px;
+  background:rgba(19,34,69,0.97);
+  backdrop-filter:blur(12px);
+  border-top:1px solid rgba(255,255,255,0.08);
+  z-index:200;
+  justify-content:space-around;
+  align-items:center;
+  padding:0 4px;
+}
+.btab{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;
+  background:none;border:none;color:rgba(255,255,255,0.45);
+  font-size:0.6rem;padding:6px 8px;cursor:pointer;
+  transition:color .2s;border-radius:8px;min-width:52px;
+}
+.btab.active{color:#ed7615}
+.btab:active{transform:scale(0.92)}
+.btab-icon{font-size:1.3rem;line-height:1}
+.btab-label{font-family:inherit;letter-spacing:0.02em}
+
+/* ═══════════════════════════════════════════
    MOBILE RESPONSIVE
 ═══════════════════════════════════════════ */
 @media(max-width:768px){
   html{font-size:14px}
-  .mobile-menu-toggle{display:flex}
+  .mobile-menu-toggle{display:none}
   .sidebar{
     transform:translateX(-100%);
     width:260px;
@@ -906,31 +933,48 @@ textarea:focus{border-color:var(--orange)}
     padding:24px 0;
   }
   .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0}
+  .menu-overlay{display:none!important}
+  .main{margin-left:0;padding-bottom:74px}
+  .bottom-bar{display:flex}
   .sidebar-logo{font-size:0.8rem}
   .nav-item{width:100%;height:52px;flex-direction:row;gap:12px;justify-content:flex-start;padding:0 24px}
   .nav-item span{display:inline;font-size:0.7rem}
-  .page-wrap{padding:16px}
+  .page-wrap{padding:16px 14px 24px}
   .talent-grid{grid-template-columns:1fr}
   .stats-row{grid-template-columns:repeat(2,1fr)!important}
   .db-student-grid{grid-template-columns:1fr!important}
   .badge-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))!important}
   .form-grid{grid-template-columns:1fr!important}
-  .shifts-grid{grid-template-columns:1fr}
-  .shift-detail-info{grid-template-columns:1fr}
-  .topbar{height:52px;padding:0 12px}
-  .topbar-title{font-size:0.6rem}
+  .shifts-grid{grid-template-columns:1fr;gap:12px}
+  .shift-card{border-radius:14px}
   .shift-card-header{padding:18px 20px 14px}
   .shift-card-body{padding:16px 20px 20px}
+  .shift-detail-info{grid-template-columns:1fr}
+  .shift-direction{padding:12px 14px}
+  .shift-mission{padding:8px 12px}
+  .topbar{height:52px;padding:0 12px;gap:8px}
+  .topbar-logo{display:none}
+  .topbar-title{font-size:0.72rem;font-weight:700;color:#ed7615;white-space:nowrap}
+  .topbar-right{margin-left:auto}
 }
 @media(max-width:480px){
   html{font-size:13px}
-  .topbar{padding:0 8px}
+  .topbar{padding:0 8px;height:48px}
+  .topbar-title{font-size:0.65rem}
   .search-wrap{display:none}
   .stats-row{grid-template-columns:1fr!important}
   .day-tabs{font-size:0.65rem}
   .day-tab{padding:4px 8px}
   .page-header h1{font-size:1.1rem}
+  .shifts-grid{gap:10px}
+  .shift-card-header{padding:14px 16px 12px}
+  .shift-card-body{padding:14px 16px 16px}
+  .shift-card-title{font-size:0.85rem}
+  .shift-card-subtitle{font-size:0.72rem}
+  .bottom-bar{height:58px}
+  .btab{min-width:46px;padding:4px 6px}
+  .btab-icon{font-size:1.2rem}
+  .btab-label{font-size:0.55rem}
 }
 </style>
 </head>
@@ -1195,6 +1239,15 @@ textarea:focus{border-color:var(--orange)}
     </div>
 
   </main>
+
+  <!-- ── MOBILE BOTTOM TAB BAR ── -->
+  <nav class="bottom-bar" id="bottom-bar">
+    <button class="btab active" data-page="students"><span class="btab-icon">👥</span><span class="btab-label">Люди</span></button>
+    <button class="btab" data-page="shifts"><span class="btab-icon">🏕️</span><span class="btab-label">Смены</span></button>
+    <button class="btab" data-page="achievements"><span class="btab-icon">🏅</span><span class="btab-label">Баджи</span></button>
+    <button class="btab" data-page="talents"><span class="btab-icon">🎯</span><span class="btab-label">Таланты</span></button>
+    <button class="btab" data-page="dashboard"><span class="btab-icon">📊</span><span class="btab-label">Стат</span></button>
+  </nav>
 </div>
 
 <!-- ── ИГРОВОЙ РЕПОРТ УЧАСТНИКА (предпросмотр + печать/PDF) ── -->
@@ -1346,8 +1399,23 @@ window.onerror = function(msg, url, line, col, error) {
     overlay.classList.toggle('show');
   }
 
-  // Close menu on nav click (mobile)
-  document.querySelectorAll('.nav-item').forEach(function(btn) {
+  // Sync bottom bar active state with current page
+  function syncBottomBar(pageId) {
+    document.querySelectorAll('.btab').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.page === pageId);
+    });
+  }
+
+  // Bottom tab bar click handlers
+  document.querySelectorAll('.btab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var page = btn.dataset.page;
+      if (page && typeof navigateTo === 'function') navigateTo(page);
+    });
+  });
+
+  // Close menu on nav click (mobile sidebar)
+  document.querySelectorAll('.sidebar .nav-item').forEach(function(btn) {
     btn.addEventListener('click', function() {
       if (window.innerWidth <= 768) toggleMobileMenu();
     });
