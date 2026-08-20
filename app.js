@@ -88,7 +88,7 @@ function navigateTo(page) {
     if (mainEl && state.currentPage === 'shift-detail') {
       mainEl.innerHTML = `<div class="topbar">
         <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
-        <div class="topbar-logo">Каникулы с ONE!</div>
+        <div class="topbar-logo"><img src="logo.svg" alt="Каникулы с ONE!" style="height:36px;width:auto"></div>
         <div class="topbar-right"><div class="status-dot"></div></div>
       </div>
       <div class="page active" id="page-shifts">
