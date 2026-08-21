@@ -186,6 +186,8 @@ body::after{
 .students-layout{display:grid;grid-template-columns:380px 1fr;gap:16px;min-height:calc(100vh - 120px)}
 @media(max-width:800px){.students-layout{grid-template-columns:1fr}}
 .student-list{display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 200px);overflow-y:auto;padding-right:4px}
+.student-filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.st-filter-select{width:auto;min-width:140px;padding:6px 12px;font-size:.75rem;border-radius:8px;background:var(--bg);color:var(--white);border:1px solid var(--border);flex:1}
 .student-card{
   padding:10px 12px;border-radius:var(--r);
   background:var(--glass);border:1px solid var(--border);
@@ -869,6 +871,14 @@ textarea:focus{border-color:var(--orange)}
 .rp-obs tr:nth-child(even) td{background:var(--rp-soft)}
 .rp-obs .ok{color:#16a34a;font-weight:700}
 .rp-obs .no{color:#c4cadb}
+.rp-comp-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--rp-line);font-size:.66rem}
+.rp-comp-row:last-child{border-bottom:none}
+.rp-comp-score{font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;min-width:28px;text-align:center}
+.rp-comp-score.high{color:#16a34a}
+.rp-comp-score.mid{color:#d97706}
+.rp-comp-score.low{color:#dc2626}
+.rp-comp-name{flex:1;font-weight:600;color:var(--rp-ink)}
+.rp-comp-xp{color:var(--rp-muted);white-space:nowrap}
 
 .rp-footer{
   display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
@@ -954,6 +964,29 @@ textarea:focus{border-color:var(--orange)}
 .assess-summary h3{font-size:.85rem;margin:0 0 10px;color:var(--orange)}
 .assess-summary-row{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:4px}
 .assess-summary-val{color:var(--white);font-weight:700}
+.assess-summary-card{padding:20px;border-radius:var(--r-lg);background:linear-gradient(135deg,var(--glass),rgba(237,118,21,0.05));border:1px solid var(--border);margin-top:20px}
+.assess-summary-title{font-size:1rem;font-weight:700;color:var(--orange);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.assess-summary-title::before{content:'';display:block;width:3px;height:18px;border-radius:2px;background:var(--orange)}
+.assess-summary-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.assess-summary-stat{padding:14px;border-radius:var(--r);background:var(--glass);border:1px solid var(--border);text-align:center}
+.assess-summary-stat-num{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:700;color:var(--orange);margin-bottom:4px}
+.assess-summary-stat-label{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em}
+.assess-summary-section{margin-top:16px}
+.assess-summary-section-title{font-size:0.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.assess-summary-tags{display:flex;flex-wrap:wrap;gap:6px}
+.assess-summary-tag{font-size:0.75rem;padding:5px 12px;border-radius:20px;font-weight:600}
+.assess-summary-tag.skill{background:rgba(237,118,21,0.12);color:var(--orange);border:1px solid rgba(237,118,21,0.2)}
+.assess-summary-tag.prof{background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.2)}
+.assess-summary-tag.future{background:rgba(139,92,246,0.1);color:#8b5cf6;border:1px solid rgba(139,92,246,0.2)}
+.assess-summary-missions{margin-top:0}
+.assess-summary-mission{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:var(--glass);border:1px solid var(--border);margin-bottom:8px}
+.assess-summary-mission-name{flex:1;font-size:0.8rem;font-weight:600}
+.assess-summary-mission-score{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;min-width:36px;text-align:center}
+.assess-summary-mission-score.high{color:#22c55e}
+.assess-summary-mission-score.mid{color:#FBBF24}
+.assess-summary-mission-score.low{color:#EF4444}
+.assess-summary-mission-xp{font-size:0.72rem;color:var(--muted);white-space:nowrap}
+@media(max-width:768px){.assess-summary-stats{grid-template-columns:repeat(2,1fr)!important}}
 
 /* ── Shift Dashboard ── */
 .sd-stat{padding:14px;border-radius:var(--r);background:var(--glass);border:1px solid var(--border);text-align:center}
@@ -1135,6 +1168,19 @@ textarea:focus{border-color:var(--orange)}
 
         <div class="students-layout">
           <div>
+            <div class="student-filters" id="student-filters">
+              <select class="form-input st-filter-select" id="st-filter-shift" onchange="onStFilterChange()">
+                <option value="">Все смены</option>
+              </select>
+              <select class="form-input st-filter-select" id="st-filter-squad" onchange="onStFilterChange()">
+                <option value="">Все отряды</option>
+              </select>
+              <select class="form-input st-filter-select" id="st-filter-campus" onchange="onStFilterChange()">
+                <option value="">Все кампусы</option>
+                <option value="ШОП">ШОП</option>
+                <option value="ШСТ">ШСТ</option>
+              </select>
+            </div>
             <h3 style="font-size:0.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">
               📋 Список участников (<span id="student-count">0</span>)
             </h3>
@@ -1515,6 +1561,11 @@ textarea:focus{border-color:var(--orange)}
     <section class="rp-block">
       <h2><span class="rp-h2-ico">🏅</span> Достижения</h2>
       <div class="rp-badges" id="rp-badges"></div>
+    </section>
+
+    <section class="rp-block" id="rp-completions-section" style="display:none">
+      <h2><span class="rp-h2-ico">📊</span> Результаты оценки</h2>
+      <div id="rp-completions"></div>
     </section>
 
     <section class="rp-block">

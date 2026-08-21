@@ -41,10 +41,41 @@ function populateShiftSelect() {
   });
 }
 
+function populateStudentFilters() {
+  const shiftSel = ge('st-filter-shift');
+  const squadSel = ge('st-filter-squad');
+  if (!shiftSel || typeof SHIFTS === 'undefined') return;
+  SHIFTS.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = 'Смена ' + s.id;
+    shiftSel.appendChild(opt);
+  });
+  for (let i = 1; i <= 8; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = 'Отряд ' + i;
+    squadSel.appendChild(opt);
+  }
+}
+
+function onStFilterChange() {
+  renderStudentList();
+}
+
+function getStudentFilters() {
+  return {
+    shift: ge('st-filter-shift')?.value || '',
+    squad: ge('st-filter-squad')?.value || '',
+    campus: ge('st-filter-campus')?.value || ''
+  };
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     showLoader(true);
     populateShiftSelect();
+    populateStudentFilters();
     populateAssShiftSelect();
     await loadData();
     setupNav();
@@ -239,14 +270,20 @@ function renderStudentList() {
   const el = document.getElementById('student-list');
   const countEl = document.getElementById('student-count');
   if (!el) return;
-  if (countEl) countEl.textContent = state.students.length;
   let list = state.students;
+
+  const filters = getStudentFilters();
+  if (filters.shift) list = list.filter(s => String(s.shift) === String(filters.shift));
+  if (filters.squad) list = list.filter(s => String(s.squad) === String(filters.squad));
+  if (filters.campus) list = list.filter(s => (s.campus || '') === filters.campus);
 
   if (state.searchQuery) {
     list = list.filter(s =>
       (s.first_name + ' ' + s.last_name).toLowerCase().includes(state.searchQuery)
     );
   }
+
+  if (countEl) countEl.textContent = list.length;
 
   if (!list.length) {
     el.innerHTML = `<div class="empty-state">
@@ -2108,6 +2145,38 @@ function fillReport(student) {
     }).join('') || '<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--rp-muted)">Наблюдений пока нет</td></tr>';
   }
 
+  const compSection = ge('rp-completions-section');
+  const compEl = ge('rp-completions');
+  if (compSection && compEl && completions.length > 0) {
+    compSection.style.display = '';
+    const byShift = {};
+    completions.forEach(c => {
+      if (!byShift[c.shift_id]) byShift[c.shift_id] = [];
+      byShift[c.shift_id].push(c);
+    });
+    let compHtml = '';
+    Object.entries(byShift).sort((a,b) => a[0]-b[0]).forEach(([sId, comps]) => {
+      const sh = SHIFTS.find(x => x.id == sId);
+      const sXp = comps.reduce((s,c) => s + (c.xp||0), 0);
+      const sScore = comps.filter(c => c.score > 0);
+      const sAvg = sScore.length ? (sScore.reduce((s,c) => s + c.score, 0) / sScore.length).toFixed(1) : '—';
+      compHtml += '<div style="margin-bottom:12px;padding:12px;border-radius:10px;background:rgba(237,118,21,0.04);border:1px solid rgba(237,118,21,0.12)">';
+      compHtml += '<div style="font-size:.72rem;font-weight:700;color:#ed7615;margin-bottom:8px">Смена ' + sId + (sh ? ' — ' + sh.title : '') + ' · ' + sAvg + '★ · ' + sXp + ' XP</div>';
+      comps.filter(c => c.score > 0).forEach(c => {
+        const sc = c.score >= 7 ? 'high' : c.score >= 4 ? 'mid' : 'low';
+        compHtml += '<div class="rp-comp-row">';
+        compHtml += '<span class="rp-comp-score ' + sc + '">' + c.score + '</span>';
+        compHtml += '<span class="rp-comp-name">' + (c.direction_name || '') + ' — ' + (c.mission_name || '') + '</span>';
+        compHtml += '<span class="rp-comp-xp">' + (c.xp||0) + ' XP</span>';
+        compHtml += '</div>';
+      });
+      compHtml += '</div>';
+    });
+    compEl.innerHTML = compHtml;
+  } else if (compSection) {
+    compSection.style.display = 'none';
+  }
+
   set('rp-date', 'Сформировано: ' + new Date().toLocaleDateString('ru-RU') + ' · ' + new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' }));
 
   const reportEl = ge('report');
@@ -2383,33 +2452,55 @@ function renderAssessSummary() {
 
   const avgScore = count > 0 ? (totalScore / count).toFixed(1) : '—';
 
-  let html = `<h3>📊 Итоги оценки</h3>`;
-  html += `<div class="assess-summary-row"><span>Средний балл</span><span class="assess-summary-val">${avgScore}</span></div>`;
-  html += `<div class="assess-summary-row"><span>Всего XP</span><span class="assess-summary-val">${totalXp}</span></div>`;
-  html += `<div class="assess-summary-row"><span>${shift.currency || 'Валюта'}</span><span class="assess-summary-val">${totalCurrency}</span></div>`;
-  html += `<div class="assess-summary-row"><span>Заданий оценено</span><span class="assess-summary-val">${count}</span></div>`;
+  let html = '<div class="assess-summary-card">';
+  html += '<div class="assess-summary-title">📊 Результаты оценки — ' + shift.title + '</div>';
   
-  if (Object.keys(skillsAccum).length > 0) {
-    html += `<div style="margin-top:10px;font-size:.72rem;color:var(--muted);font-weight:600">Развитые навыки:</div>`;
-    html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">`;
-    Object.entries(skillsAccum).sort((a,b) => b[1] - a[1]).forEach(([k,v]) => {
-      const comp = COMPETENCIES.find(c => c.id === k);
-      if (comp) html += `<span class="assess-mission-skill">${comp.icon} ${comp.name} +${v}</span>`;
+  html += '<div class="assess-summary-stats">';
+  html += '<div class="assess-summary-stat"><div class="assess-summary-stat-num">' + avgScore + '</div><div class="assess-summary-stat-label">Средний балл</div></div>';
+  html += '<div class="assess-summary-stat"><div class="assess-summary-stat-num">' + totalXp + '</div><div class="assess-summary-stat-label">Опыт (XP)</div></div>';
+  html += '<div class="assess-summary-stat"><div class="assess-summary-stat-num">' + totalCurrency + '</div><div class="assess-summary-stat-label">' + (shift.currency || 'Валюта') + '</div></div>';
+  html += '<div class="assess-summary-stat"><div class="assess-summary-stat-num">' + count + '</div><div class="assess-summary-stat-label">Оценено заданий</div></div>';
+  html += '</div>';
+
+  if (completions.length > 0) {
+    html += '<div class="assess-summary-section">';
+    html += '<div class="assess-summary-section-title">📋 Оцененные задания</div>';
+    completions.filter(c => c.score > 0).forEach(c => {
+      var scoreClass = c.score >= 7 ? 'high' : c.score >= 4 ? 'mid' : 'low';
+      html += '<div class="assess-summary-mission">' +
+        '<span class="assess-summary-mission-score ' + scoreClass + '">' + c.score + '</span>' +
+        '<span class="assess-summary-mission-name">' + c.direction_name + ' — ' + c.mission_name + '</span>' +
+        '<span class="assess-summary-mission-xp">' + c.xp + ' XP · ' + c.currency + ' ' + (shift.currency || '') + '</span>' +
+      '</div>';
     });
-    html += `</div>`;
-  }
-  if (profsSet.size > 0) {
-    html += `<div style="margin-top:10px;font-size:.72rem;color:var(--muted);font-weight:600">Профессии будущего:</div>`;
-    html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">`;
-    profsSet.forEach(p => { html += `<span class="assess-mission-skill">💼 ${p}</span>`; });
-    html += `</div>`;
-  }
-  if (futureSet.size > 0) {
-    html += `<div style="margin-top:10px;font-size:.72rem;color:var(--muted);font-weight:600">Навыки будущего:</div>`;
-    html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">`;
-    futureSet.forEach(f => { html += `<span class="assess-mission-skill">🔮 ${f}</span>`; });
-    html += `</div>`;
+    html += '</div>';
   }
 
+  if (Object.keys(skillsAccum).length > 0) {
+    html += '<div class="assess-summary-section">';
+    html += '<div class="assess-summary-section-title">🧠 Развитые навыки</div>';
+    html += '<div class="assess-summary-tags">';
+    Object.entries(skillsAccum).sort((a,b) => b[1] - a[1]).forEach(([k,v]) => {
+      var comp = COMPETENCIES.find(c => c.id === k);
+      if (comp) html += '<span class="assess-summary-tag skill">' + comp.icon + ' ' + comp.name + ' +' + v + '</span>';
+    });
+    html += '</div></div>';
+  }
+  if (profsSet.size > 0) {
+    html += '<div class="assess-summary-section">';
+    html += '<div class="assess-summary-section-title">💼 Профессии будущего</div>';
+    html += '<div class="assess-summary-tags">';
+    profsSet.forEach(p => { html += '<span class="assess-summary-tag prof">💼 ' + p + '</span>'; });
+    html += '</div></div>';
+  }
+  if (futureSet.size > 0) {
+    html += '<div class="assess-summary-section">';
+    html += '<div class="assess-summary-section-title">🔮 Навыки будущего</div>';
+    html += '<div class="assess-summary-tags">';
+    futureSet.forEach(f => { html += '<span class="assess-summary-tag future">🔮 ' + f + '</span>'; });
+    html += '</div></div>';
+  }
+
+  html += '</div>';
   summaryArea.innerHTML = html;
 }
