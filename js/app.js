@@ -101,9 +101,9 @@ async function loadData() {
     api.getAll(TABLES.OBSERVATIONS),
     api.getAll(TABLES.BADGES),
     api.getAll(TABLES.COMPLETIONS),
-    api.getAll(TABLES.CONTENT_state.shifts),
+    api.getAll(TABLES.CONTENT_SHIFTS),
     api.getAll(TABLES.CONTENT_COMPETENCIES),
-    api.getAll(TABLES.CONTENT_state.badgeDefs),
+    api.getAll(TABLES.CONTENT_BADGE_DEFS),
     api.getAll(TABLES.CONTENT_DISC_CONFIG)
   ]);
   state.students    = Array.isArray(students) ? students : LS.get('students');
@@ -114,7 +114,7 @@ async function loadData() {
   if (Array.isArray(shifts) && shifts.length > 0) {
     state.shifts = shifts;
   } else {
-    state.shifts = typeof DEFAULT_state.shifts !== 'undefined' ? DEFAULT_state.shifts : [];
+    state.shifts = typeof DEFAULT_SHIFTS !== 'undefined' ? DEFAULT_SHIFTS : [];
   }
   if (Array.isArray(competencies) && competencies.length > 0) {
     state.competencies = competencies.map(c => ({ id: c.comp_id, name: c.name, icon: c.icon, color: c.color }));
