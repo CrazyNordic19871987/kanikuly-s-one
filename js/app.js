@@ -176,6 +176,7 @@ function navigateTo(page) {
   if (page === 'talents')      populateStudentSelect('talent-student-select', onTalentStudentChange);
   if (page === 'dashboard')    renderDashboard();
   if (page === 'shifts')       renderShiftsPage();
+  if (page === 'students')     renderStudentList();
   if (page === 'shift-dashboard') {
     if (typeof syncBottomBar === 'function') syncBottomBar('shifts');
   }
@@ -1127,10 +1128,12 @@ function v(id) {
 }
 
 function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
   const el = document.createElement('div');
   el.className = 'toast ' + type;
   el.textContent = msg;
-  document.getElementById('toast-container').appendChild(el);
+  container.appendChild(el);
   setTimeout(() => el.classList.add('show'), 50);
   setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 2800);
 }
@@ -2303,7 +2306,6 @@ async function saveAssessments() {
     const mi = parseInt(input.dataset.mi);
     const mis = shift.directions[di].missions[mi];
     
-    // Calculate skills impact
     const skillsImpact = {};
     (mis.skills || []).forEach(sk => {
       skillsImpact[sk] = Math.round(score * 1.5);
@@ -2327,32 +2329,33 @@ async function saveAssessments() {
     });
   });
 
-  // Remove old completions for this student+shift and insert new ones
-  const oldIds = state.completions
-    .filter(c => c.student_id == studentId && c.shift_id === shiftId)
-    .map(c => c.id);
+  try {
+    const oldIds = state.completions
+      .filter(c => c.student_id == studentId && c.shift_id === shiftId)
+      .map(c => c.id);
 
-  // Remove old from state
-  state.completions = state.completions.filter(c => !(c.student_id == studentId && c.shift_id === shiftId));
+    state.completions = state.completions.filter(c => !(c.student_id == studentId && c.shift_id === shiftId));
 
-  // Try to save each completion
-  for (const comp of completions) {
-    const result = await api.insert(TABLES.COMPLETIONS, comp);
-    if (result && result[0]) {
-      state.completions.push(result[0]);
-    } else {
-      state.completions.push({ ...comp, id: Date.now().toString() + Math.random().toString(36).substr(2,5) });
+    for (const comp of completions) {
+      const result = await api.insert(TABLES.COMPLETIONS, comp);
+      if (result && result[0]) {
+        state.completions.push(result[0]);
+      } else {
+        state.completions.push({ ...comp, id: Date.now().toString() + Math.random().toString(36).substr(2,5) });
+      }
     }
-  }
 
-  // Try to delete old ones from server
-  for (const oldId of oldIds) {
-    await api.remove(TABLES.COMPLETIONS, oldId);
-  }
+    for (const oldId of oldIds) {
+      await api.remove(TABLES.COMPLETIONS, oldId);
+    }
 
-  LS.set('completions', state.completions);
-  showToast('✓ Оценки сохранены!');
-  renderAssessSummary();
+    LS.set('completions', state.completions);
+    renderAssessSummary();
+    showToast('✓ Оценки сохранены!');
+  } catch(e) {
+    console.error('Save error:', e);
+    showToast('⚠️ Ошибка сохранения', 'warn');
+  }
 }
 
 function renderAssessSummary() {
