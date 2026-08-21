@@ -78,41 +78,39 @@ function getStudentFilters() {
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     showLoader(true);
-    populateShiftSelect();
-    populateStudentFilters();
-    populateAssShiftSelect();
     await loadData();
-    setupNav();
-    setupSearch();
-    renderStudentList();
-    renderDashboard();
-    showLoader(false);
-    animatePageIn('students');
   } catch(e) {
-    console.error('Init error:', e);
-    showLoader(false);
-    document.body.innerHTML += `<div style="color:var(--orange);padding:20px;font-family:monospace">Error: ${e.message}</div>`;
+    console.error('Load error:', e);
   }
+  try { setupNav(); } catch(e) { console.error('Nav error:', e); }
+  try { setupSearch(); } catch(e) { console.error('Search error:', e); }
+  try { renderStudentList(); } catch(e) { console.error('StudentList error:', e); }
+  try { renderDashboard(); } catch(e) { console.error('Dashboard error:', e); }
+  showLoader(false);
+  animatePageIn('students');
 });
 
 async function loadData() {
+  const safeGet = async (table) => { try { return await api.getAll(table); } catch(e) { console.warn('Fetch failed:', table, e); return []; } };
+
   const [students, observations, badges, completions, shifts, competencies, badgeDefs, discRows] = await Promise.all([
-    api.getAll(TABLES.STUDENTS),
-    api.getAll(TABLES.OBSERVATIONS),
-    api.getAll(TABLES.BADGES),
-    api.getAll(TABLES.COMPLETIONS),
-    api.getAll(TABLES.CONTENT_SHIFTS),
-    api.getAll(TABLES.CONTENT_COMPETENCIES),
-    api.getAll(TABLES.CONTENT_BADGE_DEFS),
-    api.getAll(TABLES.CONTENT_DISC_CONFIG)
+    safeGet(TABLES.STUDENTS),
+    safeGet(TABLES.OBSERVATIONS),
+    safeGet(TABLES.BADGES),
+    safeGet(TABLES.COMPLETIONS),
+    safeGet(TABLES.CONTENT_SHIFTS),
+    safeGet(TABLES.CONTENT_COMPETENCIES),
+    safeGet(TABLES.CONTENT_BADGE_DEFS),
+    safeGet(TABLES.CONTENT_DISC_CONFIG)
   ]);
-  state.students    = Array.isArray(students) ? students : LS.get('students');
-  state.observations = Array.isArray(observations) ? observations : LS.get('observations');
-  state.badges      = Array.isArray(badges) ? badges : LS.get('badges');
-  state.completions = Array.isArray(completions) ? completions : LS.get('completions');
+
+  state.students    = Array.isArray(students) ? students : (LS.get('students') || []);
+  state.observations = Array.isArray(observations) ? observations : (LS.get('observations') || []);
+  state.badges      = Array.isArray(badges) ? badges : (LS.get('badges') || []);
+  state.completions = Array.isArray(completions) ? completions : (LS.get('completions') || []);
 
   if (Array.isArray(shifts) && shifts.length > 0) {
-    state.shifts = shifts;
+    state.shifts = shifts.map(s => ({ ...s, id: s.shift_id }));
   } else {
     state.shifts = typeof DEFAULT_SHIFTS !== 'undefined' ? DEFAULT_SHIFTS : [];
   }
@@ -127,12 +125,16 @@ async function loadData() {
     state.badgeDefs = [];
   }
   if (Array.isArray(discRows) && discRows.length > 0) {
-    const dc = typeof DEFAULT_DISC_CONFIG !== 'undefined' ? JSON.parse(JSON.stringify(DEFAULT_DISC_CONFIG)) : {};
+    const dc = typeof DEFAULT_DISC_CONFIG !== 'undefined' ? JSON.parse(JSON.stringify(DEFAULT_DISC_CONFIG)) : { colors:{}, skill_map:{}, combo:{} };
     discRows.forEach(r => { dc[r.config_key] = r.config_value; });
     state.discConfig = dc;
   } else {
     state.discConfig = typeof DEFAULT_DISC_CONFIG !== 'undefined' ? JSON.parse(JSON.stringify(DEFAULT_DISC_CONFIG)) : { colors:{}, skill_map:{}, combo:{} };
   }
+
+  populateShiftSelect();
+  populateStudentFilters();
+  populateAssShiftSelect();
 }
 
 function showLoader(v) {
