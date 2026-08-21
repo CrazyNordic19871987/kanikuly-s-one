@@ -14,6 +14,10 @@ let state = {
   currentTrack: 'bio',
   filterSquad: '',
   filterShift: '',
+  filterCampus: '',
+  filterSdCampus: '',
+  filterSdSquad: '',
+  currentShiftId: null,
   searchQuery: '',
   radarChart: null
 };
@@ -99,9 +103,11 @@ function navigateTo(page) {
 
   if (page === 'shift-detail') return;
 
-  if (page === 'shifts') {
+  const needsMainRebuild = state.currentPage === 'shift-detail' || state.currentPage === 'shift-dashboard';
+
+  if (page === 'shifts' && needsMainRebuild) {
     const mainEl = document.querySelector('.main');
-    if (mainEl && state.currentPage === 'shift-detail') {
+    if (mainEl) {
       mainEl.innerHTML = `<div class="topbar">
         <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
         <div class="topbar-logo"><svg viewBox="0 0 200 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#ed7615"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><polygon points="24,22 18,32 30,32" fill="#ed7615" opacity="0.9"/></svg></div>
@@ -115,6 +121,42 @@ function navigateTo(page) {
           </div>
           <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
           <div class="shifts-grid" id="shifts-grid"></div>
+        </div>
+      </div>`;
+    }
+  }
+
+  if (page === 'shift-dashboard' && needsMainRebuild) {
+    const mainEl = document.querySelector('.main');
+    if (mainEl) {
+      mainEl.innerHTML = `<div class="topbar">
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+        <button class="mobile-back-btn" id="mobile-back-btn" onclick="goBack()">←</button>
+        <div class="topbar-logo"><svg viewBox="0 0 200 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#ed7615"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><polygon points="24,22 18,32 30,32" fill="#ed7615" opacity="0.9"/></svg></div>
+        <div class="topbar-right"><div class="status-dot"></div></div>
+      </div>
+      <div class="page active" id="page-shift-dashboard">
+        <div class="page-wrap">
+          <div class="page-header">
+            <button class="shift-detail-back" onclick="navigateTo('shifts')" style="margin-bottom:12px">← Назад к сменам</button>
+            <h1 id="sd-title">📊 ДАШБОРД СМЕНЫ</h1>
+            <p id="sd-subtitle">Прогресс участников</p>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">Кампус:</span>
+            <button class="filter-pill active" data-filter="sd-campus" data-val="" onclick="setSdFilter('campus','')">Все</button>
+            <button class="filter-pill" data-filter="sd-campus" data-val="ШОП" onclick="setSdFilter('campus','ШОП')">ШОП</button>
+            <button class="filter-pill" data-filter="sd-campus" data-val="ШСТ" onclick="setSdFilter('campus','ШСТ')">ШСТ</button>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">Отряд:</span>
+            <button class="filter-pill active" data-filter="sd-squad" data-val="" onclick="setSdFilter('squad','')">Все</button>
+          </div>
+          <div class="sd-stats" id="sd-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px"></div>
+          <h3 style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">🏆 Рейтинг участников</h3>
+          <div id="sd-leaderboard"></div>
+          <h3 style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin:20px 0 12px">📈 Распределение по отрядам</h3>
+          <div id="sd-squads"></div>
         </div>
       </div>`;
     }
@@ -134,6 +176,9 @@ function navigateTo(page) {
   if (page === 'talents')      populateStudentSelect('talent-student-select', onTalentStudentChange);
   if (page === 'dashboard')    renderDashboard();
   if (page === 'shifts')       renderShiftsPage();
+  if (page === 'shift-dashboard') {
+    if (typeof syncBottomBar === 'function') syncBottomBar('shifts');
+  }
 }
 
 function animatePageIn(page) {
@@ -170,6 +215,7 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
     grade:      parseInt(v('s-grade')),
     squad:      parseInt(v('s-squad')),
     shift:      parseInt(v('s-shift')),
+    campus:     v('s-campus'),
     notes:      v('s-notes'),
     created_at: new Date().toISOString()
   };
@@ -219,7 +265,7 @@ function renderStudentList() {
         <div class="sc-avatar">${initials}</div>
         <div class="sc-info">
           <div class="sc-name">${s.first_name} ${s.last_name}</div>
-          <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · смена ${s.shift}</div>
+          <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · смена ${s.shift} · ${s.campus || ''}</div>
           <div class="sc-progress">
             <div class="sc-progress-bar"><div class="sc-progress-fill" style="width:${progress}%"></div></div>
             <span class="sc-progress-label">${obs} занятий · ${bdgs} значков</span>
@@ -267,7 +313,7 @@ function populateStudentSelect(selectId, onChange) {
   const sel = document.getElementById(selectId);
   sel.innerHTML = '<option value="">— Выбрать участника —</option>' +
     state.students.map(s =>
-      `<option value="${s.id}">${s.first_name} ${s.last_name} · отряд ${s.squad}</option>`
+      `<option value="${s.id}">${s.first_name} ${s.last_name} · отряд ${s.squad} · ${s.campus || ''}</option>`
     ).join('');
   sel.onchange = onChange;
 
@@ -976,9 +1022,11 @@ function renderCareer(obs, badges) {
 function renderDashboard() {
   const squad = state.filterSquad;
   const shift = state.filterShift;
+  const campus = state.filterCampus;
   let list = state.students;
   if (squad) list = list.filter(s => s.squad == squad);
   if (shift) list = list.filter(s => s.shift == shift);
+  if (campus) list = list.filter(s => s.campus === campus);
 
   const totalObs   = state.observations.filter(o => list.find(s => s.id === o.student_id)).length;
   const totalBdgs  = state.badges.filter(b => list.find(s => s.id === b.student_id) && b.earned).length;
@@ -1027,7 +1075,7 @@ function renderDashboard() {
         <div class="db-sc-avatar">${(s.first_name?.[0]||'')+(s.last_name?.[0]||'')}</div>
         <div class="db-sc-info">
           <strong>${s.first_name} ${s.last_name}</strong>
-          <span>отряд ${s.squad} · смена ${s.shift} · ${s.grade} кл</span>
+          <span>отряд ${s.squad} · смена ${s.shift} · ${s.campus || ''} · ${s.grade} кл</span>
         </div>
         <div class="db-sc-track">${trackIcon}</div>
       </div>
@@ -1053,6 +1101,7 @@ function renderDashboard() {
 function setFilter(type, val) {
   if (type === 'squad') state.filterSquad = val;
   if (type === 'shift') state.filterShift = val;
+  if (type === 'campus') state.filterCampus = val;
   renderDashboard();
 
   document.querySelectorAll(`.filter-pill[data-filter="${type}"]`).forEach(p => p.classList.remove('active'));
@@ -1097,16 +1146,16 @@ function getUnlockedClubs(studentId) {
 
 function getShiftSvg(id) {
   const svgs = {
-    1: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gs1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0d1a30"/></linearGradient></defs><rect width="400" height="110" fill="url(#gs1)"/><circle cx="340" cy="55" r="25" fill="#ed7615" opacity="0.3"/><circle cx="340" cy="55" r="15" fill="#ed7615" opacity="0.5"/><circle cx="60" cy="80" r="3" fill="#fff" opacity="0.4"/><circle cx="120" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="280" cy="20" r="2.5" fill="#fff" opacity="0.35"/><rect x="170" y="35" width="60" height="40" rx="4" fill="none" stroke="#ed7615" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="12" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.6"/><line x1="200" y1="43" x2="200" y2="67" stroke="#FFD93D" stroke-width="1" opacity="0.4"/><line x1="188" y1="55" x2="212" y2="55" stroke="#FFD93D" stroke-width="1" opacity="0.4"/></svg>`,
-    2: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gs2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d2a1a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#gs2)"/><circle cx="320" cy="50" r="30" fill="#22C55E" opacity="0.15"/><circle cx="320" cy="50" r="18" fill="#22C55E" opacity="0.25"/><circle cx="80" cy="70" r="2" fill="#fff" opacity="0.3"/><circle cx="200" cy="25" r="1.5" fill="#fff" opacity="0.25"/><polygon points="60,90 80,50 100,90" fill="#22C55E" opacity="0.2"/><polygon points="70,90 85,60 100,90" fill="#22C55E" opacity="0.15"/><rect x="180" y="40" width="40" height="30" rx="2" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.4"/><line x1="185" y1="45" x2="215" y2="45" stroke="#22C55E" stroke-width="0.5" opacity="0.3"/><line x1="185" y1="52" x2="210" y2="52" stroke="#22C55E" stroke-width="0.5" opacity="0.3"/></svg>`,
-    3: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gs3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2a1a3a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#gs3)"/><circle cx="330" cy="55" r="22" fill="none" stroke="#8B5CF6" stroke-width="1.5" opacity="0.4"/><circle cx="330" cy="55" r="14" fill="#8B5CF6" opacity="0.15"/><circle cx="70" cy="40" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><circle cx="150" cy="85" r="2" fill="#fff" opacity="0.3"/><rect x="175" y="30" width="50" height="50" rx="6" fill="none" stroke="#8B5CF6" stroke-width="1" opacity="0.3"/><circle cx="200" cy="55" r="8" fill="none" stroke="#EC4899" stroke-width="1" opacity="0.5"/><line x1="200" y1="47" x2="200" y2="63" stroke="#EC4899" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="2" fill="#EC4899" opacity="0.5"/></svg>`,
-    4: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gs4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0f1a35"/></linearGradient></defs><rect width="400" height="110" fill="url(#gs4)"/><circle cx="330" cy="50" r="20" fill="#3B82F6" opacity="0.15"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="200" cy="15" r="1.5" fill="#fff" opacity="0.25"/><rect x="170" y="30" width="60" height="50" rx="4" fill="none" stroke="#3B82F6" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="15" fill="none" stroke="#FBBF24" stroke-width="1" opacity="0.3"/><path d="M195 50 L200 42 L205 50" fill="none" stroke="#FBBF24" stroke-width="1.5" opacity="0.5"/><circle cx="200" cy="58" r="2" fill="#FBBF24" opacity="0.4"/></svg>`,
-    5: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gs5" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a1a2a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#gs5)"/><circle cx="340" cy="55" r="25" fill="#EF4444" opacity="0.12"/><circle cx="340" cy="55" r="15" fill="#EF4444" opacity="0.2"/><circle cx="60" cy="50" r="2" fill="#fff" opacity="0.3"/><circle cx="280" cy="25" r="2" fill="#fff" opacity="0.25"/><line x1="180" y1="75" x2="220" y2="75" stroke="#EF4444" stroke-width="1.5" opacity="0.3"/><circle cx="200" cy="55" r="18" fill="none" stroke="#EF4444" stroke-width="1.5" opacity="0.35"/><path d="M192 55 L198 48 L204 55 L210 48" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.5"/><circle cx="200" cy="55" r="6" fill="none" stroke="#FFD93D" stroke-width="1" opacity="0.4"/></svg>`,
-    6: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gs6" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0a1a30"/></linearGradient></defs><rect width="400" height="110" fill="url(#gs6)"/><circle cx="320" cy="40" r="20" fill="#06B6D4" opacity="0.15"/><circle cx="70" cy="35" r="2" fill="#fff" opacity="0.3"/><rect x="60" y="60" width="20" height="35" rx="2" fill="#06B6D4" opacity="0.15"/><rect x="85" y="50" width="18" height="45" rx="2" fill="#06B6D4" opacity="0.12"/><rect x="108" y="65" width="16" height="30" rx="2" fill="#06B6D4" opacity="0.1"/><rect x="175" y="35" width="50" height="40" rx="4" fill="none" stroke="#06B6D4" stroke-width="1.5" opacity="0.4"/><rect x="185" y="45" width="30" height="20" rx="2" fill="#06B6D4" opacity="0.2"/><line x1="190" y1="55" x2="210" y2="55" stroke="#fff" stroke-width="0.5" opacity="0.3"/></svg>`,
-    7: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gs7" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0d1f35"/></linearGradient></defs><rect width="400" height="110" fill="url(#gs7)"/><circle cx="330" cy="50" r="22" fill="#F59E0B" opacity="0.12"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><rect x="165" y="25" width="25" height="60" rx="2" fill="#F59E0B" opacity="0.12"/><rect x="195" y="35" width="25" height="50" rx="2" fill="#F59E0B" opacity="0.15"/><rect x="225" y="20" width="25" height="65" rx="2" fill="#F59E0B" opacity="0.1"/><circle cx="207" cy="55" r="12" fill="none" stroke="#F59E0B" stroke-width="1.5" opacity="0.4"/><path d="M202 55 L207 48 L212 55" fill="none" stroke="#F59E0B" stroke-width="1" opacity="0.5"/></svg>`,
-    8: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gs8" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a1a3a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#gs8)"/><circle cx="330" cy="50" r="20" fill="#A855F7" opacity="0.15"/><circle cx="70" cy="40" r="2" fill="#fff" opacity="0.3"/><rect x="170" y="30" width="60" height="45" rx="6" fill="none" stroke="#A855F7" stroke-width="1.5" opacity="0.4"/><circle cx="188" cy="52" r="5" fill="none" stroke="#A855F7" stroke-width="1" opacity="0.5"/><circle cx="212" cy="52" r="5" fill="none" stroke="#A855F7" stroke-width="1" opacity="0.5"/><rect x="183" y="47" width="10" height="10" rx="1" fill="#A855F7" opacity="0.3"/><rect x="207" y="47" width="10" height="10" rx="1" fill="#A855F7" opacity="0.3"/><line x1="193" y1="52" x2="207" y2="52" stroke="#A855F7" stroke-width="1" opacity="0.4"/></svg>`,
-    9: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gs9" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0d1a2a"/></linearGradient></defs><rect width="400" height="110" fill="url(#gs9)"/><circle cx="330" cy="50" r="22" fill="#22C55E" opacity="0.12"/><circle cx="70" cy="35" r="2" fill="#fff" opacity="0.3"/><polygon points="200,25 190,50 175,50 185,65 180,85 200,72 220,85 215,65 225,50 210,50" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.4"/><polygon points="200,35 195,50 185,50 192,60 190,72 200,65 210,72 208,60 215,50 205,50" fill="#FFD93D" opacity="0.15"/><line x1="160" y1="85" x2="240" y2="85" stroke="#22C55E" stroke-width="1" opacity="0.3"/></svg>`,
-    10: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gs10" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d2a1a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#gs10)"/><circle cx="330" cy="40" r="20" fill="#22C55E" opacity="0.12"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><path d="M0 80 Q50 70 100 80 Q150 90 200 80 Q250 70 300 80 Q350 90 400 80 L400 110 L0 110 Z" fill="#0a1a30" opacity="0.4"/><path d="M0 90 Q60 82 120 90 Q180 98 240 90 Q300 82 360 90 L400 88 L400 110 L0 110 Z" fill="#0d1f3a" opacity="0.3"/><polygon points="80,90 95,45 110,90" fill="#22C55E" opacity="0.2"/><ellipse cx="95" cy="40" rx="20" ry="10" fill="#22C55E" opacity="0.15"/><circle cx="200" cy="55" r="10" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.4"/></svg>`
+    1: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0d1a30"/></linearGradient></defs><rect width="400" height="110" fill="url(#s1)"/><circle cx="340" cy="55" r="25" fill="#ed7615" opacity="0.3"/><circle cx="340" cy="55" r="15" fill="#ed7615" opacity="0.5"/><circle cx="60" cy="80" r="3" fill="#fff" opacity="0.4"/><circle cx="120" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="280" cy="20" r="2.5" fill="#fff" opacity="0.35"/><rect x="170" y="35" width="60" height="40" rx="4" fill="none" stroke="#ed7615" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="12" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.6"/><line x1="200" y1="43" x2="200" y2="67" stroke="#FFD93D" stroke-width="1" opacity="0.4"/><line x1="188" y1="55" x2="212" y2="55" stroke="#FFD93D" stroke-width="1" opacity="0.4"/></svg>`,
+    2: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d2a1a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s2)"/><circle cx="320" cy="50" r="30" fill="#22C55E" opacity="0.15"/><circle cx="320" cy="50" r="18" fill="#22C55E" opacity="0.25"/><circle cx="80" cy="70" r="2" fill="#fff" opacity="0.3"/><circle cx="200" cy="25" r="1.5" fill="#fff" opacity="0.25"/><polygon points="60,90 80,50 100,90" fill="#22C55E" opacity="0.2"/><polygon points="70,90 85,60 100,90" fill="#22C55E" opacity="0.15"/><rect x="180" y="40" width="40" height="30" rx="2" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.4"/><line x1="185" y1="45" x2="215" y2="45" stroke="#22C55E" stroke-width="0.5" opacity="0.3"/><line x1="185" y1="52" x2="210" y2="52" stroke="#22C55E" stroke-width="0.5" opacity="0.3"/></svg>`,
+    3: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2a1a3a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s3)"/><circle cx="330" cy="55" r="22" fill="none" stroke="#8B5CF6" stroke-width="1.5" opacity="0.4"/><circle cx="330" cy="55" r="14" fill="#8B5CF6" opacity="0.15"/><circle cx="70" cy="40" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><circle cx="150" cy="85" r="2" fill="#fff" opacity="0.3"/><rect x="175" y="30" width="50" height="50" rx="6" fill="none" stroke="#8B5CF6" stroke-width="1" opacity="0.3"/><circle cx="200" cy="55" r="8" fill="none" stroke="#EC4899" stroke-width="1" opacity="0.5"/><line x1="200" y1="47" x2="200" y2="63" stroke="#EC4899" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="2" fill="#EC4899" opacity="0.5"/></svg>`,
+    4: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0f1a35"/></linearGradient></defs><rect width="400" height="110" fill="url(#s4)"/><circle cx="330" cy="50" r="20" fill="#3B82F6" opacity="0.15"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="200" cy="15" r="1.5" fill="#fff" opacity="0.25"/><rect x="170" y="30" width="60" height="50" rx="4" fill="none" stroke="#3B82F6" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="15" fill="none" stroke="#FBBF24" stroke-width="1" opacity="0.3"/><path d="M195 50 L200 42 L205 50" fill="none" stroke="#FBBF24" stroke-width="1.5" opacity="0.5"/><circle cx="200" cy="58" r="2" fill="#FBBF24" opacity="0.4"/></svg>`,
+    5: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s5" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a1a2a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s5)"/><circle cx="340" cy="55" r="25" fill="#EF4444" opacity="0.12"/><circle cx="340" cy="55" r="15" fill="#EF4444" opacity="0.2"/><circle cx="60" cy="50" r="2" fill="#fff" opacity="0.3"/><circle cx="280" cy="25" r="2" fill="#fff" opacity="0.25"/><line x1="180" y1="75" x2="220" y2="75" stroke="#EF4444" stroke-width="1.5" opacity="0.3"/><circle cx="200" cy="55" r="18" fill="none" stroke="#EF4444" stroke-width="1.5" opacity="0.35"/><path d="M192 55 L198 48 L204 55 L210 48" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.5"/><circle cx="200" cy="55" r="6" fill="none" stroke="#FFD93D" stroke-width="1" opacity="0.4"/></svg>`,
+    6: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s6" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0a1a30"/></linearGradient></defs><rect width="400" height="110" fill="url(#s6)"/><circle cx="320" cy="40" r="20" fill="#06B6D4" opacity="0.15"/><circle cx="70" cy="35" r="2" fill="#fff" opacity="0.3"/><rect x="60" y="60" width="20" height="35" rx="2" fill="#06B6D4" opacity="0.15"/><rect x="85" y="50" width="18" height="45" rx="2" fill="#06B6D4" opacity="0.12"/><rect x="108" y="65" width="16" height="30" rx="2" fill="#06B6D4" opacity="0.1"/><rect x="175" y="35" width="50" height="40" rx="4" fill="none" stroke="#06B6D4" stroke-width="1.5" opacity="0.4"/><rect x="185" y="45" width="30" height="20" rx="2" fill="#06B6D4" opacity="0.2"/><line x1="190" y1="55" x2="210" y2="55" stroke="#fff" stroke-width="0.5" opacity="0.3"/></svg>`,
+    7: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s7" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0d1f35"/></linearGradient></defs><rect width="400" height="110" fill="url(#s7)"/><circle cx="330" cy="50" r="22" fill="#F59E0B" opacity="0.12"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><rect x="165" y="25" width="25" height="60" rx="2" fill="#F59E0B" opacity="0.12"/><rect x="195" y="35" width="25" height="50" rx="2" fill="#F59E0B" opacity="0.15"/><rect x="225" y="20" width="25" height="65" rx="2" fill="#F59E0B" opacity="0.1"/><circle cx="207" cy="55" r="12" fill="none" stroke="#F59E0B" stroke-width="1.5" opacity="0.4"/><path d="M202 55 L207 48 L212 55" fill="none" stroke="#F59E0B" stroke-width="1" opacity="0.5"/></svg>`,
+    8: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s8" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a1a3a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s8)"/><circle cx="330" cy="50" r="20" fill="#A855F7" opacity="0.15"/><circle cx="70" cy="40" r="2" fill="#fff" opacity="0.3"/><rect x="170" y="30" width="60" height="45" rx="6" fill="none" stroke="#A855F7" stroke-width="1.5" opacity="0.4"/><circle cx="188" cy="52" r="5" fill="none" stroke="#A855F7" stroke-width="1" opacity="0.5"/><circle cx="212" cy="52" r="5" fill="none" stroke="#A855F7" stroke-width="1" opacity="0.5"/><rect x="183" y="47" width="10" height="10" rx="1" fill="#A855F7" opacity="0.3"/><rect x="207" y="47" width="10" height="10" rx="1" fill="#A855F7" opacity="0.3"/><line x1="193" y1="52" x2="207" y2="52" stroke="#A855F7" stroke-width="1" opacity="0.4"/></svg>`,
+    9: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s9" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0d1a2a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s9)"/><circle cx="330" cy="50" r="22" fill="#22C55E" opacity="0.12"/><circle cx="70" cy="35" r="2" fill="#fff" opacity="0.3"/><polygon points="200,25 190,50 175,50 185,65 180,85 200,72 220,85 215,65 225,50 210,50" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.4"/><polygon points="200,35 195,50 185,50 192,60 190,72 200,65 210,72 208,60 215,50 205,50" fill="#FFD93D" opacity="0.15"/><line x1="160" y1="85" x2="240" y2="85" stroke="#22C55E" stroke-width="1" opacity="0.3"/></svg>`,
+    10: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s10" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d2a1a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s10)"/><circle cx="330" cy="40" r="20" fill="#22C55E" opacity="0.12"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><path d="M0 80 Q50 70 100 80 Q150 90 200 80 Q250 70 300 80 Q350 90 400 80 L400 110 L0 110 Z" fill="#0a1a30" opacity="0.4"/><path d="M0 90 Q60 82 120 90 Q180 98 240 90 Q300 82 360 90 L400 88 L400 110 L0 110 Z" fill="#0d1f3a" opacity="0.3"/><polygon points="80,90 95,45 110,90" fill="#22C55E" opacity="0.2"/><ellipse cx="95" cy="40" rx="20" ry="10" fill="#22C55E" opacity="0.15"/><circle cx="200" cy="55" r="10" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.4"/></svg>`
   };
   return svgs[id] || svgs[1];
 }
@@ -1145,9 +1194,184 @@ function renderShiftsPage() {
           <strong>📦 Продуктовый инкубатор</strong>
           ${s.product}
         </div>
+        <div style="margin-top:10px;padding:8px 12px;background:var(--glass-b);border-radius:8px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:0.72rem;color:var(--muted)">👥 Участников:</span>
+          <span style="font-size:0.78rem;font-weight:700;color:var(--orange)">${state.students.filter(st => st.shift === s.id).length}</span>
+          <button class="btn-sm" style="margin-left:auto;padding:4px 10px;font-size:0.65rem" onclick="openShiftDashboard(${s.id})">📊 Дашборд</button>
+        </div>
       </div>
     </div>
   `).join('');
+}
+
+// =============================================
+//  ДАШБОРД СМЕНЫ
+// =============================================
+
+function openShiftDashboard(shiftId) {
+  event.stopPropagation();
+  state.currentShiftId = shiftId;
+  state.filterSdCampus = '';
+  state.filterSdSquad = '';
+  navigateTo('shift-dashboard');
+  setTimeout(() => renderShiftDashboard(), 100);
+}
+
+function setSdFilter(type, val) {
+  if (type === 'campus') state.filterSdCampus = val;
+  if (type === 'squad') state.filterSdSquad = val;
+  renderShiftDashboard();
+  const selector = type === 'campus' ? 'sd-campus' : 'sd-squad';
+  document.querySelectorAll(`.filter-pill[data-filter="${selector}"]`).forEach(p => p.classList.remove('active'));
+  document.querySelector(`.filter-pill[data-filter="${selector}"][data-val="${val}"]`)?.classList.add('active');
+}
+
+function renderShiftDashboard() {
+  const shiftId = state.currentShiftId;
+  const shift = SHIFTS.find(s => s.id === shiftId);
+  if (!shift) return;
+
+  const sdTitle = ge('sd-title');
+  const sdSubtitle = ge('sd-subtitle');
+  if (sdTitle) sdTitle.textContent = '📊 ДАШБОРД СМЕНЫ ' + shiftId;
+  if (sdSubtitle) sdSubtitle.textContent = shift.title + ' · ' + (shift.currency || '');
+
+  // Filter participants
+  let participants = state.students.filter(s => s.shift == shiftId);
+  if (state.filterSdCampus) participants = participants.filter(s => s.campus === state.filterSdCampus);
+
+  // Dynamic squad pills
+  const allSquads = [...new Set(state.students.filter(s => s.shift == shiftId).map(s => s.squad))].sort((a,b) => a-b);
+  const squadRow = document.querySelectorAll('.filter-pill[data-filter="sd-squad"]');
+  const firstSquadPill = squadRow[0];
+  if (firstSquadPill) {
+    const parent = firstSquadPill.parentElement;
+    parent.querySelectorAll('.filter-pill[data-filter="sd-squad"]:not(:first-child)').forEach(p => p.remove());
+    allSquads.forEach(sq => {
+      const pill = document.createElement('button');
+      pill.className = 'filter-pill';
+      pill.dataset.filter = 'sd-squad';
+      pill.dataset.val = sq;
+      pill.setAttribute('onclick', "setSdFilter('squad','" + sq + "')");
+      pill.textContent = 'Отряд ' + sq;
+      parent.appendChild(pill);
+    });
+    // Re-activate if needed
+    if (state.filterSdSquad) {
+      parent.querySelectorAll('.filter-pill[data-filter="sd-squad"]').forEach(p => p.classList.toggle('active', p.dataset.val == state.filterSdSquad));
+    }
+  }
+
+  if (state.filterSdSquad) participants = participants.filter(s => s.squad == state.filterSdSquad);
+
+  // Calculate stats
+  let totalXp = 0, totalCurrency = 0, totalScore = 0, scoreCount = 0, totalCompletions = 0;
+  const participantData = participants.map(s => {
+    const obs = state.observations.filter(o => o.student_id === s.id);
+    const comps = state.completions.filter(c => c.student_id == s.id && c.shift_id == shiftId);
+    const bdgs = state.badges.filter(b => b.student_id === s.id && b.earned);
+    let xp = 0, currency = 0, avgScore = 0, scoredCount = 0;
+    comps.forEach(c => {
+      xp += c.xp || 0;
+      currency += c.currency || 0;
+      if (c.score > 0) { totalScore += c.score; scoredCount++; scoreCount++; }
+      totalCompletions++;
+    });
+    totalXp += xp;
+    totalCurrency += currency;
+    const obsScore = obs.length ? (obs.reduce((sum, o) => sum + (o.independence + o.quality) / 2, 0) / obs.length) : 0;
+    avgScore = scoredCount > 0 ? (totalScore / scoreCount) : obsScore;
+
+    // Top competency from completions
+    const skillsAccum = {};
+    comps.forEach(c => {
+      if (c.skills) Object.entries(c.skills).forEach(([k,v]) => { skillsAccum[k] = (skillsAccum[k]||0) + v; });
+    });
+    const topSkill = Object.entries(skillsAccum).sort((a,b) => b[1] - a[1])[0];
+    const topSkillComp = topSkill ? COMPETENCIES.find(c => c.id === topSkill[0]) : null;
+
+    return {
+      student: s,
+      xp, currency, avgScore: avgScore.toFixed(1),
+      completionsCount: comps.length,
+      badgesCount: bdgs.length,
+      topSkill: topSkillComp ? topSkillComp.icon + ' ' + topSkillComp.name : '—'
+    };
+  }).sort((a, b) => b.xp - a.xp);
+
+  // Render stats
+  const avgAll = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : '—';
+  ge('sd-stats').innerHTML = `
+    <div class="sd-stat"><div class="sd-stat-num">${participants.length}</div><div class="sd-stat-label">Участников</div></div>
+    <div class="sd-stat"><div class="sd-stat-num">${totalCompletions}</div><div class="sd-stat-label">Оценок</div></div>
+    <div class="sd-stat"><div class="sd-stat-num">${avgAll}</div><div class="sd-stat-label">Средний балл</div></div>
+    <div class="sd-stat"><div class="sd-stat-num">${totalXp}</div><div class="sd-stat-label">Всего XP</div></div>
+  `;
+
+  // Render leaderboard
+  const lbEl = ge('sd-leaderboard');
+  if (lbEl) {
+    if (!participantData.length) {
+      lbEl.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p>Нет участников для отображения</p></div>';
+    } else {
+      lbEl.innerHTML = participantData.map((pd, i) => {
+        const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+        const initials = (pd.student.first_name?.[0] || '') + (pd.student.last_name?.[0] || '');
+        const progressPct = pd.completionsCount > 0 ? Math.min(100, Math.round((pd.completionsCount / (shift.directions ? shift.directions.reduce((s,d) => s + d.missions.length, 0) : 10)) * 100)) : 0;
+        return `<div class="sd-lb-row card-enter" style="animation-delay:${i * 0.05}s">
+          <div class="sd-lb-rank ${rankClass}">${i < 3 ? ['🥇','🥈','🥉'][i] : '#' + (i+1)}</div>
+          <div class="sd-lb-avatar">${initials}</div>
+          <div class="sd-lb-info">
+            <div class="sd-lb-name">${pd.student.first_name} ${pd.student.last_name}</div>
+            <div class="sd-lb-meta">отряд ${pd.student.squad} · ${pd.student.campus || ''} · ${pd.topSkill}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+              <div style="flex:1;height:3px;border-radius:2px;background:var(--glass-b);overflow:hidden"><div style="height:100%;border-radius:2px;background:linear-gradient(90deg,var(--orange),#d65a0f);width:${progressPct}%"></div></div>
+              <span style="font-size:0.55rem;color:var(--muted)">${progressPct}%</span>
+            </div>
+          </div>
+          <div class="sd-lb-stats">
+            <span>${pd.completionsCount} зад.</span>
+            <span>${pd.avgScore}★</span>
+            <span class="sd-lb-xp">${pd.xp} XP</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Render squad distribution
+  const squadsEl = ge('sd-squads');
+  if (squadsEl) {
+    const squadCounts = {};
+    participantData.forEach(pd => {
+      const sq = pd.student.squad;
+      if (!squadCounts[sq]) squadCounts[sq] = { count: 0, totalXp: 0, totalScore: 0, scoreCount: 0 };
+      squadCounts[sq].count++;
+      squadCounts[sq].totalXp += pd.xp;
+      squadCounts[sq].totalScore += parseFloat(pd.avgScore) * pd.completionsCount;
+      squadCounts[sq].scoreCount += pd.completionsCount;
+    });
+    const maxCount = Math.max(...Object.values(squadCounts).map(s => s.count), 1);
+    squadsEl.innerHTML = Object.entries(squadCounts).sort((a,b) => a[0] - b[0]).map(([sq, data]) => {
+      const pct = Math.round((data.count / maxCount) * 100);
+      const avgSq = data.scoreCount > 0 ? (data.totalScore / data.scoreCount).toFixed(1) : '—';
+      return `<div class="sd-squad-bar">
+        <div class="sd-squad-bar-label">Отряд ${sq}</div>
+        <div class="sd-squad-bar-track"><div class="sd-squad-bar-fill" style="width:${pct}%"></div></div>
+        <div class="sd-squad-bar-val">${data.count} чел. · ${avgSq}★ · ${data.totalXp} XP</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function goBack() {
+  if (state.currentPage === 'shift-dashboard') {
+    navigateTo('shifts');
+  } else if (state.currentPage === 'shift-detail') {
+    navigateTo('shifts');
+  } else {
+    navigateTo('students');
+  }
 }
 
 function openShiftDetail(shiftId) {
@@ -1214,6 +1438,7 @@ function openShiftDetail(shiftId) {
       <div class="shift-detail-product-title">📦 Продуктовый инкубатор</div>
       <p>${s.product}</p>
     </div>
+    <button class="btn-primary" style="margin-top:16px" onclick="openShiftDashboard(${s.id})">📊 Дашборд смены</button>
   </div>`;
 
   const mainEl = document.querySelector('.main');
@@ -1742,6 +1967,8 @@ function fillReport(student) {
   set('rp-grade', student.grade + ' класс');
   set('rp-squad', 'Отряд ' + student.squad);
   set('rp-shift', 'Смена ' + student.shift);
+  const rpCampusEl = document.getElementById('rp-campus');
+  if (rpCampusEl) rpCampusEl.textContent = student.campus || '';
   set('rp-progress', level.progress + '%');
   set('rp-progress-label', level.progress + '%');
   set('rp-level', level.num);
@@ -1931,8 +2158,21 @@ function populateAssShiftSelect() {
   });
 }
 
+function onAssCampusChange() {
+  const campus = ge('ass-campus').value;
+  const shiftSel = ge('ass-shift');
+  const squadSel = ge('ass-squad');
+  const studentSel = ge('ass-student');
+  // Reset downstream
+  squadSel.innerHTML = '<option value="">Выбрать отряд...</option>';
+  studentSel.innerHTML = '<option value="">Выбрать участника...</option>';
+  ge('ass-missions-area').innerHTML = '';
+  ge('ass-summary-area').innerHTML = '';
+}
+
 function onAssShiftChange() {
   const shiftId = parseInt(ge('ass-shift').value);
+  const campus = ge('ass-campus').value;
   const squadSel = ge('ass-squad');
   const studentSel = ge('ass-student');
   squadSel.innerHTML = '<option value="">Выбрать отряд...</option>';
@@ -1940,7 +2180,9 @@ function onAssShiftChange() {
   ge('ass-missions-area').innerHTML = '';
   ge('ass-summary-area').innerHTML = '';
   if (!shiftId) return;
-  const squads = [...new Set(state.students.filter(s => s.shift === shiftId).map(s => s.squad))].sort((a,b) => a-b);
+  let filtered = state.students.filter(s => s.shift === shiftId);
+  if (campus) filtered = filtered.filter(s => s.campus === campus);
+  const squads = [...new Set(filtered.map(s => s.squad))].sort((a,b) => a-b);
   squads.forEach(sq => {
     const opt = document.createElement('option');
     opt.value = sq;
@@ -1952,12 +2194,14 @@ function onAssShiftChange() {
 function onAssSquadChange() {
   const shiftId = parseInt(ge('ass-shift').value);
   const squad = parseInt(ge('ass-squad').value);
+  const campus = ge('ass-campus').value;
   const studentSel = ge('ass-student');
   studentSel.innerHTML = '<option value="">Выбрать участника...</option>';
   ge('ass-missions-area').innerHTML = '';
   ge('ass-summary-area').innerHTML = '';
   if (!shiftId || !squad) return;
-  const list = state.students.filter(s => s.shift === shiftId && s.squad === squad);
+  let list = state.students.filter(s => s.shift === shiftId && s.squad === squad);
+  if (campus) list = list.filter(s => s.campus === campus);
   list.forEach(s => {
     const opt = document.createElement('option');
     opt.value = s.id;

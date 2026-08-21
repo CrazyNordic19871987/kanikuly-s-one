@@ -14,6 +14,10 @@ let state = {
   currentTrack: 'bio',
   filterSquad: '',
   filterShift: '',
+  filterCampus: '',
+  filterSdCampus: '',
+  filterSdSquad: '',
+  currentShiftId: null,
   searchQuery: '',
   radarChart: null
 };
@@ -99,9 +103,11 @@ function navigateTo(page) {
 
   if (page === 'shift-detail') return;
 
-  if (page === 'shifts') {
+  const needsMainRebuild = state.currentPage === 'shift-detail' || state.currentPage === 'shift-dashboard';
+
+  if (page === 'shifts' && needsMainRebuild) {
     const mainEl = document.querySelector('.main');
-    if (mainEl && state.currentPage === 'shift-detail') {
+    if (mainEl) {
       mainEl.innerHTML = `<div class="topbar">
         <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
         <div class="topbar-logo"><svg viewBox="0 0 200 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#ed7615"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><polygon points="24,22 18,32 30,32" fill="#ed7615" opacity="0.9"/></svg></div>
@@ -115,6 +121,42 @@ function navigateTo(page) {
           </div>
           <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
           <div class="shifts-grid" id="shifts-grid"></div>
+        </div>
+      </div>`;
+    }
+  }
+
+  if (page === 'shift-dashboard' && needsMainRebuild) {
+    const mainEl = document.querySelector('.main');
+    if (mainEl) {
+      mainEl.innerHTML = `<div class="topbar">
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+        <button class="mobile-back-btn" id="mobile-back-btn" onclick="goBack()">←</button>
+        <div class="topbar-logo"><svg viewBox="0 0 200 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#ed7615"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><polygon points="24,22 18,32 30,32" fill="#ed7615" opacity="0.9"/></svg></div>
+        <div class="topbar-right"><div class="status-dot"></div></div>
+      </div>
+      <div class="page active" id="page-shift-dashboard">
+        <div class="page-wrap">
+          <div class="page-header">
+            <button class="shift-detail-back" onclick="navigateTo('shifts')" style="margin-bottom:12px">← Назад к сменам</button>
+            <h1 id="sd-title">📊 ДАШБОРД СМЕНЫ</h1>
+            <p id="sd-subtitle">Прогресс участников</p>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">Кампус:</span>
+            <button class="filter-pill active" data-filter="sd-campus" data-val="" onclick="setSdFilter('campus','')">Все</button>
+            <button class="filter-pill" data-filter="sd-campus" data-val="ШОП" onclick="setSdFilter('campus','ШОП')">ШОП</button>
+            <button class="filter-pill" data-filter="sd-campus" data-val="ШСТ" onclick="setSdFilter('campus','ШСТ')">ШСТ</button>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">Отряд:</span>
+            <button class="filter-pill active" data-filter="sd-squad" data-val="" onclick="setSdFilter('squad','')">Все</button>
+          </div>
+          <div class="sd-stats" id="sd-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px"></div>
+          <h3 style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">🏆 Рейтинг участников</h3>
+          <div id="sd-leaderboard"></div>
+          <h3 style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin:20px 0 12px">📈 Распределение по отрядам</h3>
+          <div id="sd-squads"></div>
         </div>
       </div>`;
     }
@@ -134,6 +176,9 @@ function navigateTo(page) {
   if (page === 'talents')      populateStudentSelect('talent-student-select', onTalentStudentChange);
   if (page === 'dashboard')    renderDashboard();
   if (page === 'shifts')       renderShiftsPage();
+  if (page === 'shift-dashboard') {
+    if (typeof syncBottomBar === 'function') syncBottomBar('shifts');
+  }
 }
 
 function animatePageIn(page) {
@@ -170,6 +215,7 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
     grade:      parseInt(v('s-grade')),
     squad:      parseInt(v('s-squad')),
     shift:      parseInt(v('s-shift')),
+    campus:     v('s-campus'),
     notes:      v('s-notes'),
     created_at: new Date().toISOString()
   };
@@ -219,7 +265,7 @@ function renderStudentList() {
         <div class="sc-avatar">${initials}</div>
         <div class="sc-info">
           <div class="sc-name">${s.first_name} ${s.last_name}</div>
-          <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · смена ${s.shift}</div>
+          <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · смена ${s.shift} · ${s.campus || ''}</div>
           <div class="sc-progress">
             <div class="sc-progress-bar"><div class="sc-progress-fill" style="width:${progress}%"></div></div>
             <span class="sc-progress-label">${obs} занятий · ${bdgs} значков</span>
@@ -267,7 +313,7 @@ function populateStudentSelect(selectId, onChange) {
   const sel = document.getElementById(selectId);
   sel.innerHTML = '<option value="">— Выбрать участника —</option>' +
     state.students.map(s =>
-      `<option value="${s.id}">${s.first_name} ${s.last_name} · отряд ${s.squad}</option>`
+      `<option value="${s.id}">${s.first_name} ${s.last_name} · отряд ${s.squad} · ${s.campus || ''}</option>`
     ).join('');
   sel.onchange = onChange;
 
@@ -976,9 +1022,11 @@ function renderCareer(obs, badges) {
 function renderDashboard() {
   const squad = state.filterSquad;
   const shift = state.filterShift;
+  const campus = state.filterCampus;
   let list = state.students;
   if (squad) list = list.filter(s => s.squad == squad);
   if (shift) list = list.filter(s => s.shift == shift);
+  if (campus) list = list.filter(s => s.campus === campus);
 
   const totalObs   = state.observations.filter(o => list.find(s => s.id === o.student_id)).length;
   const totalBdgs  = state.badges.filter(b => list.find(s => s.id === b.student_id) && b.earned).length;
@@ -1027,7 +1075,7 @@ function renderDashboard() {
         <div class="db-sc-avatar">${(s.first_name?.[0]||'')+(s.last_name?.[0]||'')}</div>
         <div class="db-sc-info">
           <strong>${s.first_name} ${s.last_name}</strong>
-          <span>отряд ${s.squad} · смена ${s.shift} · ${s.grade} кл</span>
+          <span>отряд ${s.squad} · смена ${s.shift} · ${s.campus || ''} · ${s.grade} кл</span>
         </div>
         <div class="db-sc-track">${trackIcon}</div>
       </div>
@@ -1053,6 +1101,7 @@ function renderDashboard() {
 function setFilter(type, val) {
   if (type === 'squad') state.filterSquad = val;
   if (type === 'shift') state.filterShift = val;
+  if (type === 'campus') state.filterCampus = val;
   renderDashboard();
 
   document.querySelectorAll(`.filter-pill[data-filter="${type}"]`).forEach(p => p.classList.remove('active'));
@@ -1145,9 +1194,184 @@ function renderShiftsPage() {
           <strong>📦 Продуктовый инкубатор</strong>
           ${s.product}
         </div>
+        <div style="margin-top:10px;padding:8px 12px;background:var(--glass-b);border-radius:8px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:0.72rem;color:var(--muted)">👥 Участников:</span>
+          <span style="font-size:0.78rem;font-weight:700;color:var(--orange)">${state.students.filter(st => st.shift === s.id).length}</span>
+          <button class="btn-sm" style="margin-left:auto;padding:4px 10px;font-size:0.65rem" onclick="openShiftDashboard(${s.id})">📊 Дашборд</button>
+        </div>
       </div>
     </div>
   `).join('');
+}
+
+// =============================================
+//  ДАШБОРД СМЕНЫ
+// =============================================
+
+function openShiftDashboard(shiftId) {
+  event.stopPropagation();
+  state.currentShiftId = shiftId;
+  state.filterSdCampus = '';
+  state.filterSdSquad = '';
+  navigateTo('shift-dashboard');
+  setTimeout(() => renderShiftDashboard(), 100);
+}
+
+function setSdFilter(type, val) {
+  if (type === 'campus') state.filterSdCampus = val;
+  if (type === 'squad') state.filterSdSquad = val;
+  renderShiftDashboard();
+  const selector = type === 'campus' ? 'sd-campus' : 'sd-squad';
+  document.querySelectorAll(`.filter-pill[data-filter="${selector}"]`).forEach(p => p.classList.remove('active'));
+  document.querySelector(`.filter-pill[data-filter="${selector}"][data-val="${val}"]`)?.classList.add('active');
+}
+
+function renderShiftDashboard() {
+  const shiftId = state.currentShiftId;
+  const shift = SHIFTS.find(s => s.id === shiftId);
+  if (!shift) return;
+
+  const sdTitle = ge('sd-title');
+  const sdSubtitle = ge('sd-subtitle');
+  if (sdTitle) sdTitle.textContent = '📊 ДАШБОРД СМЕНЫ ' + shiftId;
+  if (sdSubtitle) sdSubtitle.textContent = shift.title + ' · ' + (shift.currency || '');
+
+  // Filter participants
+  let participants = state.students.filter(s => s.shift == shiftId);
+  if (state.filterSdCampus) participants = participants.filter(s => s.campus === state.filterSdCampus);
+
+  // Dynamic squad pills
+  const allSquads = [...new Set(state.students.filter(s => s.shift == shiftId).map(s => s.squad))].sort((a,b) => a-b);
+  const squadRow = document.querySelectorAll('.filter-pill[data-filter="sd-squad"]');
+  const firstSquadPill = squadRow[0];
+  if (firstSquadPill) {
+    const parent = firstSquadPill.parentElement;
+    parent.querySelectorAll('.filter-pill[data-filter="sd-squad"]:not(:first-child)').forEach(p => p.remove());
+    allSquads.forEach(sq => {
+      const pill = document.createElement('button');
+      pill.className = 'filter-pill';
+      pill.dataset.filter = 'sd-squad';
+      pill.dataset.val = sq;
+      pill.setAttribute('onclick', "setSdFilter('squad','" + sq + "')");
+      pill.textContent = 'Отряд ' + sq;
+      parent.appendChild(pill);
+    });
+    // Re-activate if needed
+    if (state.filterSdSquad) {
+      parent.querySelectorAll('.filter-pill[data-filter="sd-squad"]').forEach(p => p.classList.toggle('active', p.dataset.val == state.filterSdSquad));
+    }
+  }
+
+  if (state.filterSdSquad) participants = participants.filter(s => s.squad == state.filterSdSquad);
+
+  // Calculate stats
+  let totalXp = 0, totalCurrency = 0, totalScore = 0, scoreCount = 0, totalCompletions = 0;
+  const participantData = participants.map(s => {
+    const obs = state.observations.filter(o => o.student_id === s.id);
+    const comps = state.completions.filter(c => c.student_id == s.id && c.shift_id == shiftId);
+    const bdgs = state.badges.filter(b => b.student_id === s.id && b.earned);
+    let xp = 0, currency = 0, avgScore = 0, scoredCount = 0;
+    comps.forEach(c => {
+      xp += c.xp || 0;
+      currency += c.currency || 0;
+      if (c.score > 0) { totalScore += c.score; scoredCount++; scoreCount++; }
+      totalCompletions++;
+    });
+    totalXp += xp;
+    totalCurrency += currency;
+    const obsScore = obs.length ? (obs.reduce((sum, o) => sum + (o.independence + o.quality) / 2, 0) / obs.length) : 0;
+    avgScore = scoredCount > 0 ? (totalScore / scoreCount) : obsScore;
+
+    // Top competency from completions
+    const skillsAccum = {};
+    comps.forEach(c => {
+      if (c.skills) Object.entries(c.skills).forEach(([k,v]) => { skillsAccum[k] = (skillsAccum[k]||0) + v; });
+    });
+    const topSkill = Object.entries(skillsAccum).sort((a,b) => b[1] - a[1])[0];
+    const topSkillComp = topSkill ? COMPETENCIES.find(c => c.id === topSkill[0]) : null;
+
+    return {
+      student: s,
+      xp, currency, avgScore: avgScore.toFixed(1),
+      completionsCount: comps.length,
+      badgesCount: bdgs.length,
+      topSkill: topSkillComp ? topSkillComp.icon + ' ' + topSkillComp.name : '—'
+    };
+  }).sort((a, b) => b.xp - a.xp);
+
+  // Render stats
+  const avgAll = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : '—';
+  ge('sd-stats').innerHTML = `
+    <div class="sd-stat"><div class="sd-stat-num">${participants.length}</div><div class="sd-stat-label">Участников</div></div>
+    <div class="sd-stat"><div class="sd-stat-num">${totalCompletions}</div><div class="sd-stat-label">Оценок</div></div>
+    <div class="sd-stat"><div class="sd-stat-num">${avgAll}</div><div class="sd-stat-label">Средний балл</div></div>
+    <div class="sd-stat"><div class="sd-stat-num">${totalXp}</div><div class="sd-stat-label">Всего XP</div></div>
+  `;
+
+  // Render leaderboard
+  const lbEl = ge('sd-leaderboard');
+  if (lbEl) {
+    if (!participantData.length) {
+      lbEl.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p>Нет участников для отображения</p></div>';
+    } else {
+      lbEl.innerHTML = participantData.map((pd, i) => {
+        const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+        const initials = (pd.student.first_name?.[0] || '') + (pd.student.last_name?.[0] || '');
+        const progressPct = pd.completionsCount > 0 ? Math.min(100, Math.round((pd.completionsCount / (shift.directions ? shift.directions.reduce((s,d) => s + d.missions.length, 0) : 10)) * 100)) : 0;
+        return `<div class="sd-lb-row card-enter" style="animation-delay:${i * 0.05}s">
+          <div class="sd-lb-rank ${rankClass}">${i < 3 ? ['🥇','🥈','🥉'][i] : '#' + (i+1)}</div>
+          <div class="sd-lb-avatar">${initials}</div>
+          <div class="sd-lb-info">
+            <div class="sd-lb-name">${pd.student.first_name} ${pd.student.last_name}</div>
+            <div class="sd-lb-meta">отряд ${pd.student.squad} · ${pd.student.campus || ''} · ${pd.topSkill}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+              <div style="flex:1;height:3px;border-radius:2px;background:var(--glass-b);overflow:hidden"><div style="height:100%;border-radius:2px;background:linear-gradient(90deg,var(--orange),#d65a0f);width:${progressPct}%"></div></div>
+              <span style="font-size:0.55rem;color:var(--muted)">${progressPct}%</span>
+            </div>
+          </div>
+          <div class="sd-lb-stats">
+            <span>${pd.completionsCount} зад.</span>
+            <span>${pd.avgScore}★</span>
+            <span class="sd-lb-xp">${pd.xp} XP</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Render squad distribution
+  const squadsEl = ge('sd-squads');
+  if (squadsEl) {
+    const squadCounts = {};
+    participantData.forEach(pd => {
+      const sq = pd.student.squad;
+      if (!squadCounts[sq]) squadCounts[sq] = { count: 0, totalXp: 0, totalScore: 0, scoreCount: 0 };
+      squadCounts[sq].count++;
+      squadCounts[sq].totalXp += pd.xp;
+      squadCounts[sq].totalScore += parseFloat(pd.avgScore) * pd.completionsCount;
+      squadCounts[sq].scoreCount += pd.completionsCount;
+    });
+    const maxCount = Math.max(...Object.values(squadCounts).map(s => s.count), 1);
+    squadsEl.innerHTML = Object.entries(squadCounts).sort((a,b) => a[0] - b[0]).map(([sq, data]) => {
+      const pct = Math.round((data.count / maxCount) * 100);
+      const avgSq = data.scoreCount > 0 ? (data.totalScore / data.scoreCount).toFixed(1) : '—';
+      return `<div class="sd-squad-bar">
+        <div class="sd-squad-bar-label">Отряд ${sq}</div>
+        <div class="sd-squad-bar-track"><div class="sd-squad-bar-fill" style="width:${pct}%"></div></div>
+        <div class="sd-squad-bar-val">${data.count} чел. · ${avgSq}★ · ${data.totalXp} XP</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function goBack() {
+  if (state.currentPage === 'shift-dashboard') {
+    navigateTo('shifts');
+  } else if (state.currentPage === 'shift-detail') {
+    navigateTo('shifts');
+  } else {
+    navigateTo('students');
+  }
 }
 
 function openShiftDetail(shiftId) {
@@ -1214,6 +1438,7 @@ function openShiftDetail(shiftId) {
       <div class="shift-detail-product-title">📦 Продуктовый инкубатор</div>
       <p>${s.product}</p>
     </div>
+    <button class="btn-primary" style="margin-top:16px" onclick="openShiftDashboard(${s.id})">📊 Дашборд смены</button>
   </div>`;
 
   const mainEl = document.querySelector('.main');
@@ -1742,6 +1967,8 @@ function fillReport(student) {
   set('rp-grade', student.grade + ' класс');
   set('rp-squad', 'Отряд ' + student.squad);
   set('rp-shift', 'Смена ' + student.shift);
+  const rpCampusEl = document.getElementById('rp-campus');
+  if (rpCampusEl) rpCampusEl.textContent = student.campus || '';
   set('rp-progress', level.progress + '%');
   set('rp-progress-label', level.progress + '%');
   set('rp-level', level.num);
@@ -1931,8 +2158,21 @@ function populateAssShiftSelect() {
   });
 }
 
+function onAssCampusChange() {
+  const campus = ge('ass-campus').value;
+  const shiftSel = ge('ass-shift');
+  const squadSel = ge('ass-squad');
+  const studentSel = ge('ass-student');
+  // Reset downstream
+  squadSel.innerHTML = '<option value="">Выбрать отряд...</option>';
+  studentSel.innerHTML = '<option value="">Выбрать участника...</option>';
+  ge('ass-missions-area').innerHTML = '';
+  ge('ass-summary-area').innerHTML = '';
+}
+
 function onAssShiftChange() {
   const shiftId = parseInt(ge('ass-shift').value);
+  const campus = ge('ass-campus').value;
   const squadSel = ge('ass-squad');
   const studentSel = ge('ass-student');
   squadSel.innerHTML = '<option value="">Выбрать отряд...</option>';
@@ -1940,7 +2180,9 @@ function onAssShiftChange() {
   ge('ass-missions-area').innerHTML = '';
   ge('ass-summary-area').innerHTML = '';
   if (!shiftId) return;
-  const squads = [...new Set(state.students.filter(s => s.shift === shiftId).map(s => s.squad))].sort((a,b) => a-b);
+  let filtered = state.students.filter(s => s.shift === shiftId);
+  if (campus) filtered = filtered.filter(s => s.campus === campus);
+  const squads = [...new Set(filtered.map(s => s.squad))].sort((a,b) => a-b);
   squads.forEach(sq => {
     const opt = document.createElement('option');
     opt.value = sq;
@@ -1952,12 +2194,14 @@ function onAssShiftChange() {
 function onAssSquadChange() {
   const shiftId = parseInt(ge('ass-shift').value);
   const squad = parseInt(ge('ass-squad').value);
+  const campus = ge('ass-campus').value;
   const studentSel = ge('ass-student');
   studentSel.innerHTML = '<option value="">Выбрать участника...</option>';
   ge('ass-missions-area').innerHTML = '';
   ge('ass-summary-area').innerHTML = '';
   if (!shiftId || !squad) return;
-  const list = state.students.filter(s => s.shift === shiftId && s.squad === squad);
+  let list = state.students.filter(s => s.shift === shiftId && s.squad === squad);
+  if (campus) list = list.filter(s => s.campus === campus);
   list.forEach(s => {
     const opt = document.createElement('option');
     opt.value = s.id;
