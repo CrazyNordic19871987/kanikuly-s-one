@@ -7,6 +7,7 @@ let state = {
   students: [],
   observations: [],
   badges: [],
+  completions: [],
   currentPage: 'students',
   currentStudentId: null,
   currentDay: 1,
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     showLoader(true);
     populateShiftSelect();
+    populateAssShiftSelect();
     await loadData();
     setupNav();
     setupSearch();
@@ -55,14 +57,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadData() {
-  const [students, observations, badges] = await Promise.all([
+  const [students, observations, badges, completions] = await Promise.all([
     api.getAll(TABLES.STUDENTS),
     api.getAll(TABLES.OBSERVATIONS),
-    api.getAll(TABLES.BADGES)
+    api.getAll(TABLES.BADGES),
+    api.getAll(TABLES.COMPLETIONS)
   ]);
   state.students    = Array.isArray(students) ? students : LS.get('students');
   state.observations = Array.isArray(observations) ? observations : LS.get('observations');
   state.badges      = Array.isArray(badges) ? badges : LS.get('badges');
+  state.completions = Array.isArray(completions) ? completions : LS.get('completions');
 }
 
 function showLoader(v) {
@@ -1703,7 +1707,29 @@ function fillReport(student) {
 
   const obs = state.observations.filter(o => o.student_id === student.id);
   const earned = state.badges.filter(b => b.student_id === student.id && b.earned);
+  const completions = state.completions.filter(c => c.student_id == student.id);
   const compScores = calcCompetencies(obs);
+  
+  // Enrich competencies with completion data
+  const completionSkills = {};
+  let totalXp = 0, totalCurrency = 0, currencyName = '';
+  const shiftProfessions = new Set();
+  const shiftFutureSkills = new Set();
+  completions.forEach(c => {
+    totalXp += c.xp || 0;
+    totalCurrency += c.currency || 0;
+    if (c.currency_name) currencyName = c.currency_name;
+    if (c.skills) Object.entries(c.skills).forEach(([k,v]) => { completionSkills[k] = (completionSkills[k]||0) + v; });
+    (c.professions || []).forEach(p => shiftProfessions.add(p));
+    (c.future_skills || []).forEach(f => shiftFutureSkills.add(f));
+  });
+  
+  // Merge completion skills into comp scores (0-100 scale)
+  Object.entries(completionSkills).forEach(([k,v]) => {
+    const boosted = Math.min(100, (compScores[k] || 0) + v);
+    compScores[k] = boosted;
+  });
+
   const profile = analyzeStudentProfile(obs, earned, compScores);
   const level = getStudentLevel(obs, state.badges.filter(b => b.student_id === student.id));
   const avg = obs.length ? (obs.reduce((s, o) => s + (o.independence + o.quality) / 2, 0) / obs.length).toFixed(1) : '—';
@@ -1721,9 +1747,11 @@ function fillReport(student) {
   set('rp-level', level.num);
   set('rp-level-icon', level.icon);
   set('rp-level-name', level.name);
-  set('rp-stat-tasks', obs.length);
+  set('rp-stat-tasks', obs.length + completions.length);
   set('rp-stat-badges', earned.length);
   set('rp-stat-score', avg);
+  set('rp-stat-xp', totalXp);
+  set('rp-stat-currency', totalCurrency > 0 ? totalCurrency + ' ' + (currencyName || '') : '—');
 
   const engMeta = {
     high:     { i:'🔥', t:'Высокая' },
@@ -1778,9 +1806,16 @@ function fillReport(student) {
   }
 
   const scored = getScoredProfessions(obs, earned, compScores);
+  // Add shift-specific professions from completions
+  const allProfessions = [...scored];
+  shiftProfessions.forEach(pName => {
+    if (!allProfessions.find(p => p.name === pName)) {
+      allProfessions.push({ name: pName, icon: '💼', score: 60, desc: 'Профессия из тематики смены' });
+    }
+  });
   const careerEl = ge('rp-careers');
   if (careerEl) {
-    careerEl.innerHTML = scored.slice(0, 3).map(p => `
+    careerEl.innerHTML = allProfessions.slice(0, 5).map(p => `
       <div class="rp-career">
         <div class="rp-career-top">
           <span class="rp-career-ico">${p.icon}</span>
@@ -1791,9 +1826,19 @@ function fillReport(student) {
       </div>`).join('') || '<div class="empty-note">Нет данных для анализа</div>';
   }
 
+  // Future Skills section
   const extraEl = ge('rp-extra');
   if (extraEl) {
-    extraEl.innerHTML = (profile.recommendedExtracurricular || []).slice(0, 4).map(e => `
+    const extraItems = [];
+    // Add shift future skills
+    shiftFutureSkills.forEach(f => {
+      extraItems.push({ icon: '🔮', name: f, desc: 'Навык из тематики смены' });
+    });
+    // Add recommended extracurricular
+    (profile.recommendedExtracurricular || []).forEach(e => {
+      extraItems.push(e);
+    });
+    extraEl.innerHTML = extraItems.slice(0, 6).map(e => `
       <div class="rp-extra-item">
         <span class="rp-extra-ico">${e.icon}</span>
         <div>
@@ -1870,3 +1915,254 @@ function printReportNow() {
 window.addEventListener('afterprint', () => {
   document.body.classList.remove('report-mode');
 });
+
+// =============================================
+//  Страница 6: Оценка заданий
+// =============================================
+
+function populateAssShiftSelect() {
+  const sel = ge('ass-shift');
+  if (!sel || typeof SHIFTS === 'undefined') return;
+  SHIFTS.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = 'Смена ' + s.id;
+    sel.appendChild(opt);
+  });
+}
+
+function onAssShiftChange() {
+  const shiftId = parseInt(ge('ass-shift').value);
+  const squadSel = ge('ass-squad');
+  const studentSel = ge('ass-student');
+  squadSel.innerHTML = '<option value="">Выбрать отряд...</option>';
+  studentSel.innerHTML = '<option value="">Выбрать участника...</option>';
+  ge('ass-missions-area').innerHTML = '';
+  ge('ass-summary-area').innerHTML = '';
+  if (!shiftId) return;
+  const squads = [...new Set(state.students.filter(s => s.shift === shiftId).map(s => s.squad))].sort((a,b) => a-b);
+  squads.forEach(sq => {
+    const opt = document.createElement('option');
+    opt.value = sq;
+    opt.textContent = 'Отряд ' + sq;
+    squadSel.appendChild(opt);
+  });
+}
+
+function onAssSquadChange() {
+  const shiftId = parseInt(ge('ass-shift').value);
+  const squad = parseInt(ge('ass-squad').value);
+  const studentSel = ge('ass-student');
+  studentSel.innerHTML = '<option value="">Выбрать участника...</option>';
+  ge('ass-missions-area').innerHTML = '';
+  ge('ass-summary-area').innerHTML = '';
+  if (!shiftId || !squad) return;
+  const list = state.students.filter(s => s.shift === shiftId && s.squad === squad);
+  list.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.first_name + ' ' + s.last_name;
+    studentSel.appendChild(opt);
+  });
+}
+
+function onAssStudentChange() {
+  const shiftId = parseInt(ge('ass-shift').value);
+  const studentId = ge('ass-student').value;
+  const area = ge('ass-missions-area');
+  const summaryArea = ge('ass-summary-area');
+  area.innerHTML = '';
+  summaryArea.innerHTML = '';
+  if (!shiftId || !studentId) return;
+
+  const shift = SHIFTS.find(s => s.id === shiftId);
+  if (!shift) return;
+
+  // Load existing completions for this student+shift
+  const existing = state.completions.filter(c => c.student_id == studentId && c.shift_id === shiftId);
+  
+  let html = '';
+  shift.directions.forEach((dir, di) => {
+    html += `<div class="assess-direction" id="ass-dir-${di}">
+      <div class="assess-direction-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="dir-icon">${dir.icon}</span>
+        <h3>${dir.name}</h3>
+        <span class="dir-arrow">▶</span>
+      </div>
+      <div class="assess-missions-list">`;
+    dir.missions.forEach((mis, mi) => {
+      const existingMis = existing.find(c => c.direction_idx === di && c.mission_idx === mi);
+      const score = existingMis ? existingMis.score : '';
+      const skillTags = (mis.skills || []).map(sk => {
+        const comp = COMPETENCIES.find(c => c.id === sk);
+        return comp ? `<span class="assess-mission-skill">${comp.icon} ${comp.name}</span>` : '';
+      }).join('');
+      html += `<div class="assess-mission">
+        <div class="assess-mission-info">
+          <div class="assess-mission-name">${mis.name}</div>
+          <div class="assess-mission-desc">${mis.desc}</div>
+          <div class="assess-mission-skills">${skillTags}</div>
+        </div>
+        <div class="assess-score-wrap">
+          <input type="number" class="assess-score-input" min="0" max="10" value="${score}" 
+            data-dir="${di}" data-mi="${mi}" onchange="onAssScoreChange(this)">
+          <div class="assess-reward">
+            <div class="assess-reward-val" id="ass-reward-${di}-${mi}">${score ? calcXp(score) + ' XP' : '—'}</div>
+            <div>${score ? Math.round(score * 10) + ' ' + (shift.currency || '').substring(0,4) : ''}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `<button class="btn-primary assess-save-btn" onclick="saveAssessments()">💾 Сохранить оценки</button>`;
+  area.innerHTML = html;
+}
+
+function calcXp(score) {
+  return Math.round(score * score * 2);
+}
+
+function calcCurrency(score, shift) {
+  return Math.round(score * 10);
+}
+
+function onAssScoreChange(input) {
+  const score = parseInt(input.value) || 0;
+  const di = input.dataset.dir;
+  const mi = input.dataset.mi;
+  const rewardEl = ge('ass-reward-' + di + '-' + mi);
+  if (rewardEl) {
+    if (score > 0) {
+      rewardEl.textContent = calcXp(score) + ' XP';
+    } else {
+      rewardEl.textContent = '—';
+    }
+  }
+}
+
+async function saveAssessments() {
+  const shiftId = parseInt(ge('ass-shift').value);
+  const studentId = ge('ass-student').value;
+  if (!shiftId || !studentId) return showToast('⚠️ Выберите участника', 'warn');
+
+  const shift = SHIFTS.find(s => s.id === shiftId);
+  if (!shift) return;
+
+  const inputs = document.querySelectorAll('.assess-score-input');
+  const completions = [];
+  
+  inputs.forEach(input => {
+    const score = parseInt(input.value) || 0;
+    if (score < 0 || score > 10) return;
+    const di = parseInt(input.dataset.dir);
+    const mi = parseInt(input.dataset.mi);
+    const mis = shift.directions[di].missions[mi];
+    
+    // Calculate skills impact
+    const skillsImpact = {};
+    (mis.skills || []).forEach(sk => {
+      skillsImpact[sk] = Math.round(score * 1.5);
+    });
+
+    completions.push({
+      student_id: studentId,
+      shift_id: shiftId,
+      direction_idx: di,
+      direction_name: shift.directions[di].name,
+      mission_idx: mi,
+      mission_name: mis.name,
+      score: score,
+      xp: calcXp(score),
+      currency: calcCurrency(score, shift),
+      currency_name: shift.currency,
+      skills: skillsImpact,
+      professions: mis.professions || [],
+      future_skills: mis.futureSkills || [],
+      completed_at: new Date().toISOString()
+    });
+  });
+
+  // Remove old completions for this student+shift and insert new ones
+  const oldIds = state.completions
+    .filter(c => c.student_id == studentId && c.shift_id === shiftId)
+    .map(c => c.id);
+
+  // Remove old from state
+  state.completions = state.completions.filter(c => !(c.student_id == studentId && c.shift_id === shiftId));
+
+  // Try to save each completion
+  for (const comp of completions) {
+    const result = await api.insert(TABLES.COMPLETIONS, comp);
+    if (result && result[0]) {
+      state.completions.push(result[0]);
+    } else {
+      state.completions.push({ ...comp, id: Date.now().toString() + Math.random().toString(36).substr(2,5) });
+    }
+  }
+
+  // Try to delete old ones from server
+  for (const oldId of oldIds) {
+    await api.remove(TABLES.COMPLETIONS, oldId);
+  }
+
+  LS.set('completions', state.completions);
+  showToast('✓ Оценки сохранены!');
+  renderAssessSummary();
+}
+
+function renderAssessSummary() {
+  const studentId = ge('ass-student').value;
+  const shiftId = parseInt(ge('ass-shift').value);
+  const summaryArea = ge('ass-summary-area');
+  if (!studentId || !shiftId) { summaryArea.innerHTML = ''; return; }
+
+  const shift = SHIFTS.find(s => s.id === shiftId);
+  const completions = state.completions.filter(c => c.student_id == studentId && c.shift_id === shiftId);
+  
+  let totalXp = 0, totalCurrency = 0, totalScore = 0, count = 0;
+  const skillsAccum = {};
+  const profsSet = new Set();
+  const futureSet = new Set();
+
+  completions.forEach(c => {
+    totalXp += c.xp || 0;
+    totalCurrency += c.currency || 0;
+    if (c.score > 0) { totalScore += c.score; count++; }
+    if (c.skills) Object.entries(c.skills).forEach(([k,v]) => { skillsAccum[k] = (skillsAccum[k]||0) + v; });
+    (c.professions || []).forEach(p => profsSet.add(p));
+    (c.future_skills || []).forEach(f => futureSet.add(f));
+  });
+
+  const avgScore = count > 0 ? (totalScore / count).toFixed(1) : '—';
+
+  let html = `<h3>📊 Итоги оценки</h3>`;
+  html += `<div class="assess-summary-row"><span>Средний балл</span><span class="assess-summary-val">${avgScore}</span></div>`;
+  html += `<div class="assess-summary-row"><span>Всего XP</span><span class="assess-summary-val">${totalXp}</span></div>`;
+  html += `<div class="assess-summary-row"><span>${shift.currency || 'Валюта'}</span><span class="assess-summary-val">${totalCurrency}</span></div>`;
+  html += `<div class="assess-summary-row"><span>Заданий оценено</span><span class="assess-summary-val">${count}</span></div>`;
+  
+  if (Object.keys(skillsAccum).length > 0) {
+    html += `<div style="margin-top:10px;font-size:.72rem;color:var(--muted);font-weight:600">Развитые навыки:</div>`;
+    html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">`;
+    Object.entries(skillsAccum).sort((a,b) => b[1] - a[1]).forEach(([k,v]) => {
+      const comp = COMPETENCIES.find(c => c.id === k);
+      if (comp) html += `<span class="assess-mission-skill">${comp.icon} ${comp.name} +${v}</span>`;
+    });
+    html += `</div>`;
+  }
+  if (profsSet.size > 0) {
+    html += `<div style="margin-top:10px;font-size:.72rem;color:var(--muted);font-weight:600">Профессии будущего:</div>`;
+    html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">`;
+    profsSet.forEach(p => { html += `<span class="assess-mission-skill">💼 ${p}</span>`; });
+    html += `</div>`;
+  }
+  if (futureSet.size > 0) {
+    html += `<div style="margin-top:10px;font-size:.72rem;color:var(--muted);font-weight:600">Навыки будущего:</div>`;
+    html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">`;
+    futureSet.forEach(f => { html += `<span class="assess-mission-skill">🔮 ${f}</span>`; });
+    html += `</div>`;
+  }
+
+  summaryArea.innerHTML = html;
+}
