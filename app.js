@@ -25,9 +25,21 @@ function ge(id) {
 }
 
 // -- Инициализация -----------------------------
+function populateShiftSelect() {
+  const sel = ge('s-shift');
+  if (!sel || typeof SHIFTS === 'undefined') return;
+  SHIFTS.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = 'Смена ' + s.id + ' — ' + s.title;
+    sel.appendChild(opt);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     showLoader(true);
+    populateShiftSelect();
     await loadData();
     setupNav();
     setupSearch();
