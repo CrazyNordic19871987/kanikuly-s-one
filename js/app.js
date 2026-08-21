@@ -8,6 +8,10 @@ let state = {
   observations: [],
   badges: [],
   completions: [],
+  shifts: [],
+  competencies: [],
+  badgeDefs: [],
+  discConfig: { colors: {}, skill_map: {}, combo: {} },
   currentPage: 'students',
   currentStudentId: null,
   currentDay: 1,
@@ -32,8 +36,8 @@ function ge(id) {
 // -- Инициализация -----------------------------
 function populateShiftSelect() {
   const sel = ge('s-shift');
-  if (!sel || typeof SHIFTS === 'undefined') return;
-  SHIFTS.forEach(s => {
+  if (!sel || typeof state.shifts === 'undefined') return;
+  state.shifts.forEach(s => {
     const opt = document.createElement('option');
     opt.value = s.id;
     opt.textContent = 'Смена ' + s.id + ' — ' + s.title;
@@ -44,8 +48,8 @@ function populateShiftSelect() {
 function populateStudentFilters() {
   const shiftSel = ge('st-filter-shift');
   const squadSel = ge('st-filter-squad');
-  if (!shiftSel || typeof SHIFTS === 'undefined') return;
-  SHIFTS.forEach(s => {
+  if (!shiftSel || typeof state.shifts === 'undefined') return;
+  state.shifts.forEach(s => {
     const opt = document.createElement('option');
     opt.value = s.id;
     opt.textContent = 'Смена ' + s.id;
@@ -92,16 +96,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadData() {
-  const [students, observations, badges, completions] = await Promise.all([
+  const [students, observations, badges, completions, shifts, competencies, badgeDefs, discRows] = await Promise.all([
     api.getAll(TABLES.STUDENTS),
     api.getAll(TABLES.OBSERVATIONS),
     api.getAll(TABLES.BADGES),
-    api.getAll(TABLES.COMPLETIONS)
+    api.getAll(TABLES.COMPLETIONS),
+    api.getAll(TABLES.CONTENT_state.shifts),
+    api.getAll(TABLES.CONTENT_COMPETENCIES),
+    api.getAll(TABLES.CONTENT_state.badgeDefs),
+    api.getAll(TABLES.CONTENT_DISC_CONFIG)
   ]);
   state.students    = Array.isArray(students) ? students : LS.get('students');
   state.observations = Array.isArray(observations) ? observations : LS.get('observations');
   state.badges      = Array.isArray(badges) ? badges : LS.get('badges');
   state.completions = Array.isArray(completions) ? completions : LS.get('completions');
+
+  if (Array.isArray(shifts) && shifts.length > 0) {
+    state.shifts = shifts;
+  } else {
+    state.shifts = typeof DEFAULT_state.shifts !== 'undefined' ? DEFAULT_state.shifts : [];
+  }
+  if (Array.isArray(competencies) && competencies.length > 0) {
+    state.competencies = competencies.map(c => ({ id: c.comp_id, name: c.name, icon: c.icon, color: c.color }));
+  } else {
+    state.competencies = typeof DEFAULT_COMPETENCIES !== 'undefined' ? DEFAULT_COMPETENCIES : [];
+  }
+  if (Array.isArray(badgeDefs) && badgeDefs.length > 0) {
+    state.badgeDefs = badgeDefs.map(b => ({ id: b.badge_id, name: b.name, icon: b.icon, shift_id: b.shift_id, direction_name: b.direction_name, mission_name: b.mission_name, condition: b.condition, rarity: b.rarity, desc: b.desc }));
+  } else {
+    state.badgeDefs = [];
+  }
+  if (Array.isArray(discRows) && discRows.length > 0) {
+    const dc = typeof DEFAULT_DISC_CONFIG !== 'undefined' ? JSON.parse(JSON.stringify(DEFAULT_DISC_CONFIG)) : {};
+    discRows.forEach(r => { dc[r.config_key] = r.config_value; });
+    state.discConfig = dc;
+  } else {
+    state.discConfig = typeof DEFAULT_DISC_CONFIG !== 'undefined' ? JSON.parse(JSON.stringify(DEFAULT_DISC_CONFIG)) : { colors:{}, skill_map:{}, combo:{} };
+  }
 }
 
 function showLoader(v) {
@@ -396,7 +427,7 @@ function selectTrack(track) {
 }
 
 function renderCurrentTask() {
-  const task = KTP.find(t => t.track === state.currentTrack && t.day === state.currentDay);
+  const task = null;
   const container = ge('task-detail');
   if (!task || !container) { if (container) container.innerHTML = '<p class="empty-note">Выберите задание</p>'; return; }
 
@@ -414,7 +445,7 @@ function renderCurrentTask() {
 
   let skillChips = '';
   task.skills.forEach(s => {
-    const c = COMPETENCIES.find(c => c.id === s);
+    const c = state.competencies.find(c => c.id === s);
     if (c) skillChips += '<span class="skill-chip" style="--chip-color:' + c.color + '">' + c.icon + ' ' + c.name + '</span>';
   });
 
@@ -530,7 +561,7 @@ function hasObservation(studentId, day, track) {
 // =============================================
 
 async function checkAndAwardBadges(studentId, day, track, obs) {
-  const defs = BADGE_DEFS.filter(b => b.track === track && b.day === day);
+  const defs = state.badgeDefs.filter(b => b.track === track && b.day === day);
   for (const def of defs) {
     const alreadyEarned = state.badges.find(b => b.student_id === studentId && b.badge_id === def.id && b.earned);
     if (alreadyEarned) continue;
@@ -583,7 +614,7 @@ function renderAchievements(studentId) {
   const achSummary = document.getElementById('ach-summary');
 
   if (badgeGrid) {
-    badgeGrid.innerHTML = BADGE_DEFS
+    badgeGrid.innerHTML = state.badgeDefs
       .sort((a,b) => rarityOrder[a.rarity] - rarityOrder[b.rarity])
       .map(def => {
         const isEarned = earnedIds.has(def.id);
@@ -601,7 +632,7 @@ function renderAchievements(studentId) {
       }).join('');
   }
   if (achSummary) achSummary.innerHTML =
-    `<span class="ach-count">${earned.length}</span> из <span>${BADGE_DEFS.length}</span> значков получено`;
+    `<span class="ach-count">${earned.length}</span> из <span>${state.badgeDefs.length}</span> значков получено`;
 }
 
 function rarityLabel(r) {
@@ -661,11 +692,10 @@ function renderTalentCard(studentId) {
   const obsListEl = document.getElementById('talent-obs-list');
   if (obsListEl) obsListEl.innerHTML = obs.length
     ? obs.map(o => {
-        const task = KTP.find(t => t.track === o.track && t.day === o.day);
         const trackIcon = {bio:'🧬', eng:'⚙️', media:'🎥', english:'🌍'}[o.track] || '📋';
         return `<div class="obs-row">
           <span class="obs-icon">${trackIcon}</span>
-          <div class="obs-info"><strong>${task?.name || 'Задание'}</strong> · день ${o.day}</div>
+          <div class="obs-info"><strong>${o.track} · день ${o.day}</strong></div>
           <div class="obs-scores">
             <span>💪 ${o.independence}/5</span>
             <span>★ ${o.quality}/5</span>
@@ -677,94 +707,36 @@ function renderTalentCard(studentId) {
 }
 
 function getScoredProfessions(obs, badges, compScores) {
-  const professions = [];
-  Object.entries(TRACK_PROFESSIONS).forEach(([track, profs]) => {
-    profs.forEach(prof => {
-      const trackBadges = BADGE_DEFS.filter(b => b.track === track).map(b => b.id);
-      const trackSkills = KTP.filter(t => t.track === track).flatMap(t => t.skills);
-      const uniqueSkills = [...new Set(trackSkills)];
-      professions.push({
-        id: prof.title.toLowerCase().replace(/\s/g, '_'),
-        name: prof.title,
-        icon: track === 'bio' ? '🧬' : track === 'eng' ? '⚙️' : track === 'english' ? '🌍' : '🎥',
-        desc: prof.desc,
-        criteria: {
-          tracks: [track],
-          badges: trackBadges.slice(0, 2),
-          skills: uniqueSkills.slice(0, 4),
-          minAvgScore: 3.0
-        }
+  const shiftMissions = [];
+  state.shifts.forEach(s => {
+    (s.directions || []).forEach(d => {
+      (d.missions || []).forEach(m => {
+        shiftMissions.push({ shift_id: s.id, direction: d.name, icon: d.icon, ...m });
       });
     });
   });
-
-  const scored = professions.map(prof => {
+  const scored = shiftMissions.map(m => {
     let score = 0;
     let maxScore = 0;
     const comments = [];
-
-    const relevantObs = obs.filter(o => prof.criteria.tracks.includes(o.track));
-    if (relevantObs.length > 0) {
-      const avgScore = relevantObs.reduce((sum, o) => sum + (o.independence + o.quality) / 2, 0) / relevantObs.length;
-      if (avgScore >= prof.criteria.minAvgScore) {
-        const trackScore = Math.min(40, (avgScore / 5) * 40);
-        score += trackScore;
-        comments.push(`✓ Хорошие оценки в треке (${avgScore.toFixed(1)}/5)`);
-      } else {
-        comments.push(`⚠ Баллы ниже порога (${avgScore.toFixed(1)}/5)`);
-      }
-      maxScore += 40;
-    } else {
-      comments.push(`— Нет данных в треке`);
-      maxScore += 40;
-    }
-
-    const earnedBadgeIds = badges.map(b => b.badge_id);
-    const relevantBadges = prof.criteria.badges.filter(b => earnedBadgeIds.includes(b));
-    if (prof.criteria.badges.length > 0) {
-      const badgeScore = (relevantBadges.length / prof.criteria.badges.length) * 35;
-      score += badgeScore;
-      if (relevantBadges.length > 0) {
-        comments.push(`🏅 Значки трека: ${relevantBadges.map(b => {
-          const def = BADGE_DEFS.find(d => d.id === b);
-          return def ? def.icon + ' ' + def.name : b;
-        }).join(', ')}`);
-      }
-      maxScore += 35;
-    } else {
-      score += 35;
-      maxScore += 35;
-    }
-
-    const relevantSkills = prof.criteria.skills;
+    const mSkills = m.skills || [];
     let skillScore = 0;
-    let skillCount = 0;
-    relevantSkills.forEach(skillId => {
-      if (compScores[skillId]) {
-        skillScore += compScores[skillId];
-        skillCount++;
-      }
+    mSkills.forEach(sk => {
+      if (compScores[sk]) skillScore += compScores[sk];
     });
-    if (skillCount > 0) {
-      const avgSkill = skillScore / skillCount;
-      score += (avgSkill / 100) * 25;
-      comments.push(`📊 Компетенции: ${relevantSkills.filter(s => (compScores[s] || 0) > 50).map(s => {
-        const c = COMPETENCIES.find(cc => cc.id === s);
+    if (mSkills.length > 0) {
+      const avg = skillScore / mSkills.length;
+      score = avg;
+      maxScore = 100;
+      comments.push('📊 Совпадение с компетенциями: ' + mSkills.filter(s => (compScores[s]||0) > 50).map(s => {
+        const c = state.competencies.find(cc => cc.id === s);
         return c ? c.icon + ' ' + c.name : s;
-      }).join(', ')}`);
+      }).join(', '));
     }
-    maxScore += 25;
-
-    const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-
-    return {
-      ...prof,
-      score: percentage,
-      comments
-    };
+    const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+    return { id: m.name.toLowerCase().replace(/\s/g,'_'), name: m.name, icon: m.icon || '📋', desc: m.desc || '', score: pct, comments };
   });
-
-  scored.sort((a, b) => b.score - a.score);
+  scored.sort((a,b) => b.score - a.score);
   return scored;
 }
 
@@ -800,27 +772,24 @@ function renderRecommendations(obs, badges, compScores) {
 
 function calcCompetencies(obs) {
   const scores = {};
-  COMPETENCIES.forEach(c => scores[c.id] = 0);
+  state.competencies.forEach(c => scores[c.id] = 0);
   const counts = {};
-  COMPETENCIES.forEach(c => counts[c.id] = 0);
+  state.competencies.forEach(c => counts[c.id] = 0);
 
-  obs.forEach(o => {
-    const tasks = KTP.filter(t => t.track === o.track && t.day === o.day);
-    tasks.forEach(task => {
-      task.skills.forEach(skill => {
-        if (scores[skill] !== undefined) {
-          scores[skill] += (o.independence + o.quality) / 2 + (o.initiative ? 1 : 0);
-          counts[skill]++;
-        }
-      });
+  state.completions.forEach(c => {
+    if (!c.skills) return;
+    Object.entries(c.skills).forEach(([sk, val]) => {
+      if (scores[sk] !== undefined) {
+        scores[sk] += val;
+        counts[sk]++;
+      }
     });
   });
 
-  const maxPossible = 6;
   const result = {};
-  COMPETENCIES.forEach(c => {
+  state.competencies.forEach(c => {
     result[c.id] = counts[c.id] > 0
-      ? Math.min(100, Math.round((scores[c.id] / counts[c.id] / maxPossible) * 100))
+      ? Math.min(100, Math.round((scores[c.id] / counts[c.id]) * 20))
       : 0;
   });
   return result;
@@ -832,7 +801,7 @@ function drawRadar(canvas, scores, o) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   const cx = W/2, cy = H/2, R = Math.min(W,H)/2 - 34;
-  const N = COMPETENCIES.length;
+  const N = state.competencies.length;
 
   ctx.clearRect(0, 0, W, H);
 
@@ -851,7 +820,7 @@ function drawRadar(canvas, scores, o) {
     ctx.stroke();
   }
 
-  COMPETENCIES.forEach((c, i) => {
+  state.competencies.forEach((c, i) => {
     const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
@@ -869,7 +838,7 @@ function drawRadar(canvas, scores, o) {
   });
 
   ctx.beginPath();
-  COMPETENCIES.forEach((c, i) => {
+  state.competencies.forEach((c, i) => {
     const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
     const val = (scores[c.id] || 0) / 100;
     const x = cx + Math.cos(angle) * R * val;
@@ -887,7 +856,7 @@ function drawRadar(canvas, scores, o) {
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  COMPETENCIES.forEach((c, i) => {
+  state.competencies.forEach((c, i) => {
     const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
     const val = (scores[c.id] || 0) / 100;
     const x = cx + Math.cos(angle) * R * val;
@@ -914,7 +883,7 @@ function renderRadarChart(scores) {
 function renderCompBars(scores) {
   const el = document.getElementById('comp-bars');
   if (!el) return;
-  el.innerHTML = COMPETENCIES.map(c => `
+  el.innerHTML = state.competencies.map(c => `
     <div class="comp-bar-row">
       <span class="comp-bar-icon">${c.icon}</span>
       <span class="comp-bar-name">${c.name}</span>
@@ -929,17 +898,16 @@ function calcDisc(obs) {
   const rawScores = {D:0, I:0, S:0, C:0};
   const counts = {D:0, I:0, S:0, C:0};
 
-  obs.forEach(o => {
-    const tasks = KTP.filter(t => t.track === o.track && t.day === o.day);
-    tasks.forEach(task => {
-      task.skills.forEach(skill => {
-        for (const [type, skills] of Object.entries(DISC_SKILL_MAP)) {
-          if (skills.includes(skill)) {
-            rawScores[type] += (o.independence + o.quality) / 2 + (o.initiative ? 0.5 : 0);
-            counts[type]++;
-          }
+  state.completions.forEach(c => {
+    if (!c.skills) return;
+    Object.keys(c.skills).forEach(skill => {
+      const skillMap = state.discConfig.skill_map || {};
+      for (const [type, skills] of Object.entries(skillMap)) {
+        if (skills.includes(skill)) {
+          rawScores[type] += c.score || 0;
+          counts[type]++;
         }
-      });
+      }
     });
   });
 
@@ -951,11 +919,12 @@ function calcDisc(obs) {
       : 10;
   }
 
+  const dc = state.discConfig.colors || {};
   const labels = {
-    D:{label:'Доминирование', color:DISC_COLORS.D, desc:'Активный, решительный'},
-    I:{label:'Влияние',       color:DISC_COLORS.I, desc:'Общительный, креативный'},
-    S:{label:'Стабильность',  color:DISC_COLORS.S, desc:'Уравновешенный, надёжный'},
-    C:{label:'Постоянство',   color:DISC_COLORS.C, desc:'Аналитик, точный'}
+    D:{label:'Доминирование', color:dc.D || '#EF4444', desc:'Активный, решительный'},
+    I:{label:'Влияние',       color:dc.I || '#FBBF24', desc:'Общительный, креативный'},
+    S:{label:'Стабильность',  color:dc.S || '#22C55E', desc:'Уравновешенный, надёжный'},
+    C:{label:'Постоянство',   color:dc.C || '#3B82F6', desc:'Аналитик, точный'}
   };
 
   const dominant = Object.entries(disc).sort((a,b) => b[1]-a[1])[0];
@@ -988,7 +957,7 @@ function renderDISC(obs) {
   if (existingCombo) existingCombo.remove();
 
   const comboHtml = '<div class="disc-combo-section"><h3>Комбо-типы DISC</h3>' +
-    Object.entries(DISC_COMBO).map(([key, val]) => `
+    Object.entries(state.discConfig.combo || {}).map(([key, val]) => `
       <div class="disc-row" style="margin-bottom:6px;">
         <div class="disc-type-label" style="color:${val.color}">${key}</div>
         <div class="disc-type-desc"><strong>${val.label}</strong> · ${val.desc}</div>
@@ -1129,11 +1098,6 @@ function renderDashboard() {
       <div class="db-sc-badges">${bdgs.slice(0,5).map(b=>`<span>${b.icon}</span>`).join('')}</div>
     </div>`;
   }).join('');
-
-  renderClubsSection(grid.parentElement, null);
-  renderActivitiesSection(grid.parentElement);
-  renderEnglishSection(grid.parentElement);
-  renderCampTeam(grid.parentElement);
 }
 
 function setFilter(type, val) {
@@ -1177,11 +1141,7 @@ function showToast(msg, type = 'success') {
 
 function getUnlockedClubs(studentId) {
   const obs = state.observations.filter(o => o.student_id === studentId);
-  const maxDay = obs.length > 0 ? Math.max(...obs.map(o => o.day)) :0;
-  return CAMP_CLUBS.map(club => ({
-    ...club,
-    unlocked: maxDay >= club.unlockDay
-  }));
+  return [];
 }
 
 function getShiftSvg(id) {
@@ -1203,11 +1163,11 @@ function getShiftSvg(id) {
 function renderShiftsPage() {
   const grid = document.getElementById('shifts-grid');
   if (!grid) return;
-  if (!SHIFTS || !SHIFTS.length) {
+  if (!state.shifts || !state.shifts.length) {
     grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🏕️</div><p>Нет данных о сменах</p></div>';
     return;
   }
-  grid.innerHTML = SHIFTS.map(s => `
+  grid.innerHTML = state.shifts.map(s => `
     <div class="shift-card card-enter" onclick="openShiftDetail(${s.id})" style="cursor:pointer">
       <div class="shift-card-header">
         <div class="shift-card-img">
@@ -1268,7 +1228,7 @@ function setSdFilter(type, val) {
 
 function renderShiftDashboard() {
   const shiftId = state.currentShiftId;
-  const shift = SHIFTS.find(s => s.id === shiftId);
+  const shift = state.shifts.find(s => s.id === shiftId);
   if (!shift) return;
 
   const sdTitle = ge('sd-title');
@@ -1328,7 +1288,7 @@ function renderShiftDashboard() {
       if (c.skills) Object.entries(c.skills).forEach(([k,v]) => { skillsAccum[k] = (skillsAccum[k]||0) + v; });
     });
     const topSkill = Object.entries(skillsAccum).sort((a,b) => b[1] - a[1])[0];
-    const topSkillComp = topSkill ? COMPETENCIES.find(c => c.id === topSkill[0]) : null;
+    const topSkillComp = topSkill ? state.competencies.find(c => c.id === topSkill[0]) : null;
 
     return {
       student: s,
@@ -1415,7 +1375,7 @@ function goBack() {
 }
 
 function openShiftDetail(shiftId) {
-  const s = SHIFTS.find(x => x.id === shiftId);
+  const s = state.shifts.find(x => x.id === shiftId);
   if (!s) return;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -1490,76 +1450,11 @@ function renderCampPage() {
 }
 
 function renderClubsSection(container, studentId) {
-  const clubs = studentId ? getUnlockedClubs(studentId) : CAMP_CLUBS;
-  const html = `
-    <div class="clubs-section" style="margin-top:20px">
-      <h3 style="font-size:0.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">
-        🏆 Клубы каникул
-      </h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
-        ${clubs.map(club => `
-          <div class="gc ${club.unlocked ? '' : 'locked'}" style="opacity:${club.unlocked ? '1' : '0.5'};position:relative">
-            <div style="font-size:1.5rem;margin-bottom:6px">${club.icon}</div>
-            <strong style="display:block;font-size:0.85rem;margin-bottom:4px">${club.name}</strong>
-            <p style="font-size:0.7rem;color:var(--muted);margin:0">${club.desc}</p>
-            ${!club.unlocked ? '<div style="position:absolute;top:8px;right:8px;font-size:0.65rem;color:var(--orange);background:var(--orange-dim);padding:2px 8px;border-radius:10px">🔒 день ' + club.unlockDay + '+</div>' : ''}
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-  container.insertAdjacentHTML('beforeend', html);
 }
 
-function renderActivitiesSection(container) {
-  const html = `
-    <div class="activities-section" style="margin-top:20px">
-      <h3 style="font-size:0.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">
-        🎯 Активности и вечерние мероприятия
-      </h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div>
-          <h4 style="font-size:0.75rem;color:var(--orange);margin-bottom:8px">Дневные активности</h4>
-          ${EVENING_ACTIVITIES.day.map(a => `
-            <div class="gc" style="padding:8px;margin-bottom:6px">
-              <strong style="font-size:0.8rem">${a.name}</strong>
-              <p style="font-size:0.65rem;color:var(--muted);margin:2px 0 0">${a.desc}</p>
-            </div>
-          `).join('')}
-        </div>
-        <div>
-          <h4 style="font-size:0.75rem;color:var(--orange);margin-bottom:8px">Вечерние мероприятия</h4>
-          ${EVENING_ACTIVITIES.evening.map(a => `
-            <div class="gc" style="padding:8px;margin-bottom:6px">
-              <strong style="font-size:0.8rem">${a.name}</strong>
-              <p style="font-size:0.65rem;color:var(--muted);margin:2px 0 0">${a.desc}</p>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    </div>
-  `;
-  container.insertAdjacentHTML('beforeend', html);
-}
+function renderActivitiesSection(container) {}
 
-function renderEnglishSection(container) {
-  const html = `
-    <div class="english-section" style="margin-top:20px">
-      <h3 style="font-size:0.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">
-        🌐 Языковая составляющая
-      </h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
-        ${ENGLISH_COMPONENTS.map(e => `
-          <div class="gc">
-            <strong style="font-size:0.8rem">${e.name}</strong>
-            <p style="font-size:0.65rem;color:var(--muted);margin:2px 0 0">${e.desc}</p>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-  container.insertAdjacentHTML('beforeend', html);
-}
+function renderEnglishSection(container) {}
 
 // =============================================
 //  AI ANALYTICS (Local Rule-Based Engine)
@@ -1647,12 +1542,12 @@ function analyzeStudentProfile(obs, badges, compScores) {
   const lowSkills = sorted.slice(-3).filter(([_, v]) => v < 30);
 
   topSkills.forEach(([id]) => {
-    const c = COMPETENCIES.find(x => x.id === id);
+    const c = state.competencies.find(x => x.id === id);
     if (c) profile.strengths.push(c);
   });
 
   lowSkills.forEach(([id]) => {
-    const c = COMPETENCIES.find(x => x.id === id);
+    const c = state.competencies.find(x => x.id === id);
     if (c) profile.weaknesses.push(c);
   });
 
@@ -1823,7 +1718,7 @@ function renderAIInsights(studentId) {
 async function generateOpenAIAnalysis(student, obs, badges, compScores) {
   if (!OPENAI_API_KEY) return null;
 
-  const competencies = COMPETENCIES.map(c => ({
+  const competencies = state.competencies.map(c => ({
     name: c.name,
     icon: c.icon,
     score: compScores[c.id] || 0
@@ -1923,29 +1818,7 @@ ${lowSkills.length > 0 ? lowSkills.map(c => `- ${c.icon} ${c.name}: ${c.score}%`
   }
 }
 
-function renderCampTeam(container) {
-  const html = `
-    <div class="team-section" style="margin-top:20px">
-      <h3 style="font-size:0.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">
-        👥 Команда каникул
-      </h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">
-        ${CAMP_TEAM.map(m => `
-          <div class="gc">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start">
-              <div>
-                <strong style="font-size:0.8rem">${m.name}</strong>
-                <p style="font-size:0.65rem;color:var(--orange);margin:2px 0">${m.alias}</p>
-              </div>
-            </div>
-            <p style="font-size:0.65rem;color:var(--muted);margin:4px 0 0">${m.role}</p>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-  container.insertAdjacentHTML('beforeend', html);
-}
+function renderCampTeam(container) {}
 
 // =============================================
 //  ИГРОВОЙ РЕПОРТ УЧАСТНИКА (печать / PDF)
@@ -2044,7 +1917,7 @@ function fillReport(student) {
 
   const barsEl = ge('rp-comp-bars');
   if (barsEl) {
-    barsEl.innerHTML = COMPETENCIES.map(c => {
+    barsEl.innerHTML = state.competencies.map(c => {
       const v = compScores[c.id] || 0;
       return `<div class="rp-comp">
         <span class="rp-comp-ico">${c.icon}</span>
@@ -2118,7 +1991,7 @@ function fillReport(student) {
   const badgesEl = ge('rp-badges');
   if (badgesEl) {
     const earnedIds = new Set(earned.map(b => b.badge_id));
-    badgesEl.innerHTML = BADGE_DEFS.map(def => {
+    badgesEl.innerHTML = state.badgeDefs.map(def => {
       const is = earnedIds.has(def.id);
       return `<div class="rp-badge ${is ? 'earned' : 'locked'} rarity-${def.rarity}">
         <span class="rp-badge-ico">${is ? def.icon : '🔒'}</span>
@@ -2133,11 +2006,10 @@ function fillReport(student) {
     const trackIcons  = { bio:'🧬', eng:'⚙️', media:'🎥', english:'🌍' };
     const trackNames  = { bio:'Био', eng:'Инж', media:'Медиа', english:'English' };
     tbody.innerHTML = obs.slice().sort((a, b) => b.day - a.day).map(o => {
-      const task = KTP.find(t => t.track === o.track && t.day === o.day);
       return `<tr>
         <td>День ${o.day}</td>
         <td>${trackIcons[o.track] || ''} ${trackNames[o.track] || o.track}</td>
-        <td>${task?.name || '—'}</td>
+        <td>—</td>
         <td>${o.independence}/5</td>
         <td>${o.quality}/5</td>
         <td class="${o.initiative ? 'ok' : 'no'}">${o.initiative ? '🚀 да' : '—'}</td>
@@ -2156,7 +2028,7 @@ function fillReport(student) {
     });
     let compHtml = '';
     Object.entries(byShift).sort((a,b) => a[0]-b[0]).forEach(([sId, comps]) => {
-      const sh = SHIFTS.find(x => x.id == sId);
+      const sh = state.shifts.find(x => x.id == sId);
       const sXp = comps.reduce((s,c) => s + (c.xp||0), 0);
       const sScore = comps.filter(c => c.score > 0);
       const sAvg = sScore.length ? (sScore.reduce((s,c) => s + c.score, 0) / sScore.length).toFixed(1) : '—';
@@ -2221,8 +2093,8 @@ window.addEventListener('afterprint', () => {
 
 function populateAssShiftSelect() {
   const sel = ge('ass-shift');
-  if (!sel || typeof SHIFTS === 'undefined') return;
-  SHIFTS.forEach(s => {
+  if (!sel || typeof state.shifts === 'undefined') return;
+  state.shifts.forEach(s => {
     const opt = document.createElement('option');
     opt.value = s.id;
     opt.textContent = 'Смена ' + s.id;
@@ -2291,7 +2163,7 @@ function onAssStudentChange() {
   summaryArea.innerHTML = '';
   if (!shiftId || !studentId) return;
 
-  const shift = SHIFTS.find(s => s.id === shiftId);
+  const shift = state.shifts.find(s => s.id === shiftId);
   if (!shift) return;
 
   // Load existing completions for this student+shift
@@ -2310,7 +2182,7 @@ function onAssStudentChange() {
       const existingMis = existing.find(c => c.direction_idx === di && c.mission_idx === mi);
       const score = existingMis ? existingMis.score : '';
       const skillTags = (mis.skills || []).map(sk => {
-        const comp = COMPETENCIES.find(c => c.id === sk);
+        const comp = state.competencies.find(c => c.id === sk);
         return comp ? `<span class="assess-mission-skill">${comp.icon} ${comp.name}</span>` : '';
       }).join('');
       html += `<div class="assess-mission">
@@ -2362,7 +2234,7 @@ async function saveAssessments() {
   const studentId = ge('ass-student').value;
   if (!shiftId || !studentId) return showToast('⚠️ Выберите участника', 'warn');
 
-  const shift = SHIFTS.find(s => s.id === shiftId);
+  const shift = state.shifts.find(s => s.id === shiftId);
   if (!shift) return;
 
   const inputs = document.querySelectorAll('.assess-score-input');
@@ -2433,7 +2305,7 @@ function renderAssessSummary() {
   const summaryArea = ge('ass-summary-area');
   if (!studentId || !shiftId) { summaryArea.innerHTML = ''; return; }
 
-  const shift = SHIFTS.find(s => s.id === shiftId);
+  const shift = state.shifts.find(s => s.id === shiftId);
   const completions = state.completions.filter(c => c.student_id == studentId && c.shift_id === shiftId);
   
   let totalXp = 0, totalCurrency = 0, totalScore = 0, count = 0;
@@ -2481,7 +2353,7 @@ function renderAssessSummary() {
     html += '<div class="assess-summary-section-title">🧠 Развитые навыки</div>';
     html += '<div class="assess-summary-tags">';
     Object.entries(skillsAccum).sort((a,b) => b[1] - a[1]).forEach(([k,v]) => {
-      var comp = COMPETENCIES.find(c => c.id === k);
+      var comp = state.competencies.find(c => c.id === k);
       if (comp) html += '<span class="assess-summary-tag skill">' + comp.icon + ' ' + comp.name + ' +' + v + '</span>';
     });
     html += '</div></div>';
