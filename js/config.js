@@ -5,7 +5,7 @@
 const SUPABASE_URL = 'https://xzmxxnhyvbzdebqhomzd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bXh4bmh5dmJ6ZGVicWhvbXpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNTEzNzMsImV4cCI6MjA5MzgyNzM3M30.xAKnz6ijF8H1PNHFKVjrLyD264OHCgowkPgd2DqWF18';
 
-const OPENAI_API_KEY = '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';
+// OpenAI key removed — app uses local rule-based AI engine (analyzeStudentProfile)
 
 const TABLES = {
   STUDENTS:              'students',
@@ -15,7 +15,8 @@ const TABLES = {
   CONTENT_SHIFTS:        'content_shifts',
   CONTENT_COMPETENCIES:  'content_competencies',
   CONTENT_BADGE_DEFS:    'content_badge_definitions',
-  CONTENT_DISC_CONFIG:   'content_disc_config'
+  CONTENT_DISC_CONFIG:   'content_disc_config',
+  CONTENT_MISSIONS:      'content_missions'
 };
 
 // ── Fallback данные (если Supabase пуст) ──────────────────
@@ -60,4 +61,3 @@ window.TABLES = TABLES;
 window.DEFAULT_COMPETENCIES = DEFAULT_COMPETENCIES;
 window.DEFAULT_DISC_CONFIG = DEFAULT_DISC_CONFIG;
 window.DEFAULT_SHIFTS = DEFAULT_SHIFTS;
-window.OPENAI_API_KEY = OPENAI_API_KEY;

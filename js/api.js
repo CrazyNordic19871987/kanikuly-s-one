@@ -1,8 +1,8 @@
 // ════════════════════════════════════════════
-//  АМАКС 2 — API СЛОЙ (Supabase REST)
+//  КАНИКУЛЫ С ONE! — API СЛОЙ (Supabase REST)
 // ════════════════════════════════════════════
 
-class AmaksAPI {
+class SupabaseAPI {
   constructor() {
     this.base = SUPABASE_URL + '/rest/v1';
     this.h = {
@@ -20,24 +20,31 @@ class AmaksAPI {
     if (options.headers) {
       for (const k2 in options.headers) headers[k2] = options.headers[k2];
     }
-    try {
-      const r = await fetch(url, {
-        method: options.method || 'GET',
-        headers: headers,
-        body: options.body
-      });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const text = await r.text();
-      return text ? JSON.parse(text) : [];
-    } catch(e) {
-      console.warn('API error:', e.message);
-      return null;
+    const r = await fetch(url, {
+      method: options.method || 'GET',
+      headers: headers,
+      body: options.body
+    });
+    if (!r.ok) {
+      const errBody = await r.text().catch(() => '');
+      throw new Error('API ' + r.status + ': ' + errBody.substring(0, 200));
     }
+    const text = await r.text();
+    return text ? JSON.parse(text) : [];
   }
 
-  async getAll(table, filter) {
-    const url = this.base + '/' + table + '?select=*&order=created_at.desc';
-    return await this._req(url) || [];
+  async getAll(table) {
+    const PAGE_SIZE = 1000;
+    let all = [];
+    let offset = 0;
+    while (true) {
+      const url = this.base + '/' + table + '?select=*&order=created_at.desc&limit=' + PAGE_SIZE + '&offset=' + offset;
+      const batch = await this._req(url);
+      all = all.concat(batch);
+      if (batch.length < PAGE_SIZE) break;
+      offset += PAGE_SIZE;
+    }
+    return all;
   }
 
   async insert(table, data) {
@@ -67,16 +74,12 @@ class AmaksAPI {
       method: 'DELETE'
     });
   }
+
+  async removeWhere(table, filter) {
+    return await this._req(this.base + '/' + table + '?' + filter, {
+      method: 'DELETE'
+    });
+  }
 }
 
-const api = new AmaksAPI();
-
-// ── Локальное хранилище (fallback) ─────────
-const LS = {
-  get: function(k) {
-    try { return JSON.parse(localStorage.getItem('amaks2_' + k) || '[]'); } catch(e) { return []; }
-  },
-  set: function(k, v) {
-    try { localStorage.setItem('amaks2_' + k, JSON.stringify(v)); } catch(e) {}
-  }
-};
+const api = new SupabaseAPI();

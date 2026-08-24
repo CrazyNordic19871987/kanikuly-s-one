@@ -33,6 +33,14 @@ function ge(id) {
   return document.getElementById(id);
 }
 
+// -- XSS escape helper --------------------------
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
 // -- Инициализация -----------------------------
 function populateShiftSelect() {
   const sel = ge('s-shift');
@@ -93,7 +101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadData() {
   const safeGet = async (table) => { try { return await api.getAll(table); } catch(e) { console.warn('Fetch failed:', table, e); return []; } };
 
-  const [students, observations, badges, completions, shifts, competencies, badgeDefs, discRows] = await Promise.all([
+  const [students, observations, badges, completions, shifts, competencies, badgeDefs, discRows, missionsRows] = await Promise.all([
     safeGet(TABLES.STUDENTS),
     safeGet(TABLES.OBSERVATIONS),
     safeGet(TABLES.BADGES),
@@ -101,16 +109,17 @@ async function loadData() {
     safeGet(TABLES.CONTENT_SHIFTS),
     safeGet(TABLES.CONTENT_COMPETENCIES),
     safeGet(TABLES.CONTENT_BADGE_DEFS),
-    safeGet(TABLES.CONTENT_DISC_CONFIG)
+    safeGet(TABLES.CONTENT_DISC_CONFIG),
+    safeGet(TABLES.CONTENT_MISSIONS)
   ]);
 
-  state.students    = Array.isArray(students) ? students : (LS.get('students') || []);
-  state.observations = Array.isArray(observations) ? observations : (LS.get('observations') || []);
-  state.badges      = Array.isArray(badges) ? badges : (LS.get('badges') || []);
-  state.completions = Array.isArray(completions) ? completions : (LS.get('completions') || []);
+  state.students    = Array.isArray(students) ? students : [];
+  state.observations = Array.isArray(observations) ? observations : [];
+  state.badges      = Array.isArray(badges) ? badges : [];
+  state.completions = Array.isArray(completions) ? completions : [];
 
   if (Array.isArray(shifts) && shifts.length > 0) {
-    state.shifts = shifts.map(s => ({ ...s, id: s.shift_id }));
+    state.shifts = shifts.map(s => ({ ...s, id: s.shift_id })).sort((a, b) => a.id - b.id);
   } else {
     state.shifts = typeof DEFAULT_SHIFTS !== 'undefined' ? DEFAULT_SHIFTS : [];
   }
@@ -130,6 +139,11 @@ async function loadData() {
     state.discConfig = dc;
   } else {
     state.discConfig = typeof DEFAULT_DISC_CONFIG !== 'undefined' ? JSON.parse(JSON.stringify(DEFAULT_DISC_CONFIG)) : { colors:{}, skill_map:{}, combo:{} };
+  }
+  if (Array.isArray(missionsRows) && missionsRows.length > 0) {
+    state.missions = missionsRows;
+  } else {
+    state.missions = [];
   }
 
   populateShiftSelect();
@@ -174,7 +188,9 @@ function navigateTo(page) {
     if (mainEl) {
       mainEl.innerHTML = `<div class="topbar">
         <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
-        <div class="topbar-logo"><svg viewBox="0 0 200 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#ed7615"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><polygon points="24,22 18,32 30,32" fill="#ed7615" opacity="0.9"/></svg></div>
+        <div class="topbar-logo"><svg viewBox="0 0 200 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#E8A838"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><polygon points="24,22 18,32 30,32" fill="#E8A838" opacity="0.9"/></svg></div>
+        <div class="topbar-title">КАНИКУЛЫ С ONE!</div>
+        <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="Поиск участников..." value="${esc(state.searchQuery)}"></div>
         <div class="topbar-right"><div class="status-dot"></div></div>
       </div>
       <div class="page active" id="page-shifts">
@@ -188,6 +204,8 @@ function navigateTo(page) {
         </div>
       </div>`;
     }
+    rebindSearch();
+    }
   }
 
   if (page === 'shift-dashboard' && needsMainRebuild) {
@@ -196,7 +214,9 @@ function navigateTo(page) {
       mainEl.innerHTML = `<div class="topbar">
         <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
         <button class="mobile-back-btn" id="mobile-back-btn" onclick="goBack()">←</button>
-        <div class="topbar-logo"><svg viewBox="0 0 200 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#ed7615"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><polygon points="24,22 18,32 30,32" fill="#ed7615" opacity="0.9"/></svg></div>
+        <div class="topbar-logo"><svg viewBox="0 0 200 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#E8A838"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><polygon points="24,22 18,32 30,32" fill="#E8A838" opacity="0.9"/></svg></div>
+        <div class="topbar-title">КАНИКУЛЫ С ONE!</div>
+        <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="Поиск участников..." value="${esc(state.searchQuery)}"></div>
         <div class="topbar-right"><div class="status-dot"></div></div>
       </div>
       <div class="page active" id="page-shift-dashboard">
@@ -224,6 +244,8 @@ function navigateTo(page) {
         </div>
       </div>`;
     }
+    rebindSearch();
+    }
   }
 
   const el = ge('page-' + page);
@@ -238,6 +260,7 @@ function navigateTo(page) {
 
   if (page === 'achievements') populateStudentSelect('ach-student-select', onAchStudentChange);
   if (page === 'talents')      populateStudentSelect('talent-student-select', onTalentStudentChange);
+  if (page === 'tasks')        populateStudentSelect('task-student-select', onTaskStudentChange);
   if (page === 'dashboard')    renderDashboard();
   if (page === 'shifts')       renderShiftsPage();
   if (page === 'students')     renderStudentList();
@@ -256,10 +279,22 @@ function animatePageIn(page) {
 
 // -- Поиск --------------------------------------
 function setupSearch() {
-  document.getElementById('search-input').addEventListener('input', (e) => {
+  const el = document.getElementById('search-input');
+  if (el) el.addEventListener('input', (e) => {
     state.searchQuery = e.target.value.toLowerCase();
     renderStudentList();
   });
+}
+
+function rebindSearch() {
+  const el = document.getElementById('search-input');
+  if (el) {
+    el.value = state.searchQuery || '';
+    el.addEventListener('input', (e) => {
+      state.searchQuery = e.target.value.toLowerCase();
+      renderStudentList();
+    });
+  }
 }
 
 // =============================================
@@ -286,11 +321,10 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
   };
 
   const result = await api.insert(TABLES.STUDENTS, student);
-  if (!result) showToast('⚠️ Сохранено локально (нет связи с сервером)', 'warn');
-  const saved = result ? result[0] : { ...student, id: Date.now().toString() };
+  if (!result || !result[0]) { showToast('⚠️ Ошибка сохранения', 'warn'); btn.textContent = '+ Добавить участника'; btn.disabled = false; return; }
+  const saved = result[0];
 
   state.students.unshift(saved);
-  LS.set('students', state.students);
   renderStudentList();
 
   e.target.reset();
@@ -371,7 +405,6 @@ async function deleteStudent(e, id) {
   state.students = state.students.filter(s => s.id !== id);
   state.observations = state.observations.filter(o => o.student_id !== id);
   state.badges = state.badges.filter(b => b.student_id !== id);
-  LS.set('students', state.students);
   renderStudentList();
   showToast('✓ Участник удалён');
 }
@@ -429,11 +462,32 @@ function selectTrack(track) {
 }
 
 function renderCurrentTask() {
-  const task = null;
   const container = ge('task-detail');
-  if (!task || !container) { if (container) container.innerHTML = '<p class="empty-note">Выберите задание</p>'; return; }
+  if (!container) return;
+  const studentId = state.currentStudentId;
+  if (!studentId) { container.innerHTML = '<p class="empty-note">Выберите участника</p>'; return; }
 
-  const obs = getObservation(state.currentStudentId, state.currentDay, state.currentTrack);
+  const student = state.students.find(s => s.id === studentId);
+  if (!student) { container.innerHTML = '<p class="empty-note">Участник не найден</p>'; return; }
+
+  const shift = state.shifts.find(s => s.id == student.shift);
+  if (!shift || !shift.directions) { container.innerHTML = '<p class="empty-note">Нет данных по смене</p>'; return; }
+
+  const trackDir = shift.directions.find(d => {
+    const n = d.name.toLowerCase();
+    const t = state.currentTrack.toLowerCase();
+    return n.includes(t) || (t === 'bio' && (n.includes('био') || n.includes('eco'))) || (t === 'eng' && (n.includes('инженер') || n.includes('it') || n.includes('тех'))) || (t === 'media' && n.includes('медиа')) || (t === 'english' && (n.includes('англий') || n.includes('english')));
+  });
+
+  if (!trackDir || !trackDir.missions || !trackDir.missions.length) {
+    container.innerHTML = '<p class="empty-note">Нет миссий для этого направления в Смене ' + student.shift + '</p>';
+    return;
+  }
+
+  const missionIdx = (state.currentDay - 1) % trackDir.missions.length;
+  const mission = trackDir.missions[missionIdx];
+
+  const obs = getObservation(studentId, state.currentDay, state.currentTrack);
   tempRatings = { independence: obs?.independence || 0, quality: obs?.quality || 0 };
 
   function starBtns(type, obsVal) {
@@ -446,32 +500,17 @@ function renderCurrentTask() {
   }
 
   let skillChips = '';
-  task.skills.forEach(s => {
-    const c = state.competencies.find(c => c.id === s);
+  (mission.skills || []).forEach(s => {
+    const c = state.competencies.find(cc => cc.id === s);
     if (c) skillChips += '<span class="skill-chip" style="--chip-color:' + c.color + '">' + c.icon + ' ' + c.name + '</span>';
   });
 
-  let pdfBlock = '';
-  if (task.pdfSkills && task.pdfSkills.length) {
-    pdfBlock += '<div class="pdf-block">' +
-      '<div class="pdf-block-title">🧪 Навыки занятия <span class="pdf-block-src">(из «Таблицы навыков каникул»)</span></div>' +
-      '<ul class="pdf-list">' + task.pdfSkills.map(s => '<li>' + s + '</li>').join('') + '</ul>' +
-    '</div>';
-  }
-  if (task.pdfProfessions && task.pdfProfessions.length) {
-    pdfBlock += '<div class="pdf-block">' +
-      '<div class="pdf-block-title">💼 Профессии будущего</div>' +
-      '<div class="pdf-professions">' + task.pdfProfessions.map(p => '<span class="prof-chip">' + p + '</span>').join('') + '</div>' +
-    '</div>';
-  }
-
   let html =
     '<div class="task-header">' +
-      '<div class="task-day-badge">День ' + task.day + '</div>' +
-      '<h3 class="task-title">' + task.name + '</h3>' +
-      '<p class="task-desc">' + task.desc + '</p>' +
+      '<div class="task-day-badge">День ' + state.currentDay + ' · ' + esc(trackDir.name) + '</div>' +
+      '<h3 class="task-title">' + esc(mission.name) + '</h3>' +
+      '<p class="task-desc">' + esc(mission.desc) + '</p>' +
       '<div class="task-skills">' + skillChips + '</div>' +
-      pdfBlock +
     '</div>' +
     '<div class="task-form">' +
       '<div class="rating-group">' +
@@ -495,7 +534,7 @@ function renderCurrentTask() {
       '</label>' +
       '<div class="form-group">' +
         '<label>Заметки вожатого</label>' +
-        '<textarea id="obs-notes" rows="2" placeholder="Комментарии...">' + (obs ? obs.notes || '' : '') + '</textarea>' +
+        '<textarea id="obs-notes" rows="2" placeholder="Комментарии...">' + esc(obs ? obs.notes || '' : '') + '</textarea>' +
       '</div>' +
       '<button class="btn-primary" onclick="saveObservation()">' +
         (obs ? '✓ Обновить' : '✓ Сохранить задание') +
@@ -536,11 +575,9 @@ async function saveObservation() {
     Object.assign(existing, data);
   } else {
     const result = await api.insert(TABLES.OBSERVATIONS, data);
-    if (!result) showToast('⚠️ Сохранено локально (нет связи с сервером)', 'warn');
-    const saved = result ? result[0] : { ...data, id: Date.now().toString() };
-    state.observations.push(saved);
+    if (!result || !result[0]) { showToast('⚠️ Ошибка сохранения', 'warn'); return; }
+    state.observations.push(result[0]);
   }
-  LS.set('observations', state.observations);
 
   await checkAndAwardBadges(state.currentStudentId, state.currentDay, state.currentTrack, data);
   renderDayTabs();
@@ -563,7 +600,7 @@ function hasObservation(studentId, day, track) {
 // =============================================
 
 async function checkAndAwardBadges(studentId, day, track, obs) {
-  const defs = state.badgeDefs.filter(b => b.track === track && b.day === day);
+  const defs = state.badgeDefs;
   for (const def of defs) {
     const alreadyEarned = state.badges.find(b => b.student_id === studentId && b.badge_id === def.id && b.earned);
     if (alreadyEarned) continue;
@@ -583,10 +620,9 @@ async function checkAndAwardBadges(studentId, day, track, obs) {
       created_at: new Date().toISOString()
     };
     const result = await api.insert(TABLES.BADGES, badge);
-    if (!result) showToast('⚠️ Значок сохранён локально', 'warn');
-    const saved = result ? result[0] : { ...badge, id: Date.now().toString() };
+    if (!result || !result[0]) continue;
+    const saved = result[0];
     state.badges.push(saved);
-    LS.set('badges', state.badges);
     showBadgeNotification(def);
   }
 }
@@ -670,12 +706,12 @@ function renderTalentCard(studentId) {
   if (topBadgesEl) topBadgesEl.innerHTML =
     earnedBadges.map(b => `<span class="mini-badge rarity-${b.rarity}" title="${b.name}">${b.icon}</span>`).join('');
 
-  const compScores = calcCompetencies(obs);
+  const compScores = calcCompetencies(obs, studentId);
   renderRadarChart(compScores);
   renderAIInsights(studentId);
   renderCompBars(compScores);
 
-  renderDISC(obs);
+  renderDISC(obs, studentId);
 
   renderCareer(obs, earnedBadges);
 
@@ -772,13 +808,17 @@ function renderRecommendations(obs, badges, compScores) {
   }).join('');
 }
 
-function calcCompetencies(obs) {
+function calcCompetencies(obs, studentId) {
   const scores = {};
   state.competencies.forEach(c => scores[c.id] = 0);
   const counts = {};
   state.competencies.forEach(c => counts[c.id] = 0);
 
-  state.completions.forEach(c => {
+  const filteredCompletions = studentId
+    ? state.completions.filter(c => c.student_id == studentId)
+    : state.completions;
+
+  filteredCompletions.forEach(c => {
     if (!c.skills) return;
     Object.entries(c.skills).forEach(([sk, val]) => {
       if (scores[sk] !== undefined) {
@@ -848,13 +888,13 @@ function drawRadar(canvas, scores, o) {
     i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
   });
   ctx.closePath();
-  const g = opts.fillGrad || ['rgba(237,118,21,0.35)', 'rgba(237,118,21,0.15)'];
+  const g = opts.fillGrad || ['rgba(232,168,56,0.35)', 'rgba(232,168,56,0.15)'];
   const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
   grad.addColorStop(0, g[0]);
   grad.addColorStop(1, g[1]);
   ctx.fillStyle = grad;
   ctx.fill();
-  ctx.strokeStyle = opts.stroke || '#ed7615';
+  ctx.strokeStyle = opts.stroke || '#E8A838';
   ctx.lineWidth = 2;
   ctx.stroke();
 
@@ -865,7 +905,7 @@ function drawRadar(canvas, scores, o) {
     const y = cy + Math.sin(angle) * R * val;
     ctx.beginPath();
     ctx.arc(x, y, 4, 0, Math.PI*2);
-    ctx.fillStyle = opts.point || '#ed7615';
+    ctx.fillStyle = opts.point || '#E8A838';
     ctx.fill();
   });
 }
@@ -876,9 +916,9 @@ function renderRadarChart(scores) {
     axis: 'rgba(255,255,255,0.1)',
     label: 'rgba(255,255,255,0.5)',
     font: '11px sans-serif',
-    fillGrad: ['rgba(237,118,21,0.35)', 'rgba(237,118,21,0.15)'],
-    stroke: '#ed7615',
-    point: '#ed7615'
+    fillGrad: ['rgba(232,168,56,0.35)', 'rgba(232,168,56,0.15)'],
+    stroke: '#E8A838',
+    point: '#E8A838'
   });
 }
 
@@ -896,11 +936,15 @@ function renderCompBars(scores) {
     </div>`).join('');
 }
 
-function calcDisc(obs) {
+function calcDisc(obs, studentId) {
   const rawScores = {D:0, I:0, S:0, C:0};
   const counts = {D:0, I:0, S:0, C:0};
 
-  state.completions.forEach(c => {
+  const filteredCompletions = studentId
+    ? state.completions.filter(c => c.student_id == studentId)
+    : state.completions;
+
+  filteredCompletions.forEach(c => {
     if (!c.skills) return;
     Object.keys(c.skills).forEach(skill => {
       const skillMap = state.discConfig.skill_map || {};
@@ -934,8 +978,8 @@ function calcDisc(obs) {
   return { disc, labels, dominant };
 }
 
-function renderDISC(obs) {
-  const { disc, labels, dominant } = calcDisc(obs);
+function renderDISC(obs, studentId) {
+  const { disc, labels, dominant } = calcDisc(obs, studentId);
 
   const discBarsEl = document.getElementById('disc-bars');
   if (discBarsEl) discBarsEl.innerHTML = ['D','I','S','C'].map(t => `
@@ -1141,23 +1185,18 @@ function showToast(msg, type = 'success') {
   setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 2800);
 }
 
-function getUnlockedClubs(studentId) {
-  const obs = state.observations.filter(o => o.student_id === studentId);
-  return [];
-}
-
 function getShiftSvg(id) {
   const svgs = {
-    1: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0d1a30"/></linearGradient></defs><rect width="400" height="110" fill="url(#s1)"/><circle cx="340" cy="55" r="25" fill="#ed7615" opacity="0.3"/><circle cx="340" cy="55" r="15" fill="#ed7615" opacity="0.5"/><circle cx="60" cy="80" r="3" fill="#fff" opacity="0.4"/><circle cx="120" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="280" cy="20" r="2.5" fill="#fff" opacity="0.35"/><rect x="170" y="35" width="60" height="40" rx="4" fill="none" stroke="#ed7615" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="12" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.6"/><line x1="200" y1="43" x2="200" y2="67" stroke="#FFD93D" stroke-width="1" opacity="0.4"/><line x1="188" y1="55" x2="212" y2="55" stroke="#FFD93D" stroke-width="1" opacity="0.4"/></svg>`,
-    2: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d2a1a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s2)"/><circle cx="320" cy="50" r="30" fill="#22C55E" opacity="0.15"/><circle cx="320" cy="50" r="18" fill="#22C55E" opacity="0.25"/><circle cx="80" cy="70" r="2" fill="#fff" opacity="0.3"/><circle cx="200" cy="25" r="1.5" fill="#fff" opacity="0.25"/><polygon points="60,90 80,50 100,90" fill="#22C55E" opacity="0.2"/><polygon points="70,90 85,60 100,90" fill="#22C55E" opacity="0.15"/><rect x="180" y="40" width="40" height="30" rx="2" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.4"/><line x1="185" y1="45" x2="215" y2="45" stroke="#22C55E" stroke-width="0.5" opacity="0.3"/><line x1="185" y1="52" x2="210" y2="52" stroke="#22C55E" stroke-width="0.5" opacity="0.3"/></svg>`,
-    3: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2a1a3a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s3)"/><circle cx="330" cy="55" r="22" fill="none" stroke="#8B5CF6" stroke-width="1.5" opacity="0.4"/><circle cx="330" cy="55" r="14" fill="#8B5CF6" opacity="0.15"/><circle cx="70" cy="40" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><circle cx="150" cy="85" r="2" fill="#fff" opacity="0.3"/><rect x="175" y="30" width="50" height="50" rx="6" fill="none" stroke="#8B5CF6" stroke-width="1" opacity="0.3"/><circle cx="200" cy="55" r="8" fill="none" stroke="#EC4899" stroke-width="1" opacity="0.5"/><line x1="200" y1="47" x2="200" y2="63" stroke="#EC4899" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="2" fill="#EC4899" opacity="0.5"/></svg>`,
-    4: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0f1a35"/></linearGradient></defs><rect width="400" height="110" fill="url(#s4)"/><circle cx="330" cy="50" r="20" fill="#3B82F6" opacity="0.15"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="200" cy="15" r="1.5" fill="#fff" opacity="0.25"/><rect x="170" y="30" width="60" height="50" rx="4" fill="none" stroke="#3B82F6" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="15" fill="none" stroke="#FBBF24" stroke-width="1" opacity="0.3"/><path d="M195 50 L200 42 L205 50" fill="none" stroke="#FBBF24" stroke-width="1.5" opacity="0.5"/><circle cx="200" cy="58" r="2" fill="#FBBF24" opacity="0.4"/></svg>`,
-    5: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s5" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a1a2a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s5)"/><circle cx="340" cy="55" r="25" fill="#EF4444" opacity="0.12"/><circle cx="340" cy="55" r="15" fill="#EF4444" opacity="0.2"/><circle cx="60" cy="50" r="2" fill="#fff" opacity="0.3"/><circle cx="280" cy="25" r="2" fill="#fff" opacity="0.25"/><line x1="180" y1="75" x2="220" y2="75" stroke="#EF4444" stroke-width="1.5" opacity="0.3"/><circle cx="200" cy="55" r="18" fill="none" stroke="#EF4444" stroke-width="1.5" opacity="0.35"/><path d="M192 55 L198 48 L204 55 L210 48" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.5"/><circle cx="200" cy="55" r="6" fill="none" stroke="#FFD93D" stroke-width="1" opacity="0.4"/></svg>`,
-    6: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s6" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0a1a30"/></linearGradient></defs><rect width="400" height="110" fill="url(#s6)"/><circle cx="320" cy="40" r="20" fill="#06B6D4" opacity="0.15"/><circle cx="70" cy="35" r="2" fill="#fff" opacity="0.3"/><rect x="60" y="60" width="20" height="35" rx="2" fill="#06B6D4" opacity="0.15"/><rect x="85" y="50" width="18" height="45" rx="2" fill="#06B6D4" opacity="0.12"/><rect x="108" y="65" width="16" height="30" rx="2" fill="#06B6D4" opacity="0.1"/><rect x="175" y="35" width="50" height="40" rx="4" fill="none" stroke="#06B6D4" stroke-width="1.5" opacity="0.4"/><rect x="185" y="45" width="30" height="20" rx="2" fill="#06B6D4" opacity="0.2"/><line x1="190" y1="55" x2="210" y2="55" stroke="#fff" stroke-width="0.5" opacity="0.3"/></svg>`,
-    7: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s7" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0d1f35"/></linearGradient></defs><rect width="400" height="110" fill="url(#s7)"/><circle cx="330" cy="50" r="22" fill="#F59E0B" opacity="0.12"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><rect x="165" y="25" width="25" height="60" rx="2" fill="#F59E0B" opacity="0.12"/><rect x="195" y="35" width="25" height="50" rx="2" fill="#F59E0B" opacity="0.15"/><rect x="225" y="20" width="25" height="65" rx="2" fill="#F59E0B" opacity="0.1"/><circle cx="207" cy="55" r="12" fill="none" stroke="#F59E0B" stroke-width="1.5" opacity="0.4"/><path d="M202 55 L207 48 L212 55" fill="none" stroke="#F59E0B" stroke-width="1" opacity="0.5"/></svg>`,
-    8: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s8" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a1a3a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s8)"/><circle cx="330" cy="50" r="20" fill="#A855F7" opacity="0.15"/><circle cx="70" cy="40" r="2" fill="#fff" opacity="0.3"/><rect x="170" y="30" width="60" height="45" rx="6" fill="none" stroke="#A855F7" stroke-width="1.5" opacity="0.4"/><circle cx="188" cy="52" r="5" fill="none" stroke="#A855F7" stroke-width="1" opacity="0.5"/><circle cx="212" cy="52" r="5" fill="none" stroke="#A855F7" stroke-width="1" opacity="0.5"/><rect x="183" y="47" width="10" height="10" rx="1" fill="#A855F7" opacity="0.3"/><rect x="207" y="47" width="10" height="10" rx="1" fill="#A855F7" opacity="0.3"/><line x1="193" y1="52" x2="207" y2="52" stroke="#A855F7" stroke-width="1" opacity="0.4"/></svg>`,
-    9: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s9" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a2d4a"/><stop offset="100%" stop-color="#0d1a2a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s9)"/><circle cx="330" cy="50" r="22" fill="#22C55E" opacity="0.12"/><circle cx="70" cy="35" r="2" fill="#fff" opacity="0.3"/><polygon points="200,25 190,50 175,50 185,65 180,85 200,72 220,85 215,65 225,50 210,50" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.4"/><polygon points="200,35 195,50 185,50 192,60 190,72 200,65 210,72 208,60 215,50 205,50" fill="#FFD93D" opacity="0.15"/><line x1="160" y1="85" x2="240" y2="85" stroke="#22C55E" stroke-width="1" opacity="0.3"/></svg>`,
-    10: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s10" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d2a1a"/><stop offset="100%" stop-color="#1a2d4a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s10)"/><circle cx="330" cy="40" r="20" fill="#22C55E" opacity="0.12"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><path d="M0 80 Q50 70 100 80 Q150 90 200 80 Q250 70 300 80 Q350 90 400 80 L400 110 L0 110 Z" fill="#0a1a30" opacity="0.4"/><path d="M0 90 Q60 82 120 90 Q180 98 240 90 Q300 82 360 90 L400 88 L400 110 L0 110 Z" fill="#0d1f3a" opacity="0.3"/><polygon points="80,90 95,45 110,90" fill="#22C55E" opacity="0.2"/><ellipse cx="95" cy="40" rx="20" ry="10" fill="#22C55E" opacity="0.15"/><circle cx="200" cy="55" r="10" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.4"/></svg>`
+    1: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#223348"/><stop offset="100%" stop-color="#152030"/></linearGradient></defs><rect width="400" height="110" fill="url(#s1)"/><circle cx="340" cy="55" r="25" fill="#E8A838" opacity="0.3"/><circle cx="340" cy="55" r="15" fill="#E8A838" opacity="0.5"/><circle cx="60" cy="80" r="3" fill="#fff" opacity="0.4"/><circle cx="120" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="280" cy="20" r="2.5" fill="#fff" opacity="0.35"/><rect x="170" y="35" width="60" height="40" rx="4" fill="none" stroke="#E8A838" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="12" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.6"/><line x1="200" y1="43" x2="200" y2="67" stroke="#FFD93D" stroke-width="1" opacity="0.4"/><line x1="188" y1="55" x2="212" y2="55" stroke="#FFD93D" stroke-width="1" opacity="0.4"/></svg>`,
+    2: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d2a1a"/><stop offset="100%" stop-color="#223348"/></linearGradient></defs><rect width="400" height="110" fill="url(#s2)"/><circle cx="320" cy="50" r="30" fill="#22C55E" opacity="0.15"/><circle cx="320" cy="50" r="18" fill="#22C55E" opacity="0.25"/><circle cx="80" cy="70" r="2" fill="#fff" opacity="0.3"/><circle cx="200" cy="25" r="1.5" fill="#fff" opacity="0.25"/><polygon points="60,90 80,50 100,90" fill="#22C55E" opacity="0.2"/><polygon points="70,90 85,60 100,90" fill="#22C55E" opacity="0.15"/><rect x="180" y="40" width="40" height="30" rx="2" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.4"/><line x1="185" y1="45" x2="215" y2="45" stroke="#22C55E" stroke-width="0.5" opacity="0.3"/><line x1="185" y1="52" x2="210" y2="52" stroke="#22C55E" stroke-width="0.5" opacity="0.3"/></svg>`,
+    3: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2a1a3a"/><stop offset="100%" stop-color="#223348"/></linearGradient></defs><rect width="400" height="110" fill="url(#s3)"/><circle cx="330" cy="55" r="22" fill="none" stroke="#8B5CF6" stroke-width="1.5" opacity="0.4"/><circle cx="330" cy="55" r="14" fill="#8B5CF6" opacity="0.15"/><circle cx="70" cy="40" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><circle cx="150" cy="85" r="2" fill="#fff" opacity="0.3"/><rect x="175" y="30" width="50" height="50" rx="6" fill="none" stroke="#8B5CF6" stroke-width="1" opacity="0.3"/><circle cx="200" cy="55" r="8" fill="none" stroke="#EC4899" stroke-width="1" opacity="0.5"/><line x1="200" y1="47" x2="200" y2="63" stroke="#EC4899" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="2" fill="#EC4899" opacity="0.5"/></svg>`,
+    4: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#223348"/><stop offset="100%" stop-color="#152030"/></linearGradient></defs><rect width="400" height="110" fill="url(#s4)"/><circle cx="330" cy="50" r="20" fill="#3B82F6" opacity="0.15"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="200" cy="15" r="1.5" fill="#fff" opacity="0.25"/><rect x="170" y="30" width="60" height="50" rx="4" fill="none" stroke="#3B82F6" stroke-width="1.5" opacity="0.4"/><circle cx="200" cy="55" r="15" fill="none" stroke="#FBBF24" stroke-width="1" opacity="0.3"/><path d="M195 50 L200 42 L205 50" fill="none" stroke="#FBBF24" stroke-width="1.5" opacity="0.5"/><circle cx="200" cy="58" r="2" fill="#FBBF24" opacity="0.4"/></svg>`,
+    5: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s5" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a1a2a"/><stop offset="100%" stop-color="#223348"/></linearGradient></defs><rect width="400" height="110" fill="url(#s5)"/><circle cx="340" cy="55" r="25" fill="#EF4444" opacity="0.12"/><circle cx="340" cy="55" r="15" fill="#EF4444" opacity="0.2"/><circle cx="60" cy="50" r="2" fill="#fff" opacity="0.3"/><circle cx="280" cy="25" r="2" fill="#fff" opacity="0.25"/><line x1="180" y1="75" x2="220" y2="75" stroke="#EF4444" stroke-width="1.5" opacity="0.3"/><circle cx="200" cy="55" r="18" fill="none" stroke="#EF4444" stroke-width="1.5" opacity="0.35"/><path d="M192 55 L198 48 L204 55 L210 48" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.5"/><circle cx="200" cy="55" r="6" fill="none" stroke="#FFD93D" stroke-width="1" opacity="0.4"/></svg>`,
+    6: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s6" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#223348"/><stop offset="100%" stop-color="#0a1a30"/></linearGradient></defs><rect width="400" height="110" fill="url(#s6)"/><circle cx="320" cy="40" r="20" fill="#06B6D4" opacity="0.15"/><circle cx="70" cy="35" r="2" fill="#fff" opacity="0.3"/><rect x="60" y="60" width="20" height="35" rx="2" fill="#06B6D4" opacity="0.15"/><rect x="85" y="50" width="18" height="45" rx="2" fill="#06B6D4" opacity="0.12"/><rect x="108" y="65" width="16" height="30" rx="2" fill="#06B6D4" opacity="0.1"/><rect x="175" y="35" width="50" height="40" rx="4" fill="none" stroke="#06B6D4" stroke-width="1.5" opacity="0.4"/><rect x="185" y="45" width="30" height="20" rx="2" fill="#06B6D4" opacity="0.2"/><line x1="190" y1="55" x2="210" y2="55" stroke="#fff" stroke-width="0.5" opacity="0.3"/></svg>`,
+    7: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s7" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#223348"/><stop offset="100%" stop-color="#0d1f35"/></linearGradient></defs><rect width="400" height="110" fill="url(#s7)"/><circle cx="330" cy="50" r="22" fill="#F59E0B" opacity="0.12"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><rect x="165" y="25" width="25" height="60" rx="2" fill="#F59E0B" opacity="0.12"/><rect x="195" y="35" width="25" height="50" rx="2" fill="#F59E0B" opacity="0.15"/><rect x="225" y="20" width="25" height="65" rx="2" fill="#F59E0B" opacity="0.1"/><circle cx="207" cy="55" r="12" fill="none" stroke="#F59E0B" stroke-width="1.5" opacity="0.4"/><path d="M202 55 L207 48 L212 55" fill="none" stroke="#F59E0B" stroke-width="1" opacity="0.5"/></svg>`,
+    8: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s8" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a1a3a"/><stop offset="100%" stop-color="#223348"/></linearGradient></defs><rect width="400" height="110" fill="url(#s8)"/><circle cx="330" cy="50" r="20" fill="#A855F7" opacity="0.15"/><circle cx="70" cy="40" r="2" fill="#fff" opacity="0.3"/><rect x="170" y="30" width="60" height="45" rx="6" fill="none" stroke="#A855F7" stroke-width="1.5" opacity="0.4"/><circle cx="188" cy="52" r="5" fill="none" stroke="#A855F7" stroke-width="1" opacity="0.5"/><circle cx="212" cy="52" r="5" fill="none" stroke="#A855F7" stroke-width="1" opacity="0.5"/><rect x="183" y="47" width="10" height="10" rx="1" fill="#A855F7" opacity="0.3"/><rect x="207" y="47" width="10" height="10" rx="1" fill="#A855F7" opacity="0.3"/><line x1="193" y1="52" x2="207" y2="52" stroke="#A855F7" stroke-width="1" opacity="0.4"/></svg>`,
+    9: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s9" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#223348"/><stop offset="100%" stop-color="#0d1a2a"/></linearGradient></defs><rect width="400" height="110" fill="url(#s9)"/><circle cx="330" cy="50" r="22" fill="#22C55E" opacity="0.12"/><circle cx="70" cy="35" r="2" fill="#fff" opacity="0.3"/><polygon points="200,25 190,50 175,50 185,65 180,85 200,72 220,85 215,65 225,50 210,50" fill="none" stroke="#FFD93D" stroke-width="1.5" opacity="0.4"/><polygon points="200,35 195,50 185,50 192,60 190,72 200,65 210,72 208,60 215,50 205,50" fill="#FFD93D" opacity="0.15"/><line x1="160" y1="85" x2="240" y2="85" stroke="#22C55E" stroke-width="1" opacity="0.3"/></svg>`,
+    10: `<svg viewBox="0 0 400 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="s10" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d2a1a"/><stop offset="100%" stop-color="#223348"/></linearGradient></defs><rect width="400" height="110" fill="url(#s10)"/><circle cx="330" cy="40" r="20" fill="#22C55E" opacity="0.12"/><circle cx="70" cy="30" r="2" fill="#fff" opacity="0.3"/><circle cx="250" cy="20" r="1.5" fill="#fff" opacity="0.25"/><path d="M0 80 Q50 70 100 80 Q150 90 200 80 Q250 70 300 80 Q350 90 400 80 L400 110 L0 110 Z" fill="#0a1a30" opacity="0.4"/><path d="M0 90 Q60 82 120 90 Q180 98 240 90 Q300 82 360 90 L400 88 L400 110 L0 110 Z" fill="#0d1f3a" opacity="0.3"/><polygon points="80,90 95,45 110,90" fill="#22C55E" opacity="0.2"/><ellipse cx="95" cy="40" rx="20" ry="10" fill="#22C55E" opacity="0.15"/><circle cx="200" cy="55" r="10" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.4"/></svg>`
   };
   return svgs[id] || svgs[1];
 }
@@ -1199,7 +1238,7 @@ function renderShiftsPage() {
         <div style="margin-top:10px;padding:8px 12px;background:var(--glass-b);border-radius:8px;display:flex;align-items:center;gap:8px">
           <span style="font-size:0.72rem;color:var(--muted)">👥 Участников:</span>
           <span style="font-size:0.78rem;font-weight:700;color:var(--orange)">${state.students.filter(st => st.shift === s.id).length}</span>
-          <button class="btn-sm" style="margin-left:auto;padding:4px 10px;font-size:0.65rem" onclick="openShiftDashboard(${s.id})">📊 Дашборд</button>
+          <button class="btn-sm" style="margin-left:auto;padding:4px 10px;font-size:0.65rem" onclick="openShiftDashboard(${s.id}, event)">📊 Дашборд</button>
         </div>
       </div>
     </div>
@@ -1210,8 +1249,8 @@ function renderShiftsPage() {
 //  ДАШБОРД СМЕНЫ
 // =============================================
 
-function openShiftDashboard(shiftId) {
-  event.stopPropagation();
+function openShiftDashboard(shiftId, evt) {
+  if (evt) evt.stopPropagation();
   state.currentShiftId = shiftId;
   state.filterSdCampus = '';
   state.filterSdSquad = '';
@@ -1267,22 +1306,24 @@ function renderShiftDashboard() {
   if (state.filterSdSquad) participants = participants.filter(s => s.squad == state.filterSdSquad);
 
   // Calculate stats
-  let totalXp = 0, totalCurrency = 0, totalScore = 0, scoreCount = 0, totalCompletions = 0;
+  let totalXp = 0, totalCurrency = 0, totalAllScored = 0, totalCounted = 0, totalCompletions = 0;
   const participantData = participants.map(s => {
     const obs = state.observations.filter(o => o.student_id === s.id);
     const comps = state.completions.filter(c => c.student_id == s.id && c.shift_id == shiftId);
     const bdgs = state.badges.filter(b => b.student_id === s.id && b.earned);
-    let xp = 0, currency = 0, avgScore = 0, scoredCount = 0;
+    let xp = 0, currency = 0, scoredCount = 0, scoreSum = 0;
     comps.forEach(c => {
       xp += c.xp || 0;
       currency += c.currency || 0;
-      if (c.score > 0) { totalScore += c.score; scoredCount++; scoreCount++; }
+      if (c.score > 0) { scoreSum += c.score; scoredCount++; }
       totalCompletions++;
     });
     totalXp += xp;
     totalCurrency += currency;
     const obsScore = obs.length ? (obs.reduce((sum, o) => sum + (o.independence + o.quality) / 2, 0) / obs.length) : 0;
-    avgScore = scoredCount > 0 ? (totalScore / scoreCount) : obsScore;
+    const avgScore = scoredCount > 0 ? (scoreSum / scoredCount) : obsScore;
+    totalAllScored += scoreSum;
+    totalCounted += scoredCount;
 
     // Top competency from completions
     const skillsAccum = {};
@@ -1302,7 +1343,7 @@ function renderShiftDashboard() {
   }).sort((a, b) => b.xp - a.xp);
 
   // Render stats
-  const avgAll = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : '—';
+  const avgAll = totalCounted > 0 ? (totalAllScored / totalCounted).toFixed(1) : '—';
   ge('sd-stats').innerHTML = `
     <div class="sd-stat"><div class="sd-stat-num">${participants.length}</div><div class="sd-stat-label">Участников</div></div>
     <div class="sd-stat"><div class="sd-stat-num">${totalCompletions}</div><div class="sd-stat-label">Оценок</div></div>
@@ -1423,13 +1464,36 @@ function openShiftDetail(shiftId) {
           <span class="shift-direction-name">${d.name}</span>
         </div>
         <div class="shift-direction-missions">
-          ${d.missions.map(m => `<div class="shift-mission">
+          ${d.missions.map(m => {
+            const full = (state.missions || []).find(mi => mi.shift_id === s.id && mi.direction_name && mi.direction_name.toLowerCase() === d.name.toLowerCase() && mi.mission_name && mi.mission_name.toLowerCase() === m.name.toLowerCase());
+            const desc = full ? full.description : m.desc;
+            const steps = full ? full.key_steps : '';
+            const age79 = full ? full.age_7_9 : '';
+            const age1012 = full ? full.age_10_12 : '';
+            const engPhrases = full ? full.english_phrases : '';
+            const engVocab = full ? full.english_vocabulary : '';
+            const materials = full ? full.materials : '';
+            const c03 = full ? full.criteria_0_3 : '';
+            const c46 = full ? full.criteria_4_6 : '';
+            const c78 = full ? full.criteria_7_8 : '';
+            const c910 = full ? full.criteria_9_10 : '';
+            const uid = 'm_' + s.id + '_' + d.name.replace(/\W/g,'') + '_' + m.name.replace(/\W/g,'');
+            return `<div class="shift-mission">
             <div class="shift-mission-dot"></div>
             <div class="shift-mission-info">
               <div class="shift-mission-name">${m.name}</div>
-              <div class="shift-mission-desc">${m.desc}</div>
+              <div class="shift-mission-desc">${desc}</div>
+              ${full ? `<button class="shift-mission-toggle" onclick="document.getElementById('${uid}').classList.toggle('open');this.textContent=this.textContent==='Подробнее ▾'?'Скрыть ▴':'Подробнее ▾'">Подробнее ▾</button>
+              <div class="shift-mission-full" id="${uid}">
+                ${steps ? `<div class="mission-full-block"><strong>Ключевые шаги:</strong> ${steps}</div>` : ''}
+                ${age79 || age1012 ? `<div class="mission-full-block"><strong>Возраст 7-9:</strong> ${age79}<br><strong>Возраст 10-12:</strong> ${age1012}</div>` : ''}
+                ${engPhrases || engVocab ? `<div class="mission-full-block"><strong>Английский:</strong> ${engPhrases} ${engVocab ? '| Словарь: ' + engVocab : ''}</div>` : ''}
+                ${materials ? `<div class="mission-full-block"><strong>Материалы:</strong> ${materials}</div>` : ''}
+                ${c03 || c46 || c78 || c910 ? `<div class="mission-full-block"><strong>Критерии:</strong> 0-3: ${c03} | 4-6: ${c46} | 7-8: ${c78} | 9-10: ${c910}</div>` : ''}
+              </div>` : ''}
             </div>
-          </div>`).join('')}
+          </div>`;
+          }).join('')}
         </div>
       </div>`;
     });
@@ -1440,23 +1504,12 @@ function openShiftDetail(shiftId) {
       <div class="shift-detail-product-title">📦 Продуктовый инкубатор</div>
       <p>${s.product}</p>
     </div>
-    <button class="btn-primary" style="margin-top:16px" onclick="openShiftDashboard(${s.id})">📊 Дашборд смены</button>
+    <button class="btn-primary" style="margin-top:16px" onclick="openShiftDashboard(${s.id}, event)">📊 Дашборд смены</button>
   </div>`;
 
   const mainEl = document.querySelector('.main');
   mainEl.innerHTML = html;
 }
-
-function renderCampPage() {
-  // Camp page removed — functionality moved to shifts page
-}
-
-function renderClubsSection(container, studentId) {
-}
-
-function renderActivitiesSection(container) {}
-
-function renderEnglishSection(container) {}
 
 // =============================================
 //  AI ANALYTICS (Local Rule-Based Engine)
@@ -1621,7 +1674,7 @@ function renderAIInsights(studentId) {
 
   const obs = state.observations.filter(o => o.student_id === studentId);
   const badges = state.badges.filter(b => b.student_id === studentId && b.earned);
-  const compScores = calcCompetencies(obs);
+  const compScores = calcCompetencies(obs, studentId);
   const profile = analyzeStudentProfile(obs, badges, compScores);
 
   const trackNames = { bio: 'Биотехнологии', eng: 'Инженерия', media: 'Медиа', english: 'Английские каникулы' };
@@ -1642,7 +1695,7 @@ function renderAIInsights(studentId) {
   const avgScore = obs.length ? (obs.reduce((s, o) => s + (o.independence + o.quality) / 2, 0) / obs.length).toFixed(1) : '0';
 
   container.innerHTML = `
-    <div style="background:linear-gradient(135deg,var(--orange-dim),rgba(237,118,21,0.05));border:1px solid var(--border-h);border-radius:10px;padding:16px">
+    <div style="background:linear-gradient(135deg,var(--orange-dim),rgba(232,168,56,0.05));border:1px solid var(--border-h);border-radius:10px;padding:16px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
         <span style="font-size:1.6rem">${trackIcons[profile.dominantTrack]}</span>
         <div>
@@ -1714,115 +1767,6 @@ function renderAIInsights(studentId) {
 }
 
 // =============================================
-//  OPENAI API ANALYTICS
-// =============================================
-
-async function generateOpenAIAnalysis(student, obs, badges, compScores) {
-  if (!OPENAI_API_KEY) return null;
-
-  const competencies = state.competencies.map(c => ({
-    name: c.name,
-    icon: c.icon,
-    score: compScores[c.id] || 0
-  })).sort((a, b) => b.score - a.score);
-
-  const topSkills = competencies.slice(0, 4);
-  const lowSkills = competencies.slice(-3).filter(c => c.score < 30);
-
-  const trackCounts = { bio: 0, eng: 0, media: 0, english: 0 };
-  obs.forEach(o => { if (trackCounts[o.track] !== undefined) trackCounts[o.track]++; });
-  const dominant = Object.entries(trackCounts).sort((a, b) => b[1] - a[1])[0];
-
-  const avgScore = obs.length > 0
-    ? (obs.reduce((s, o) => s + (o.independence + o.quality) / 2, 0) / obs.length).toFixed(1)
-    : 'N/A';
-
-  const earnedBadges = badges.filter(b => b.earned);
-
-  const prompt = `Ты — эксперт по детскому развитию и образовательным технологиям.
-Проанализируй профиль участника летних каникул и дай развёрнутые рекомендации.
-
-УЧАСТНИК: ${student.first_name} ${student.last_name}
-ВОЗРАСТ: ${student.age} лет
-КЛАСС: ${student.grade}
-КОЛИЧЕСТВО НАБЛЮДЕНИЙ: ${obs.length} дней
-СРЕДНИЙ БАЛЛ: ${avgScore}/5
-
-ДОМИНИРУЮЩИЙ ТРЕК: ${dominant[0] === 'bio' ? 'Биотехнологии 🧬' : dominant[0] === 'eng' ? 'Инженерия ⚙️' : dominant[0] === 'english' ? 'Английские каникулы 🌍' : 'Медиа 🎥'}
-
-ТОП КОМПЕТЕНЦИИ (сильные стороны):
-${topSkills.map(c => `- ${c.icon} ${c.name}: ${c.score}%`).join('\n')}
-
-ЗОНЫ РОСТА (слабые стороны):
-${lowSkills.length > 0 ? lowSkills.map(c => `- ${c.icon} ${c.name}: ${c.score}%`).join('\n') : '- Недостаточно данных'}
-
-ЗАРАБОТАННЫЕ ЗНАЧКИ: ${earnedBadges.length > 0 ? earnedBadges.map(b => `${b.icon} ${b.name}`).join(', ') : 'Нет'}
-
-ДАННЫЕ ПО ТРЕКАМ:
-- Биотехнологии: ${trackCounts.bio} занятий
-- Инженерия: ${trackCounts.eng} занятий
-- Медиа: ${trackCounts.media} занятий
-- Английские каникулы: ${trackCounts.english} занятий
-
-Верни анализ в формате JSON:
-{
-  "summary": "развёрнутое резюме профиля на 2-3 предложения",
-  "strengths": ["сильная сторона 1", "сильная сторона 2", "сильная сторона 3"],
-  "areasForGrowth": ["зона роста 1", "зона роста 2"],
-  "learningStyle": "стиль обучения (кинестетик/визуал/аудиал/читатель)",
-  "recommendedExtracurricular": [
-    {"name": "название занятия", "reason": "почему подходит этому участнику"}
-  ],
-  "careerHint": "краткая подсказка по возможной карьере/профессии",
-  "tipsForMentors": ["совет 1", "совет 2", "совет 3"]
-}
-
-ВАЖНО: Верни ТОЛЬКО валидный JSON без markdown разметки, без текста до или после. Только объект {}.`;
-
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + OPENAI_API_KEY
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1500,
-        temperature: 0.7
-      })
-    });
-
-    if (!response.ok) {
-      console.error('OpenAI API error:', response.status);
-      return null;
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content?.trim();
-
-    if (content) {
-      try {
-        return JSON.parse(content);
-      } catch (e) {
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          return JSON.parse(jsonMatch[0]);
-        }
-        console.error('Failed to parse OpenAI response');
-        return null;
-      }
-    }
-  } catch (e) {
-    console.error('OpenAI request failed:', e);
-    return null;
-  }
-}
-
-function renderCampTeam(container) {}
-
-// =============================================
 //  ИГРОВОЙ РЕПОРТ УЧАСТНИКА (печать / PDF)
 // =============================================
 
@@ -1848,7 +1792,7 @@ function fillReport(student) {
   const obs = state.observations.filter(o => o.student_id === student.id);
   const earned = state.badges.filter(b => b.student_id === student.id && b.earned);
   const completions = state.completions.filter(c => c.student_id == student.id);
-  const compScores = calcCompetencies(obs);
+  const compScores = calcCompetencies(obs, student.id);
   
   // Enrich competencies with completion data
   const completionSkills = {};
@@ -1878,8 +1822,8 @@ function fillReport(student) {
 
   set('rp-avatar', (student.first_name?.[0] || '') + (student.last_name?.[0] || ''));
   set('rp-name', student.first_name + ' ' + student.last_name);
-  set('rp-age', student.age + ' лет');
-  set('rp-grade', student.grade + ' класс');
+  set('rp-age', student.age != null ? student.age + ' лет' : '—');
+  set('rp-grade', student.grade != null ? student.grade + ' класс' : '—');
   set('rp-squad', 'Отряд ' + student.squad);
   set('rp-shift', 'Смена ' + student.shift);
   const rpCampusEl = document.getElementById('rp-campus');
@@ -1912,9 +1856,9 @@ function fillReport(student) {
     axis: 'rgba(19,34,69,0.18)',
     label: 'rgba(19,34,69,0.55)',
     font: '600 11px Space Grotesk, sans-serif',
-    fillGrad: ['rgba(237,118,21,0.32)', 'rgba(237,118,21,0.05)'],
-    stroke: '#ed7615',
-    point: '#ed7615'
+    fillGrad: ['rgba(232,168,56,0.32)', 'rgba(232,168,56,0.05)'],
+    stroke: '#E8A838',
+    point: '#E8A838'
   });
 
   const barsEl = ge('rp-comp-bars');
@@ -1932,7 +1876,7 @@ function fillReport(student) {
 
   const discEl = ge('rp-disc');
   if (discEl) {
-    const disc = calcDisc(obs);
+    const disc = calcDisc(obs, student.id);
     const letterColors = { D:'#EF4444', I:'#FBBF24', S:'#22C55E', C:'#3B82F6' };
     const letterText  = { D:'#fff', I:'#7c5c00', S:'#fff', C:'#fff' };
     discEl.innerHTML = ['D','I','S','C'].map(t => `
@@ -2034,8 +1978,8 @@ function fillReport(student) {
       const sXp = comps.reduce((s,c) => s + (c.xp||0), 0);
       const sScore = comps.filter(c => c.score > 0);
       const sAvg = sScore.length ? (sScore.reduce((s,c) => s + c.score, 0) / sScore.length).toFixed(1) : '—';
-      compHtml += '<div style="margin-bottom:12px;padding:12px;border-radius:10px;background:rgba(237,118,21,0.04);border:1px solid rgba(237,118,21,0.12)">';
-      compHtml += '<div style="font-size:.72rem;font-weight:700;color:#ed7615;margin-bottom:8px">Смена ' + sId + (sh ? ' — ' + sh.title : '') + ' · ' + sAvg + '★ · ' + sXp + ' XP</div>';
+      compHtml += '<div style="margin-bottom:12px;padding:12px;border-radius:10px;background:rgba(232,168,56,0.04);border:1px solid rgba(232,168,56,0.12)">';
+      compHtml += '<div style="font-size:.72rem;font-weight:700;color:#E8A838;margin-bottom:8px">Смена ' + sId + (sh ? ' — ' + sh.title : '') + ' · ' + sAvg + '★ · ' + sXp + ' XP</div>';
       comps.filter(c => c.score > 0).forEach(c => {
         const sc = c.score >= 7 ? 'high' : c.score >= 4 ? 'mid' : 'low';
         compHtml += '<div class="rp-comp-row">';
@@ -2284,7 +2228,7 @@ async function saveAssessments() {
       if (result && result[0]) {
         state.completions.push(result[0]);
       } else {
-        state.completions.push({ ...comp, id: Date.now().toString() + Math.random().toString(36).substr(2,5) });
+        console.warn('Failed to save completion:', comp.mission_name);
       }
     }
 
@@ -2292,7 +2236,6 @@ async function saveAssessments() {
       await api.remove(TABLES.COMPLETIONS, oldId);
     }
 
-    LS.set('completions', state.completions);
     renderAssessSummary();
     showToast('✓ Оценки сохранены!');
   } catch(e) {
