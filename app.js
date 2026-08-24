@@ -205,7 +205,6 @@ function navigateTo(page) {
       </div>`;
     }
     rebindSearch();
-    }
   }
 
   if (page === 'shift-dashboard' && needsMainRebuild) {
@@ -245,7 +244,6 @@ function navigateTo(page) {
       </div>`;
     }
     rebindSearch();
-    }
   }
 
   const el = ge('page-' + page);
