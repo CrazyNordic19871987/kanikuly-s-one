@@ -320,9 +320,17 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
     created_at: new Date().toISOString()
   };
 
-  const result = await api.insert(TABLES.STUDENTS, student);
-  if (!result || !result[0]) { showToast('⚠️ Ошибка сохранения', 'warn'); btn.textContent = '+ Добавить участника'; btn.disabled = false; return; }
-  const saved = result[0];
+  let saved;
+  try {
+    const result = await api.insert(TABLES.STUDENTS, student);
+    if (!result || !result[0]) { showToast('⚠️ Ошибка сохранения', 'warn'); btn.textContent = '+ Добавить участника'; btn.disabled = false; return; }
+    saved = result[0];
+  } catch(err) {
+    console.error('Insert student error:', err);
+    showToast('⚠️ Ошибка сервера: ' + err.message, 'warn');
+    btn.textContent = '+ Добавить участника'; btn.disabled = false;
+    return;
+  }
 
   state.students.unshift(saved);
   renderStudentList();
@@ -401,7 +409,13 @@ function quickViewStudent(id) {
 async function deleteStudent(e, id) {
   e.stopPropagation();
   if (!confirm('Удалить участника и все его данные?')) return;
-  await api.remove(TABLES.STUDENTS, id);
+  try {
+    await api.remove(TABLES.STUDENTS, id);
+  } catch(err) {
+    console.error('Delete student error:', err);
+    showToast('⚠️ Ошибка удаления: ' + err.message, 'warn');
+    return;
+  }
   state.students = state.students.filter(s => s.id !== id);
   state.observations = state.observations.filter(o => o.student_id !== id);
   state.badges = state.badges.filter(b => b.student_id !== id);
@@ -570,13 +584,19 @@ async function saveObservation() {
   };
 
   const existing = getObservation(state.currentStudentId, state.currentDay, state.currentTrack);
-  if (existing) {
-    await api.update(TABLES.OBSERVATIONS, existing.id, data);
-    Object.assign(existing, data);
-  } else {
-    const result = await api.insert(TABLES.OBSERVATIONS, data);
-    if (!result || !result[0]) { showToast('⚠️ Ошибка сохранения', 'warn'); return; }
-    state.observations.push(result[0]);
+  try {
+    if (existing) {
+      await api.update(TABLES.OBSERVATIONS, existing.id, data);
+      Object.assign(existing, data);
+    } else {
+      const result = await api.insert(TABLES.OBSERVATIONS, data);
+      if (!result || !result[0]) { showToast('⚠️ Ошибка сохранения', 'warn'); return; }
+      state.observations.push(result[0]);
+    }
+  } catch(err) {
+    console.error('Save observation error:', err);
+    showToast('⚠️ Ошибка сервера: ' + err.message, 'warn');
+    return;
   }
 
   await checkAndAwardBadges(state.currentStudentId, state.currentDay, state.currentTrack, data);
@@ -619,11 +639,14 @@ async function checkAndAwardBadges(studentId, day, track, obs) {
       earned_at: new Date().toISOString(),
       created_at: new Date().toISOString()
     };
-    const result = await api.insert(TABLES.BADGES, badge);
-    if (!result || !result[0]) continue;
-    const saved = result[0];
-    state.badges.push(saved);
-    showBadgeNotification(def);
+    try {
+      const result = await api.insert(TABLES.BADGES, badge);
+      if (!result || !result[0]) continue;
+      state.badges.push(result[0]);
+      showBadgeNotification(def);
+    } catch(err) {
+      console.warn('Badge award failed:', def.name, err);
+    }
   }
 }
 
