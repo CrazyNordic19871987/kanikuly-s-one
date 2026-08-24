@@ -258,7 +258,6 @@ function navigateTo(page) {
 
   if (page === 'achievements') populateStudentSelect('ach-student-select', onAchStudentChange);
   if (page === 'talents')      populateStudentSelect('talent-student-select', onTalentStudentChange);
-  if (page === 'tasks')        populateStudentSelect('task-student-select', onTaskStudentChange);
   if (page === 'dashboard')    renderDashboard();
   if (page === 'shifts')       renderShiftsPage();
   if (page === 'students')     renderStudentList();

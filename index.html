@@ -1081,35 +1081,6 @@ textarea:focus{border-color:var(--orange)}
   .btab-label{font-size:0.55rem}
 }
 
-/* ── Tasks / Observations page ── */
-.day-pills{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
-.day-pill{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--glass);color:var(--muted);font-size:0.7rem;font-weight:700;cursor:pointer;transition:all .2s}
-.day-pill.active{background:var(--orange);color:#fff;border-color:var(--orange)}
-.day-pill.done{border-color:var(--green);color:var(--green)}
-.track-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
-.track-tab{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--glass);color:var(--muted);font-size:0.7rem;font-weight:600;cursor:pointer;transition:all .2s}
-.track-tab.active{background:var(--orange);color:#fff;border-color:var(--orange)}
-.task-header{margin-bottom:16px}
-.task-day-badge{display:inline-block;padding:4px 10px;border-radius:12px;background:var(--orange-dim);color:var(--orange);font-size:0.65rem;font-weight:700;margin-bottom:8px}
-.task-title{font-size:0.95rem;font-weight:700;color:var(--white);margin-bottom:6px}
-.task-desc{font-size:0.75rem;color:var(--muted);margin-bottom:10px}
-.task-skills{display:flex;gap:6px;flex-wrap:wrap}
-.skill-chip{padding:3px 8px;border-radius:10px;font-size:0.6rem;font-weight:600;background:var(--glass-b);color:var(--white)}
-.task-form{background:var(--glass);border:1px solid var(--border);border-radius:var(--r);padding:16px}
-.rating-group{margin-bottom:12px}
-.rating-group label{display:block;font-size:0.72rem;color:var(--muted);margin-bottom:6px}
-.star-rating{display:flex;gap:4px}
-.star{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--glass);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;transition:all .15s}
-.star.active{background:var(--orange);color:#fff;border-color:var(--orange)}
-.star:hover{border-color:var(--orange)}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;cursor:pointer}
-.toggle-wrap{position:relative;width:40px;height:22px}
-.toggle-wrap input{opacity:0;width:0;height:0}
-.toggle-slider{position:absolute;inset:0;background:var(--glass-b);border-radius:11px;transition:.3s;cursor:pointer}
-.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;border-radius:50%;background:var(--muted);transition:.3s}
-.toggle-wrap input:checked + .toggle-slider{background:var(--orange)}
-.toggle-wrap input:checked + .toggle-slider::before{transform:translateX(18px);background:#fff}
-
 </style>
 </head>
 <body>
@@ -1129,7 +1100,6 @@ textarea:focus{border-color:var(--orange)}
     <button class="nav-item" data-page="talents"  title="Таланты">🎯<span>Таланты</span></button>
     <button class="nav-item" data-page="dashboard" title="Дашборд">📊<span>Стат</span></button>
     <button class="nav-item" data-page="assessments" title="Оценка">📋<span>Оценка</span></button>
-    <button class="nav-item" data-page="tasks" title="Наблюдения">📝<span>Задания</span></button>
     <div class="nav-spacer"></div>
   </aside>
 
@@ -1470,34 +1440,6 @@ textarea:focus{border-color:var(--orange)}
       </div>
     </div>
 
-    <!-- PAGE: НАБЛЮДЕНИЯ (ЕЖЕДНЕВНЫЕ ЗАДАНИЯ) -->
-    <div class="page" id="page-tasks">
-      <div class="page-wrap">
-        <div class="page-header">
-          <h1>📝 НАБЛЮДЕНИЯ</h1>
-          <p>Ежедневная оценка участников по направлениям</p>
-        </div>
-
-        <div style="margin-bottom:12px">
-          <label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block">Участник</label>
-          <select class="student-selector" id="task-student-select" onchange="onTaskStudentChange()">
-            <option value="">— Выбрать участника —</option>
-          </select>
-        </div>
-
-        <div class="day-pills" id="day-tabs" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap"></div>
-
-        <div class="track-tabs" id="track-tabs" style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
-          <button class="track-tab active" data-track="bio" onclick="selectTrack('bio')">🧬 Био</button>
-          <button class="track-tab" data-track="eng" onclick="selectTrack('eng')">⚙️ Инженерия</button>
-          <button class="track-tab" data-track="media" onclick="selectTrack('media')">🎥 Медиа</button>
-          <button class="track-tab" data-track="english" onclick="selectTrack('english')">🌍 Английский</button>
-        </div>
-
-        <div id="task-detail"></div>
-      </div>
-    </div>
-
   </main>
 
   <!-- ── MOBILE BOTTOM TAB BAR ── -->
@@ -1508,7 +1450,6 @@ textarea:focus{border-color:var(--orange)}
     <button class="btab" data-page="talents"><span class="btab-icon">🎯</span><span class="btab-label">Таланты</span></button>
     <button class="btab" data-page="dashboard"><span class="btab-icon">📊</span><span class="btab-label">Стат</span></button>
     <button class="btab" data-page="assessments"><span class="btab-icon">📋</span><span class="btab-label">Оценка</span></button>
-    <button class="btab" data-page="tasks"><span class="btab-icon">📝</span><span class="btab-label">Задания</span></button>
   </nav>
 </div>
 
