@@ -12,7 +12,7 @@ let state = {
   competencies: [],
   badgeDefs: [],
   discConfig: { colors: {}, skill_map: {}, combo: {} },
-  currentPage: 'students',
+  currentPage: 'shifts',
   currentStudentId: null,
   currentDay: 1,
   currentTrack: 'bio',
@@ -92,10 +92,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   try { setupNav(); } catch(e) { console.error('Nav error:', e); }
   try { setupSearch(); } catch(e) { console.error('Search error:', e); }
-  try { renderStudentList(); } catch(e) { console.error('StudentList error:', e); }
-  try { renderDashboard(); } catch(e) { console.error('Dashboard error:', e); }
+  try { renderShiftsPage(); } catch(e) { console.error('Shifts error:', e); }
   showLoader(false);
-  animatePageIn('students');
+  animatePageIn('shifts');
 });
 
 async function loadData() {
