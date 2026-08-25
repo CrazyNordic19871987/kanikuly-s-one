@@ -1343,8 +1343,19 @@ function drawRadar(canvas, scores, o) {
   if (!canvas) return;
   const opts = o || {};
   const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const cx = W/2, cy = H/2, R = Math.min(W,H)/2 - 65;
+  const dpr = window.devicePixelRatio || 1;
+  const logicalW = parseInt(canvas.getAttribute('width')) || 400;
+  const logicalH = parseInt(canvas.getAttribute('height')) || 400;
+
+  canvas.style.width = '100%';
+  canvas.style.height = 'auto';
+  canvas.style.maxWidth = logicalW + 'px';
+  canvas.width = logicalW * dpr;
+  canvas.height = logicalH * dpr;
+  ctx.scale(dpr, dpr);
+
+  const W = logicalW, H = logicalH;
+  const cx = W/2, cy = H/2, R = Math.min(W,H)/2 - 70;
   const N = state.competencies.length;
 
   ctx.clearRect(0, 0, W, H);
@@ -1372,18 +1383,18 @@ function drawRadar(canvas, scores, o) {
     ctx.strokeStyle = opts.axis || 'rgba(255,255,255,0.1)';
     ctx.stroke();
 
-    const iconR = R + 28;
+    const iconR = R + 24;
     const iconX = cx + Math.cos(angle) * iconR;
     const iconY = cy + Math.sin(angle) * iconR;
-    ctx.font = '28px sans-serif';
+    ctx.font = '24px sans-serif';
     ctx.fillStyle = opts.label || 'rgba(255,255,255,0.7)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(c.icon, iconX, iconY - 8);
+    ctx.fillText(c.icon, iconX, iconY - 6);
 
-    ctx.font = opts.font || '8px sans-serif';
+    ctx.font = opts.font || '600 10px sans-serif';
     ctx.fillStyle = opts.label || 'rgba(255,255,255,0.5)';
-    const nameR = R + 48;
+    const nameR = R + 42;
     const nameX = cx + Math.cos(angle) * nameR;
     const nameY = cy + Math.sin(angle) * nameR;
     ctx.fillText(c.name || c.id, nameX, nameY);
