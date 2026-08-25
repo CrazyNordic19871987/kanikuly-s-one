@@ -268,7 +268,59 @@ document.addEventListener('DOMContentLoaded', async () => {
   try { setupSearch(); } catch(e) { console.error('Search error:', e); }
   try { renderShiftsPage(); } catch(e) { console.error('Shifts error:', e); }
   showLoader(false);
-  animatePageIn('shifts');
+
+  const hash = location.hash.replace('#', '');
+  const validPages = ['students', 'shifts', 'dashboard', 'achievements', 'talents'];
+  const startPage = validPages.includes(hash) ? hash : 'shifts';
+  navigateTo(startPage, true);
+  history.replaceState({ page: startPage }, '', '#' + startPage);
+});
+
+window.addEventListener('popstate', (e) => {
+  if (e.state && e.state.page) {
+    const page = e.state.page;
+    if (page === state.currentPage && page !== 'shift-detail' && page !== 'shift-dashboard') return;
+
+    document.querySelectorAll('.page').forEach(p => {
+      p.classList.remove('active');
+      p.style.animation = '';
+    });
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+
+    if (page === 'shift-detail') {
+      if (e.state.shiftId) openShiftDetail(e.state.shiftId);
+      return;
+    }
+    if (page === 'shift-dashboard') {
+      if (e.state.shiftId) {
+        state.currentShiftId = e.state.shiftId;
+        state.filterSdCampus = '';
+        state.filterSdSquad = '';
+      }
+      navigateTo('shift-dashboard', true);
+      setTimeout(() => renderShiftDashboard(), 100);
+      return;
+    }
+
+    const needsMainRebuild = state.currentPage === 'shift-detail' || state.currentPage === 'shift-dashboard';
+    if (needsMainRebuild) rebuildMainContent();
+
+    const el = ge('page-' + page);
+    if (el) el.classList.add('active');
+    animatePageIn(page);
+
+    const navBtn = document.querySelector(`.nav-item[data-page="${page}"]`);
+    if (navBtn) navBtn.classList.add('active');
+    state.currentPage = page;
+
+    if (typeof syncBottomBar === 'function') syncBottomBar(page);
+
+    if (page === 'achievements') { populateStudentSelect('ach-student-select', onAchStudentChange); populateAchFilters(); }
+    if (page === 'talents')      populateStudentSelect('talent-student-select', onTalentStudentChange);
+    if (page === 'dashboard')    renderDashboard();
+    if (page === 'shifts')       renderShiftsPage();
+    if (page === 'students')     renderStudentList();
+  }
 });
 
 async function loadData() {
@@ -349,8 +401,8 @@ function rebuildMainContent() {
   mainEl.innerHTML = `<div class="topbar">
     <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
     <button class="mobile-back-btn" id="mobile-back-btn" onclick="goBack()" style="display:none">←</button>
-    <div class="topbar-logo"><svg viewBox="0 0 200 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#E8A838"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><line x1="24" y1="4" x2="24" y2="1" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="8" x2="34" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="36" y1="16" x2="39" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="8" x2="14" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="16" x2="9" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><polygon points="24,22 18,32 30,32" fill="#E8A838" opacity="0.9"/><polygon points="24,22 20,32 24,31" fill="#d66a12" opacity="0.8"/></svg></div>
-    <div class="topbar-title">КАНИКУЛЫ С ONE!</div>
+    <div class="topbar-logo" style="cursor:pointer" onclick="navigateTo('shifts')" title="На главную"><svg viewBox="0 0 200 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#E8A838"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><line x1="24" y1="4" x2="24" y2="1" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="8" x2="34" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="36" y1="16" x2="39" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="8" x2="14" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="16" x2="9" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><polygon points="24,22 18,32 30,32" fill="#E8A838" opacity="0.9"/><polygon points="24,22 20,32 24,31" fill="#d66a12" opacity="0.8"/></svg></div>
+    <div class="topbar-title" style="cursor:pointer" onclick="navigateTo('shifts')" title="На главную">КАНИКУЛЫ С ONE!</div>
     <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="Поиск участников..." value="${sq}"></div>
     <div class="topbar-right"><div class="status-dot"></div></div>
   </div>
@@ -456,7 +508,7 @@ function rebuildMainContent() {
   rebindSearch();
 }
 
-function navigateTo(page) {
+function navigateTo(page, skipHistory) {
   closeReport();
   if (page === state.currentPage) return;
 
@@ -481,6 +533,10 @@ function navigateTo(page) {
   const navBtn = document.querySelector(`.nav-item[data-page="${page}"]`);
   if (navBtn) navBtn.classList.add('active');
   state.currentPage = page;
+
+  if (!skipHistory) {
+    history.pushState({ page }, '', '#' + page);
+  }
 
   if (typeof syncBottomBar === 'function') syncBottomBar(page);
 
@@ -1779,6 +1835,7 @@ function openShiftDashboard(shiftId, evt) {
   state.filterSdCampus = '';
   state.filterSdSquad = '';
   navigateTo('shift-dashboard');
+  history.pushState({ page: 'shift-dashboard', shiftId }, '', '#shift-dashboard');
   setTimeout(() => renderShiftDashboard(), 100);
 }
 
@@ -1932,13 +1989,7 @@ function renderShiftDashboard() {
 }
 
 function goBack() {
-  if (state.currentPage === 'shift-dashboard') {
-    navigateTo('shifts');
-  } else if (state.currentPage === 'shift-detail') {
-    navigateTo('shifts');
-  } else {
-    navigateTo('students');
-  }
+  history.back();
 }
 
 function openShiftDetail(shiftId) {
@@ -1949,6 +2000,7 @@ function openShiftDetail(shiftId) {
   const navBtn = document.querySelector('.nav-item[data-page="shifts"]');
   if (navBtn) navBtn.classList.add('active');
   state.currentPage = 'shift-detail';
+  history.pushState({ page: 'shift-detail', shiftId }, '', '#shift-detail');
   if (typeof syncBottomBar === 'function') syncBottomBar('shifts');
 
   let html = `<div class="page-wrap shift-detail">
