@@ -79,6 +79,81 @@ function getLevel(xp) {
   return { level, name: LEVEL_NAMES[level - 1], xp: currentLevelXP, nextXP: nextLevelXP, progress };
 }
 
+// -- Inventory system ---------------------------
+const INVENTORY_ITEMS = {
+  'bio': [
+    { id:'bio_wrench', icon:'🔧', name:'Гаечный ключ', rarity:'common', bonus:'+5% к тех-XP', condition:'any' },
+    { id:'bio_greenhouse', icon:'📐', name:'Чертёж теплицы', rarity:'rare', bonus:'+10% к тех-XP', condition:'score4' },
+    { id:'bio_seeds', icon:'🌱', name:'Семена', rarity:'common', bonus:'+5% к природа-XP', condition:'any' },
+    { id:'bio_harvest', icon:'🌾', name:'Урожай', rarity:'rare', bonus:'+10% к природа-XP', condition:'score4' }
+  ],
+  'eng': [
+    { id:'eng_arduino', icon:'🔌', name:'Плата Arduino', rarity:'common', bonus:'+5% к тех-XP', condition:'any' },
+    { id:'eng_3dmodel', icon:'🧊', name:'3D-модель', rarity:'rare', bonus:'+10% к тех-XP', condition:'score4' },
+    { id:'eng_battery', icon:'🔋', name:'Батарея', rarity:'common', bonus:'+5% к инженерии', condition:'any' }
+  ],
+  'media': [
+    { id:'media_camera', icon:'📹', name:'Камера', rarity:'common', bonus:'+5% к креатив-XP', condition:'any' },
+    { id:'media_mic', icon:'🎤', name:'Микрофон', rarity:'rare', bonus:'+10% к комм-XP', condition:'score4' },
+    { id:'media_tripod', icon:'🎬', name:'Штатив', rarity:'common', bonus:'+5% к медиа', condition:'any' }
+  ],
+  'english': [
+    { id:'eng_book', icon:'📖', name:'Разговорник', rarity:'common', bonus:'+5% к англ.-XP', condition:'any' },
+    { id:'eng_diploma', icon:'📜', name:'Диплом финалиста', rarity:'rare', bonus:'+10% ко всем XP', condition:'score4' },
+    { id:'eng_globe', icon:'🌍', name:'Глобус', rarity:'common', bonus:'+5% к коммуникации', condition:'any' }
+  ],
+  'common': [
+    { id:'com_flag', icon:'🚩', name:'Флаг отряда', rarity:'common', bonus:'+5% к команд-XP', condition:'any' },
+    { id:'com_fire', icon:'🔥', name:'Костёр', rarity:'common', bonus:'+5% к выживанию', condition:'any' }
+  ],
+  'boss': [
+    { id:'boss_trophy', icon:'🏆', name:'Кубок смены', rarity:'rare', bonus:'+15% ко всем XP', condition:'boss' },
+    { id:'boss_medal', icon:'🎖️', name:'Медаль', rarity:'epic', bonus:'+20% ко всем XP', condition:'boss' },
+    { id:'boss_star', icon:'⭐', name:'Звезда лагеря', rarity:'legendary', bonus:'+25% ко всем XP', condition:'boss' }
+  ]
+};
+
+const INVENTORY_SLOTS_BASE = 6;
+
+function computeInventory(studentId) {
+  const items = [];
+  const completions = state.completions.filter(c => c.student_id == studentId);
+  const badges = state.badges.filter(b => b.student_id == studentId && b.earned);
+  const student = state.students.find(s => s.id === studentId);
+  const shiftId = student?.shift;
+
+  completions.forEach(c => {
+    const track = c.direction_name?.toLowerCase() || '';
+    let trackKey = 'common';
+    if (track.includes('био') || track.includes('eco')) trackKey = 'bio';
+    else if (track.includes('инженер') || track.includes('ит') || track.includes('тех')) trackKey = 'eng';
+    else if (track.includes('медиа')) trackKey = 'media';
+    else if (track.includes('англий') || track.includes('english')) trackKey = 'english';
+
+    const pool = INVENTORY_ITEMS[trackKey] || INVENTORY_ITEMS['common'];
+    pool.forEach(item => {
+      if (items.find(i => i.id === item.id)) return;
+      if (item.condition === 'any') {
+        items.push({...item});
+      } else if (item.condition === 'score4' && c.score >= 4) {
+        items.push({...item});
+      }
+    });
+  });
+
+  const hasBoss = completions.some(c => c.score >= 5);
+  if (hasBoss) {
+    const bossPool = INVENTORY_ITEMS['boss'];
+    const bossIdx = Math.min(badges.length - 1, bossPool.length - 1);
+    if (bossIdx >= 0 && !items.find(i => i.id === bossPool[bossIdx].id)) {
+      items.push({...bossPool[bossIdx]});
+    }
+  }
+
+  const maxSlots = INVENTORY_SLOTS_BASE + Math.floor(completions.length / 3);
+  return { items, maxSlots: Math.min(maxSlots, 12) };
+}
+
 // -- Инициализация -----------------------------
 function populateShiftSelect() {
   const sel = ge('s-shift');
@@ -786,6 +861,20 @@ function renderTalentCard(studentId) {
           <span class="tbr-rarity">${rarityLabel(b.rarity)}</span>
         </div>`).join('')
     : '<p class="empty-note">Значков пока нет</p>';
+
+  const inv = computeInventory(studentId);
+  const invEl = document.getElementById('talent-inventory');
+  if (invEl) {
+    let invHtml = `<div class="inv-header"><span>${inv.items.length} / ${inv.maxSlots} слотов</span></div><div class="inv-grid">`;
+    inv.items.forEach(item => {
+      invHtml += `<div class="inv-item rarity-${item.rarity}" title="${item.name} — ${item.bonus}"><span class="inv-icon">${item.icon}</span><span class="inv-name">${item.name}</span></div>`;
+    });
+    for (let i = inv.items.length; i < inv.maxSlots; i++) {
+      invHtml += `<div class="inv-item empty"><span class="inv-icon">+</span></div>`;
+    }
+    invHtml += '</div>';
+    invEl.innerHTML = invHtml;
+  }
 
   const obsListEl = document.getElementById('talent-obs-list');
   if (obsListEl) obsListEl.innerHTML = obs.length
