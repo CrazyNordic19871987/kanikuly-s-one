@@ -201,7 +201,7 @@ function populateShiftSelect() {
   state.shifts.forEach(s => {
     const opt = document.createElement('option');
     opt.value = s.id;
-    opt.textContent = 'Смена ' + s.id + ' — ' + s.title;
+    opt.textContent = 'Миссия ' + s.id + ' — ' + s.title;
     sel.appendChild(opt);
   });
 }
@@ -243,7 +243,7 @@ function populateDbFilters() {
     state.shifts.forEach(s => {
       const opt = document.createElement('option');
       opt.value = s.id;
-      opt.textContent = s.name || 'Смена ' + s.id;
+    opt.textContent = s.name || 'Миссия ' + s.id;
       shiftSel.appendChild(opt);
     });
   }
@@ -292,7 +292,7 @@ async function loadData() {
   state.completions = Array.isArray(completions) ? completions : [];
 
   if (Array.isArray(shifts) && shifts.length > 0) {
-    state.shifts = shifts.map(s => ({ ...s, id: s.shift_id })).sort((a, b) => a.id - b.id);
+    state.shifts = shifts.map(s => ({ ...s, id: s.shift_id, name: s.title || s.name || ('Миссия ' + s.shift_id) })).sort((a, b) => a.id - b.id);
   } else {
     state.shifts = typeof DEFAULT_SHIFTS !== 'undefined' ? DEFAULT_SHIFTS : [];
   }
@@ -367,14 +367,14 @@ function rebuildMainContent() {
           <div class="form-group"><label>Класс</label><input class="form-input" id="s-grade" type="number" min="1" max="11" required placeholder="Класс"></div>
           <div class="form-group"><label>Отряд</label><select class="form-input" id="s-squad" required><option value="">Выбрать...</option><option value="1">Отряд 1</option><option value="2">Отряд 2</option><option value="3">Отряд 3</option><option value="4">Отряд 4</option><option value="5">Отряд 5</option><option value="6">Отряд 6</option><option value="7">Отряд 7</option><option value="8">Отряд 8</option></select></div>
           <div class="form-group"><label>Кампус</label><select class="form-input" id="s-campus" required><option value="">Выбрать...</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select></div>
-          <div class="form-group"><label>Смена</label><select class="form-input" id="s-shift" required><option value="">Выбрать...</option></select></div>
+          <div class="form-group"><label>Миссия</label><select class="form-input" id="s-shift" required><option value="">Выбрать...</option></select></div>
         </div>
         <div class="form-group" style="margin-top:8px"><label>Заметки</label><textarea class="form-input" id="s-notes" rows="2" placeholder="Дополнительная информация..."></textarea></div>
         <button class="btn-primary" type="submit">✅ Добавить участника</button></form>
       </div>
       <div class="students-layout"><div>
         <div class="student-filters" id="student-filters">
-          <select class="form-input st-filter-select" id="st-filter-shift" onchange="onStFilterChange()"><option value="">Все смены</option></select>
+          <select class="form-input st-filter-select" id="st-filter-shift" onchange="onStFilterChange()"><option value="">Все миссии</option></select>
           <select class="form-input st-filter-select" id="st-filter-squad" onchange="onStFilterChange()"><option value="">Все отряды</option></select>
           <select class="form-input st-filter-select" id="st-filter-campus" onchange="onStFilterChange()"><option value="">Все кампусы</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select>
         </div>
@@ -385,7 +385,7 @@ function rebuildMainContent() {
   </div>
   <div class="page" id="page-shifts">
     <div class="page-wrap">
-      <div class="page-header"><h1>🏕️ СМЕНЫ</h1><p>Концепции смен — 10 сюжетов на выбор</p></div>
+      <div class="page-header"><h1>🏕️ МИССИИ</h1><p>Концепции миссий — 10 сюжетов на выбор</p></div>
       <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
       <div class="shifts-grid" id="shifts-grid"></div>
     </div>
@@ -410,11 +410,11 @@ function rebuildMainContent() {
       <div style="margin-bottom:12px"><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block">Участник</label><select class="student-selector" id="talent-student-select"><option value="">— Выбрать участника —</option></select></div>
       <div class="pp-hero" id="pp-hero"><div class="pp-avatar-wrap"><div class="pp-avatar" id="pp-avatar">--</div><div class="pp-level-badge" id="pp-level">1</div></div><div class="pp-hero-info"><div class="pp-name" id="pp-name">--</div><div class="pp-meta" id="pp-meta">--</div><div class="pp-xp-wrap"><div class="pp-xp-header"><span>Опыт</span><span id="pp-xp-text">0 XP</span></div><div class="pp-xp-bar"><div class="pp-xp-fill" id="pp-xp-fill" style="width:0%"></div></div></div><div class="pp-shift-tag" id="pp-shift-tag">--</div></div></div>
       <div class="pp-stats-grid" id="pp-stats"></div>
-      <div class="pp-tabs"><button class="pp-tab active" data-tab="skills" onclick="ppTab('skills')">Навыки</button><button class="pp-tab" data-tab="badges" onclick="ppTab('badges')">Значки</button><button class="pp-tab" data-tab="inventory" onclick="ppTab('inventory')">Инвентарь</button><button class="pp-tab" data-tab="shifts" onclick="ppTab('shifts')">Смены</button><button class="pp-tab" data-tab="history" onclick="ppTab('history')">История</button><button class="pp-tab" data-tab="disc" onclick="ppTab('disc')">DISC</button><button class="pp-tab" data-tab="recommend" onclick="ppTab('recommend')">Рекомендации</button></div>
+      <div class="pp-tabs"><button class="pp-tab active" data-tab="skills" onclick="ppTab('skills')">Навыки</button><button class="pp-tab" data-tab="badges" onclick="ppTab('badges')">Значки</button><button class="pp-tab" data-tab="inventory" onclick="ppTab('inventory')">Инвентарь</button><button class="pp-tab" data-tab="shifts" onclick="ppTab('shifts')">Миссии</button><button class="pp-tab" data-tab="history" onclick="ppTab('history')">История</button><button class="pp-tab" data-tab="disc" onclick="ppTab('disc')">DISC</button><button class="pp-tab" data-tab="recommend" onclick="ppTab('recommend')">Рекомендации</button></div>
       <div class="pp-panel active" data-panel="skills"><div class="gc"><h3>🕸️ Радар компетенций</h3><div class="radar-wrap"><canvas id="radar-canvas" width="300" height="300"></canvas></div><div id="ai-insights-section" style="margin-top:12px"></div></div><div class="gc"><h3>📈 Шкала компетенций</h3><div class="comp-bars" id="comp-bars"></div></div><div class="gc"><h3>🏆 Ключевое направление</h3><div id="career-content"></div></div></div>
       <div class="pp-panel" data-panel="badges"><div class="gc"><h3>⭐ Полученные значки <span id="pp-badge-count" style="color:var(--muted);font-weight:400"></span></h3><div id="talent-badges-list"></div></div></div>
       <div class="pp-panel" data-panel="inventory"><div class="gc"><h3>🎒 Инвентарь</h3><div id="talent-inventory"></div></div></div>
-      <div class="pp-panel" data-panel="shifts"><div class="gc"><h3>🏕️ Смены участника</h3><div id="pp-shifts-list"></div></div></div>
+      <div class="pp-panel" data-panel="shifts"><div class="gc"><h3>🏕️ Миссии участника</h3><div id="pp-shifts-list"></div></div></div>
       <div class="pp-panel" data-panel="history"><div class="gc"><h3>📜 История наблюдений</h3><div class="obs-list" id="talent-obs-list"></div></div></div>
       <div class="pp-panel" data-panel="disc"><div class="gc"><h3>🧩 DISC-профиль</h3><div class="disc-bars" id="disc-bars"></div><div class="disc-combo" id="disc-combo"></div></div></div>
       <div class="pp-panel" data-panel="recommend"><div class="gc"><h3>🔮 Рекомендации</h3><div id="pp-recommendations"></div></div></div>
@@ -424,7 +424,7 @@ function rebuildMainContent() {
     <div class="page-wrap">
       <div class="page-header"><h1>📊 ДАШБОРД</h1><p>Общая статистика</p></div>
       <div class="filter-row"><span class="filter-label">Кампус:</span><button class="filter-pill active" data-filter="db-campus" data-val="" onclick="setDbFilter('campus','')">Все</button><button class="filter-pill" data-filter="db-campus" data-val="ШОП" onclick="setDbFilter('campus','ШОП')">ШОП</button><button class="filter-pill" data-filter="db-campus" data-val="ШСТ" onclick="setDbFilter('campus','ШСТ')">ШСТ</button></div>
-      <div class="filter-row"><span class="filter-label">Смена:</span><select class="form-input" id="db-shift-select" onchange="onDbShiftFilter()" style="width:auto;display:inline-block"><option value="">Все смены</option></select></div>
+      <div class="filter-row"><span class="filter-label">Миссия:</span><select class="form-input" id="db-shift-select" onchange="onDbShiftFilter()" style="width:auto;display:inline-block"><option value="">Все миссии</option></select></div>
       <div class="filter-row"><span class="filter-label">Отряд:</span><select class="form-input" id="db-squad-select" onchange="onDbSquadFilter()" style="width:auto;display:inline-block"><option value="">Все отряды</option></select></div>
       <div class="stats-row" id="db-stats"></div>
       <div class="db-student-grid" id="db-student-grid"></div>
@@ -434,7 +434,7 @@ function rebuildMainContent() {
     <div class="page-wrap">
       <div class="page-header"><h1>📋 ОЦЕНКА МИССИЙ</h1><p>Выставление баллов за задания</p></div>
       <div class="assess-selectors">
-        <div><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Смена</label><select class="form-input" id="ass-shift" onchange="onAssShiftChange()"><option value="">Выбрать смену...</option></select></div>
+        <div><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Миссия</label><select class="form-input" id="ass-shift" onchange="onAssShiftChange()"><option value="">Выбрать миссию...</option></select></div>
         <div><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Направление</label><select class="form-input" id="ass-direction" onchange="onAssDirectionChange()"><option value="">Выбрать направление...</option></select></div>
         <div><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Участник</label><select class="form-input" id="ass-student" onchange="onAssStudentChange()"><option value="">Выбрать участника...</option></select></div>
       </div>
@@ -600,7 +600,7 @@ function renderStudentList() {
         <div class="sc-avatar">${initials}<div class="sc-level-badge">${lv.level}</div></div>
         <div class="sc-info">
           <div class="sc-name">${s.first_name} ${s.last_name} <span class="sc-level-tag">${lv.name}</span></div>
-          <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'смена ' + s.shift} · ${s.campus || ''}</div>
+          <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'Миссия ' + s.shift} · ${s.campus || ''}</div>
           <div class="sc-xp-bar"><div class="sc-xp-fill" style="width:${lv.progress}%"></div></div>
           <div class="sc-progress">
             <div class="sc-progress-bar"><div class="sc-progress-fill" style="width:${progress}%"></div></div>
@@ -717,8 +717,8 @@ function renderCurrentTask() {
   });
 
   if (!trackDir || !trackDir.missions || !trackDir.missions.length) {
-    const shiftDefName = state.shifts.find(sh => sh.id == student.shift)?.name || 'Смене ' + student.shift;
-    container.innerHTML = '<p class="empty-note">Нет миссий для этого направления в ' + shiftDefName + '</p>';
+    const shiftDefName = state.shifts.find(sh => sh.id == student.shift)?.name || 'Миссии ' + student.shift;
+    container.innerHTML = '<p class="empty-note">Нет заданий для этого направления в ' + shiftDefName + '</p>';
     return;
   }
 
@@ -1051,7 +1051,7 @@ function renderTalentCard(studentId) {
     } else {
       ppShiftsEl.innerHTML = shiftIds.map(sid => {
         const shiftObj = state.shifts.find(s => s.id == sid);
-        const shiftName = shiftObj ? shiftObj.name : 'Смена ' + sid;
+        const shiftName = shiftObj ? shiftObj.name : 'Миссия ' + sid;
         const shiftComps = studentCompletions.filter(c => c.shift_id == sid);
         const directions = [...new Set(shiftComps.map(c => c.direction_name))];
         const avgScore = shiftComps.reduce((sum, c) => sum + (c.score || 0), 0) / (shiftComps.length || 1);
@@ -1065,7 +1065,7 @@ function renderTalentCard(studentId) {
           <div style="display:flex;align-items:center;gap:8px">
             <span class="obs-icon">🏕️</span>
             <div class="obs-info"><strong>${esc(shiftName)}</strong></div>
-            <span style="font-size:0.65rem;color:var(--muted)">${shiftComps.length} миссий · ${badgeCount} баджей</span>
+            <span style="font-size:0.65rem;color:var(--muted)">${shiftComps.length} заданий · ${badgeCount} баджей</span>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             ${directions.map(d => `<span style="font-size:0.6rem;padding:2px 6px;border-radius:4px;background:var(--glass-b);color:var(--muted)">${esc(d)}</span>`).join('')}
@@ -1584,7 +1584,7 @@ function renderDashboard() {
         <div class="db-sc-avatar">${(s.first_name?.[0]||'')+(s.last_name?.[0]||'')}<div class="db-sc-level">${lv.level}</div></div>
         <div class="db-sc-info">
           <strong>${s.first_name} ${s.last_name}</strong> <span class="sc-level-tag">${lv.name}</span>
-          <span>отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'смена ' + s.shift} · ${s.campus || ''} · ${s.grade} кл</span>
+          <span>отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'Миссия ' + s.shift} · ${s.campus || ''} · ${s.grade} кл</span>
         </div>
         <div class="db-sc-track">${trackIcon}</div>
       </div>
@@ -1662,7 +1662,7 @@ function renderShiftsPage() {
   const grid = document.getElementById('shifts-grid');
   if (!grid) return;
   if (!state.shifts || !state.shifts.length) {
-    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🏕️</div><p>Нет данных о сменах</p></div>';
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🏕️</div><p>Нет данных о миссиях</p></div>';
     return;
   }
   grid.innerHTML = state.shifts.map(s => `
@@ -1671,7 +1671,7 @@ function renderShiftsPage() {
         <div class="shift-card-img">
           ${getShiftSvg(s.id)}
           <div class="shift-card-img-text">
-            <div class="shift-card-num">Смена ${s.id}</div>
+            <div class="shift-card-num">Миссия ${s.id}</div>
             <div class="shift-card-title">${s.title}</div>
             <div class="shift-card-subtitle">${s.subtitle}</div>
           </div>
@@ -1731,7 +1731,7 @@ function renderShiftDashboard() {
 
   const sdTitle = ge('sd-title');
   const sdSubtitle = ge('sd-subtitle');
-  if (sdTitle) sdTitle.textContent = '📊 ДАШБОРД СМЕНЫ ' + shiftId;
+  if (sdTitle) sdTitle.textContent = '📊 ДАШБОРД МИССИИ ' + shiftId;
   if (sdSubtitle) sdSubtitle.textContent = shift.title + ' · ' + (shift.currency || '');
 
   // Filter participants
@@ -1885,9 +1885,9 @@ function openShiftDetail(shiftId) {
   if (typeof syncBottomBar === 'function') syncBottomBar('shifts');
 
   let html = `<div class="page-wrap shift-detail">
-    <button class="shift-detail-back" onclick="navigateTo('shifts')">← Назад к сменам</button>
+    <button class="shift-detail-back" onclick="navigateTo('shifts')">← Назад к миссиям</button>
     <div class="shift-detail-header">
-      <div class="shift-detail-num">Смена ${s.id}</div>
+      <div class="shift-detail-num">Миссия ${s.id}</div>
       <div class="shift-detail-title">${s.title}</div>
       <div class="shift-detail-subtitle">${s.subtitle}</div>
       <div class="shift-detail-legend">${s.legend}</div>
@@ -1910,7 +1910,7 @@ function openShiftDetail(shiftId) {
         <p>${s.skills}</p>
       </div>
     </div>
-    <h3 style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">🗺️ Направления и миссии</h3>
+    <h3 style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">🗺️ Направления и задания</h3>
     <div class="shift-detail-sections">`;
 
   if (s.directions) {
@@ -1961,7 +1961,7 @@ function openShiftDetail(shiftId) {
       <div class="shift-detail-product-title">📦 Продуктовый инкубатор</div>
       <p>${s.product}</p>
     </div>
-    <button class="btn-primary" style="margin-top:16px" onclick="openShiftDashboard(${s.id}, event)">📊 Дашборд смены</button>
+    <button class="btn-primary" style="margin-top:16px" onclick="openShiftDashboard(${s.id}, event)">📊 Дашборд миссии</button>
   </div>`;
 
   const mainEl = document.querySelector('.main');
@@ -2283,7 +2283,7 @@ function fillReport(student) {
   set('rp-grade', student.grade != null ? student.grade + ' класс' : '—');
   set('rp-squad', 'Отряд ' + student.squad);
   const shiftDef = state.shifts.find(sh => sh.id == student.shift);
-  set('rp-shift', shiftDef ? shiftDef.name : 'Смена ' + student.shift);
+  set('rp-shift', shiftDef ? shiftDef.name : 'Миссия ' + student.shift);
   const rpCampusEl = document.getElementById('rp-campus');
   if (rpCampusEl) rpCampusEl.textContent = student.campus || '';
   set('rp-progress', level.progress + '%');
@@ -2354,7 +2354,7 @@ function fillReport(student) {
   const allProfessions = [...scored];
   shiftProfessions.forEach(pName => {
     if (!allProfessions.find(p => p.name === pName)) {
-      allProfessions.push({ name: pName, icon: '💼', score: 60, desc: 'Профессия из тематики смены' });
+      allProfessions.push({ name: pName, icon: '💼', score: 60, desc: 'Профессия из тематики миссии' });
     }
   });
   const careerEl = ge('rp-careers');
@@ -2376,7 +2376,7 @@ function fillReport(student) {
     const extraItems = [];
     // Add shift future skills
     shiftFutureSkills.forEach(f => {
-      extraItems.push({ icon: '🔮', name: f, desc: 'Навык из тематики смены' });
+      extraItems.push({ icon: '🔮', name: f, desc: 'Навык из тематики миссии' });
     });
     // Add recommended extracurricular
     (profile.recommendedExtracurricular || []).forEach(e => {
@@ -2437,7 +2437,7 @@ function fillReport(student) {
       const sScore = comps.filter(c => c.score > 0);
       const sAvg = sScore.length ? (sScore.reduce((s,c) => s + c.score, 0) / sScore.length).toFixed(1) : '—';
       compHtml += '<div style="margin-bottom:12px;padding:12px;border-radius:10px;background:rgba(232,168,56,0.04);border:1px solid rgba(232,168,56,0.12)">';
-      compHtml += '<div style="font-size:.72rem;font-weight:700;color:#E8A838;margin-bottom:8px">Смена ' + sId + (sh ? ' — ' + sh.title : '') + ' · ' + sAvg + '★ · ' + sXp + ' XP</div>';
+      compHtml += '<div style="font-size:.72rem;font-weight:700;color:#E8A838;margin-bottom:8px">Миссия ' + sId + (sh ? ' — ' + sh.title : '') + ' · ' + sAvg + '★ · ' + sXp + ' XP</div>';
       comps.filter(c => c.score > 0).forEach(c => {
         const sc = c.score >= 7 ? 'high' : c.score >= 4 ? 'mid' : 'low';
         compHtml += '<div class="rp-comp-row">';

@@ -1138,7 +1138,7 @@ textarea:focus{border-color:var(--orange)}
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">Каникулы<br>с ONE!</div>
     <button class="nav-item" data-page="students" title="Участники">👥<span>Игроки</span></button>
-    <button class="nav-item active" data-page="shifts" title="Смены">🏕️<span>Смены</span></button>
+    <button class="nav-item active" data-page="shifts" title="Миссии">🏕️<span>Миссии</span></button>
     <button class="nav-item" data-page="achievements" title="Достижения">🏅<span>Баджи</span></button>
     <button class="nav-item" data-page="talents"  title="Таланты">🎯<span>Таланты</span></button>
     <button class="nav-item" data-page="dashboard" title="Дашборд">📊<span>Стат</span></button>
@@ -1207,7 +1207,7 @@ textarea:focus{border-color:var(--orange)}
                   <option value="ШСТ">ШСТ</option>
                 </select>
               </div>
-              <div class="form-group"><label>Смена</label>
+              <div class="form-group"><label>Миссия</label>
                 <select class="form-input" id="s-shift" required>
                   <option value="">Выбрать...</option>
                 </select>
@@ -1225,7 +1225,7 @@ textarea:focus{border-color:var(--orange)}
           <div>
             <div class="student-filters" id="student-filters">
               <select class="form-input st-filter-select" id="st-filter-shift" onchange="onStFilterChange()">
-                <option value="">Все смены</option>
+                <option value="">Все миссии</option>
               </select>
               <select class="form-input st-filter-select" id="st-filter-squad" onchange="onStFilterChange()">
                 <option value="">Все отряды</option>
@@ -1267,8 +1267,8 @@ textarea:focus{border-color:var(--orange)}
     <div class="page active" id="page-shifts">
       <div class="page-wrap">
         <div class="page-header">
-          <h1>🏕️ СМЕНЫ</h1>
-          <p>Концепции смен — 10 сюжетов на выбор</p>
+          <h1>🏕️ МИССИИ</h1>
+          <p>Концепции миссий — 10 сюжетов на выбор</p>
         </div>
         <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
         <div class="shifts-grid" id="shifts-grid"></div>
@@ -1345,7 +1345,7 @@ textarea:focus{border-color:var(--orange)}
           <button class="pp-tab active" data-tab="skills" onclick="ppTab('skills')">Навыки</button>
           <button class="pp-tab" data-tab="badges" onclick="ppTab('badges')">Значки</button>
           <button class="pp-tab" data-tab="inventory" onclick="ppTab('inventory')">Инвентарь</button>
-          <button class="pp-tab" data-tab="shifts" onclick="ppTab('shifts')">Смены</button>
+          <button class="pp-tab" data-tab="shifts" onclick="ppTab('shifts')">Миссии</button>
           <button class="pp-tab" data-tab="history" onclick="ppTab('history')">История</button>
           <button class="pp-tab" data-tab="disc" onclick="ppTab('disc')">DISC</button>
           <button class="pp-tab" data-tab="recommend" onclick="ppTab('recommend')">Рекомендации</button>
@@ -1406,7 +1406,7 @@ textarea:focus{border-color:var(--orange)}
         </div>
         <div class="pp-panel" data-panel="shifts">
           <div class="gc">
-            <h3>🏕️ Смены участника</h3>
+            <h3>🏕️ Миссии участника</h3>
             <div id="pp-shifts-list"></div>
           </div>
         </div>
@@ -1456,18 +1456,18 @@ textarea:focus{border-color:var(--orange)}
             <button class="filter-pill" data-filter="squad" data-val="8" onclick="setFilter('squad','8')">Отряд 8</button>
           </div>
           <div class="filter-row">
-            <span class="filter-label">Смена:</span>
+            <span class="filter-label">Миссия:</span>
             <button class="filter-pill active" data-filter="shift" data-val="" onclick="setFilter('shift','')">Все</button>
-            <button class="filter-pill" data-filter="shift" data-val="1" onclick="setFilter('shift','1')">Смена 1</button>
-            <button class="filter-pill" data-filter="shift" data-val="2" onclick="setFilter('shift','2')">Смена 2</button>
-            <button class="filter-pill" data-filter="shift" data-val="3" onclick="setFilter('shift','3')">Смена 3</button>
-            <button class="filter-pill" data-filter="shift" data-val="4" onclick="setFilter('shift','4')">Смена 4</button>
-            <button class="filter-pill" data-filter="shift" data-val="5" onclick="setFilter('shift','5')">Смена 5</button>
-            <button class="filter-pill" data-filter="shift" data-val="6" onclick="setFilter('shift','6')">Смена 6</button>
-            <button class="filter-pill" data-filter="shift" data-val="7" onclick="setFilter('shift','7')">Смена 7</button>
-            <button class="filter-pill" data-filter="shift" data-val="8" onclick="setFilter('shift','8')">Смена 8</button>
-            <button class="filter-pill" data-filter="shift" data-val="9" onclick="setFilter('shift','9')">Смена 9</button>
-            <button class="filter-pill" data-filter="shift" data-val="10" onclick="setFilter('shift','10')">Смена 10</button>
+            <button class="filter-pill" data-filter="shift" data-val="1" onclick="setFilter('shift','1')">Миссия 1</button>
+            <button class="filter-pill" data-filter="shift" data-val="2" onclick="setFilter('shift','2')">Миссия 2</button>
+            <button class="filter-pill" data-filter="shift" data-val="3" onclick="setFilter('shift','3')">Миссия 3</button>
+            <button class="filter-pill" data-filter="shift" data-val="4" onclick="setFilter('shift','4')">Миссия 4</button>
+            <button class="filter-pill" data-filter="shift" data-val="5" onclick="setFilter('shift','5')">Миссия 5</button>
+            <button class="filter-pill" data-filter="shift" data-val="6" onclick="setFilter('shift','6')">Миссия 6</button>
+            <button class="filter-pill" data-filter="shift" data-val="7" onclick="setFilter('shift','7')">Миссия 7</button>
+            <button class="filter-pill" data-filter="shift" data-val="8" onclick="setFilter('shift','8')">Миссия 8</button>
+            <button class="filter-pill" data-filter="shift" data-val="9" onclick="setFilter('shift','9')">Миссия 9</button>
+            <button class="filter-pill" data-filter="shift" data-val="10" onclick="setFilter('shift','10')">Миссия 10</button>
           </div>
         </div>
 
@@ -1479,8 +1479,8 @@ textarea:focus{border-color:var(--orange)}
     <div class="page" id="page-shift-dashboard">
       <div class="page-wrap">
         <div class="page-header">
-          <button class="shift-detail-back" onclick="navigateTo('shifts')" style="margin-bottom:12px">← Назад к сменам</button>
-          <h1 id="sd-title">📊 ДАШБОРД СМЕНЫ</h1>
+    <button class="shift-detail-back" onclick="navigateTo('shifts')" style="margin-bottom:12px">← Назад к миссиям</button>
+            <h1 id="sd-title">📊 ДАШБОРД МИССИИ</h1>
           <p id="sd-subtitle">Прогресс участников</p>
         </div>
         <div class="filter-row">
@@ -1519,9 +1519,9 @@ textarea:focus{border-color:var(--orange)}
             </select>
           </div>
           <div class="form-group">
-            <label>Смена</label>
+            <label>Миссия</label>
             <select class="form-input" id="ass-shift" onchange="onAssShiftChange()">
-              <option value="">Выбрать смену...</option>
+              <option value="">Выбрать миссию...</option>
             </select>
           </div>
           <div class="form-group">
@@ -1548,7 +1548,7 @@ textarea:focus{border-color:var(--orange)}
   <!-- ── MOBILE BOTTOM TAB BAR ── -->
   <nav class="bottom-bar" id="bottom-bar">
     <button class="btab" data-page="students"><span class="btab-icon">👥</span><span class="btab-label">Игроки</span></button>
-    <button class="btab active" data-page="shifts"><span class="btab-icon">🏕️</span><span class="btab-label">Смены</span></button>
+    <button class="btab active" data-page="shifts"><span class="btab-icon">🏕️</span><span class="btab-label">Миссии</span></button>
     <button class="btab" data-page="achievements"><span class="btab-icon">🏅</span><span class="btab-label">Баджи</span></button>
     <button class="btab" data-page="talents"><span class="btab-icon">🎯</span><span class="btab-label">Таланты</span></button>
     <button class="btab" data-page="dashboard"><span class="btab-icon">📊</span><span class="btab-label">Стат</span></button>
