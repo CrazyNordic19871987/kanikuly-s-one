@@ -19,6 +19,18 @@ DROP POLICY IF EXISTS "anon_all_students"    ON public.students;
 DROP POLICY IF EXISTS "anon_all_observations" ON public.observations;
 DROP POLICY IF EXISTS "anon_all_badges"      ON public.badges;
 DROP POLICY IF EXISTS "anon_all_completions" ON public.completions;
+DROP POLICY IF EXISTS "anon_select_students"    ON public.students;
+DROP POLICY IF EXISTS "anon_insert_students"    ON public.students;
+DROP POLICY IF EXISTS "anon_update_students"    ON public.students;
+DROP POLICY IF EXISTS "anon_select_observations" ON public.observations;
+DROP POLICY IF EXISTS "anon_insert_observations" ON public.observations;
+DROP POLICY IF EXISTS "anon_update_observations" ON public.observations;
+DROP POLICY IF EXISTS "anon_delete_observations" ON public.observations;
+DROP POLICY IF EXISTS "anon_select_badges"      ON public.badges;
+DROP POLICY IF EXISTS "anon_insert_badges"      ON public.badges;
+DROP POLICY IF EXISTS "anon_select_completions" ON public.completions;
+DROP POLICY IF EXISTS "anon_insert_completions" ON public.completions;
+DROP POLICY IF EXISTS "anon_delete_completions" ON public.completions;
 
 -- students: anon can SELECT + INSERT + UPDATE (no DELETE — prevents data loss)
 CREATE POLICY "anon_select_students"
