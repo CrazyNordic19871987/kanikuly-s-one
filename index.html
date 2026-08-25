@@ -380,10 +380,31 @@ textarea:focus{border-color:var(--orange)}
 .ach-summary strong{font-size:0.85rem}.ach-summary span{font-size:0.7rem;color:var(--muted)}
 
 /* ═══════════════════════════════════════════
-   PAGE 4: ТАЛАНТЫ (Рекомендации)
+   PAGE 4: ПРОФИЛЬ ИГРОКА (RPG)
 ═══════════════════════════════════════════ */
-.talent-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:800px){.talent-grid{grid-template-columns:1fr}}
+.pp-hero{display:flex;gap:20px;padding:20px;background:var(--glass);border:1px solid var(--border);border-radius:var(--r);backdrop-filter:blur(20px);margin-bottom:16px;align-items:center}
+.pp-avatar-wrap{position:relative;flex-shrink:0}
+.pp-avatar{width:72px;height:72px;border-radius:50%;background:var(--orange-dim);border:3px solid var(--orange);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:var(--orange);font-family:'Orbitron',monospace}
+.pp-level-badge{position:absolute;bottom:-4px;right:-4px;width:24px;height:24px;border-radius:50%;background:var(--green);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:900;color:var(--white);font-family:'Orbitron',monospace}
+.pp-hero-info{flex:1;min-width:0}
+.pp-name{font-size:1.2rem;font-weight:900;font-family:'Orbitron',monospace;margin-bottom:2px}
+.pp-meta{font-size:0.7rem;color:var(--muted);margin-bottom:10px}
+.pp-xp-wrap{margin-bottom:8px}
+.pp-xp-header{display:flex;justify-content:space-between;font-size:0.65rem;color:var(--muted);margin-bottom:3px}
+.pp-xp-bar{height:8px;background:var(--glass-b);border-radius:4px;overflow:hidden}
+.pp-xp-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--orange),#FFD93D);transition:width 0.8s ease}
+.pp-shift-tag{display:inline-block;font-size:0.6rem;padding:3px 8px;border-radius:6px;background:var(--orange-dim);color:var(--orange);font-weight:600}
+.pp-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.pp-stat{padding:12px;background:var(--glass);border:1px solid var(--border);border-radius:var(--r);text-align:center}
+.pp-stat-num{font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--orange)}
+.pp-stat-label{font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-top:2px}
+.pp-tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.pp-tab{padding:8px 14px;border-radius:8px;background:var(--glass);border:1px solid var(--border);color:var(--muted);font-size:0.7rem;font-weight:600;cursor:pointer;transition:all 0.2s}
+.pp-tab.active{background:var(--orange);color:var(--bg);border-color:var(--orange)}
+.pp-tab:hover:not(.active){border-color:var(--orange)}
+.pp-panel{display:none}.pp-panel.active{display:block}
+.pp-panel .gc{margin-bottom:12px}
+@media(max-width:800px){.pp-hero{flex-direction:column;text-align:center}.pp-stats-grid{grid-template-columns:repeat(2,1fr)}}
 .gc{
   background:var(--glass);border:1px solid var(--border);border-radius:var(--r);
   padding:16px;backdrop-filter:blur(20px);
@@ -928,8 +949,10 @@ textarea:focus{border-color:var(--orange)}
   body,html{background:#fff!important;color:#000!important}
   #app-loader,.toast,.badge-notification{display:none!important}
   .gc{background:#f8f9fa!important;border:1px solid #ddd!important;color:#000!important}
-  .talent-grid{display:block}
-  .talent-grid .gc{margin-bottom:12px;break-inside:avoid}
+  .pp-hero{flex-direction:column;text-align:center}
+  .pp-panel .gc{margin-bottom:12px;break-inside:avoid}
+  .pp-tabs{display:none!important}
+  .pp-panel{display:block!important}
   body:not(.report-mode) canvas#radar-canvas{filter:invert(1)}
   body:not(.report-mode) *{-webkit-text-fill-color:initial!important;color:#000!important}
   body.report-mode .app-shell{display:none!important}
@@ -1061,7 +1084,7 @@ textarea:focus{border-color:var(--orange)}
   .nav-item{width:100%;height:52px;flex-direction:row;gap:12px;justify-content:flex-start;padding:0 24px}
   .nav-item span{display:inline;font-size:0.7rem}
   .page-wrap{padding:16px 14px 24px}
-  .talent-grid{grid-template-columns:1fr}
+  .pp-hero{padding:16px 12px}.pp-stats-grid{grid-template-columns:repeat(2,1fr)!important}
   .assess-selectors{grid-template-columns:1fr}
   .stats-row{grid-template-columns:repeat(2,1fr)!important}
   .db-student-grid{grid-template-columns:1fr!important}
@@ -1283,14 +1306,13 @@ textarea:focus{border-color:var(--orange)}
     <div class="page" id="page-talents">
       <div class="page-wrap">
         <div class="page-header">
-          <h1>🎯 ТАЛАНТЫ</h1>
-          <p>Персональные рекомендации и профиль компетенций</p>
+          <h1>🎯 ПРОФИЛЬ ИГРОКА</h1>
+          <p>RPG-карточка участника лагеря</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <button class="btn-primary" onclick="printStudentReport(state.currentStudentId)">🎮 Скачать репорт участника</button>
           <button class="btn-print" style="margin-bottom:0" onclick="window.print()">🖨️ Печать страницы</button>
         </div>
-
         <div style="margin-bottom:12px">
           <label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block">Участник</label>
           <select class="student-selector" id="talent-student-select">
@@ -1298,43 +1320,86 @@ textarea:focus{border-color:var(--orange)}
           </select>
         </div>
 
-        <div class="talent-grid">
+        <!-- HERO CARD -->
+        <div class="pp-hero" id="pp-hero">
+          <div class="pp-avatar-wrap">
+            <div class="pp-avatar" id="pp-avatar">--</div>
+            <div class="pp-level-badge" id="pp-level">1</div>
+          </div>
+          <div class="pp-hero-info">
+            <div class="pp-name" id="pp-name">--</div>
+            <div class="pp-meta" id="pp-meta">--</div>
+            <div class="pp-xp-wrap">
+              <div class="pp-xp-header"><span>Опыт</span><span id="pp-xp-text">0 XP</span></div>
+              <div class="pp-xp-bar"><div class="pp-xp-fill" id="pp-xp-fill" style="width:0%"></div></div>
+            </div>
+            <div class="pp-shift-tag" id="pp-shift-tag">--</div>
+          </div>
+        </div>
+
+        <!-- STATS GRID -->
+        <div class="pp-stats-grid" id="pp-stats"></div>
+
+        <!-- TABS -->
+        <div class="pp-tabs">
+          <button class="pp-tab active" data-tab="skills" onclick="ppTab('skills')">Навыки</button>
+          <button class="pp-tab" data-tab="badges" onclick="ppTab('badges')">Значки</button>
+          <button class="pp-tab" data-tab="inventory" onclick="ppTab('inventory')">Инвентарь</button>
+          <button class="pp-tab" data-tab="history" onclick="ppTab('history')">История</button>
+          <button class="pp-tab" data-tab="disc" onclick="ppTab('disc')">DISC</button>
+        </div>
+
+        <!-- PANEL: SKILLS -->
+        <div class="pp-panel active" data-panel="skills">
           <div class="gc">
-            <h3>👤 <span id="talent-name">--</span></h3>
-            <p style="font-size:0.7rem;color:var(--muted);margin-bottom:12px" id="talent-meta">--</p>
-            <div id="talent-top-badges" style="margin-bottom:12px"></div>
-            <h3>📊 Радар компетенций</h3>
+            <h3>🕸️ Радар компетенций</h3>
             <div class="radar-wrap"><canvas id="radar-canvas" width="300" height="300"></canvas></div>
             <div id="ai-insights-section" style="margin-top:12px"></div>
-            <h3 style="margin-top:16px">📈 Шкала компетенций</h3>
+          </div>
+          <div class="gc">
+            <h3>📈 Шкала компетенций</h3>
             <div class="comp-bars" id="comp-bars"></div>
           </div>
-          <div>
-            <div class="gc" style="margin-bottom:12px">
-              <h3>🧩 DISC-профиль</h3>
-              <div class="disc-bars" id="disc-bars"></div>
-              <div class="disc-combo" id="disc-combo"></div>
-            </div>
-            <div class="gc" style="margin-bottom:12px">
-              <h3>🏆 Ключевое направление</h3>
-              <div id="career-content"></div>
-            </div>
-            <div class="gc" style="margin-bottom:12px">
-              <h3>💼 Рекомендации по профессии</h3>
-              <div id="recommendations-content"></div>
-            </div>
-            <div class="gc">
-              <h3>⭐ Полученные значки</h3>
-              <div id="talent-badges-list"></div>
-            </div>
-            <div class="gc">
-              <h3>🎒 Инвентарь</h3>
-              <div id="talent-inventory"></div>
-            </div>
-            <div class="gc">
-              <h3>📝 История наблюдений</h3>
-              <div class="obs-list" id="talent-obs-list"></div>
-            </div>
+          <div class="gc">
+            <h3>🏆 Ключевое направление</h3>
+            <div id="career-content"></div>
+          </div>
+          <div class="gc">
+            <h3>💼 Рекомендации по профессии</h3>
+            <div id="recommendations-content"></div>
+          </div>
+        </div>
+
+        <!-- PANEL: BADGES -->
+        <div class="pp-panel" data-panel="badges">
+          <div class="gc">
+            <h3>⭐ Полученные значки <span id="pp-badge-count" style="color:var(--muted);font-weight:400"></span></h3>
+            <div id="talent-badges-list"></div>
+          </div>
+        </div>
+
+        <!-- PANEL: INVENTORY -->
+        <div class="pp-panel" data-panel="inventory">
+          <div class="gc">
+            <h3>🎒 Инвентарь</h3>
+            <div id="talent-inventory"></div>
+          </div>
+        </div>
+
+        <!-- PANEL: HISTORY -->
+        <div class="pp-panel" data-panel="history">
+          <div class="gc">
+            <h3>📜 История наблюдений</h3>
+            <div class="obs-list" id="talent-obs-list"></div>
+          </div>
+        </div>
+
+        <!-- PANEL: DISC -->
+        <div class="pp-panel" data-panel="disc">
+          <div class="gc">
+            <h3>🧩 DISC-профиль</h3>
+            <div class="disc-bars" id="disc-bars"></div>
+            <div class="disc-combo" id="disc-combo"></div>
           </div>
         </div>
       </div>

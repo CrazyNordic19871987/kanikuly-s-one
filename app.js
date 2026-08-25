@@ -865,43 +865,76 @@ function onTalentStudentChange() {
   if (student) fillReport(student);
 }
 
+function ppTab(tab) {
+  document.querySelectorAll('.pp-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.pp-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
+}
+
 function renderTalentCard(studentId) {
   const student = state.students.find(s => s.id === studentId);
   if (!student) return;
 
   const obs = state.observations.filter(o => o.student_id === studentId);
   const earnedBadges = state.badges.filter(b => b.student_id === studentId && b.earned);
+  const xp = calcStudentXP(studentId);
+  const lv = getLevel(xp);
+  const shift = state.shifts.find(s => s.id == student.shift);
+  const shiftName = shift ? shift.name : student.shift;
 
-  const talentName = ge('talent-name');
-  const talentMeta = ge('talent-meta');
-  if (talentName) talentName.textContent = student.first_name + ' ' + student.last_name;
-  if (talentMeta) talentMeta.textContent = student.age + ' лет · ' + student.grade + ' класс · отряд ' + student.squad + ' · смена ' + student.shift;
+  const initials = ((student.first_name || '')[0] || '') + ((student.last_name || '')[0] || '');
+  const setEl = (id, html) => { const e = document.getElementById(id); if (e) e.innerHTML = html; };
+  const setText = (id, text) => { const e = document.getElementById(id); if (e) e.textContent = text; };
 
-  const topBadgesEl = document.getElementById('talent-top-badges');
-  if (topBadgesEl) topBadgesEl.innerHTML =
-    earnedBadges.map(b => `<span class="mini-badge rarity-${b.rarity}" title="${b.name}">${b.icon}</span>`).join('');
+  // Hero card
+  setText('pp-name', student.first_name + ' ' + student.last_name);
+  setEl('pp-avatar', initials || '?');
+  setText('pp-level', lv.level);
+  setText('pp-meta', student.age + ' лет · ' + student.grade + ' класс · отряд ' + student.squad);
+  setText('pp-xp-text', xp + ' / ' + lv.xpForNext + ' XP');
+  setText('pp-shift-tag', shiftName);
+  const pct = lv.xpForNext > 0 ? Math.min(100, Math.round((xp / lv.xpForNext) * 100)) : 0;
+  const xpFill = document.getElementById('pp-xp-fill');
+  if (xpFill) xpFill.style.width = pct + '%';
+  const lvlBadge = document.getElementById('pp-level');
+  if (lvlBadge) lvlBadge.textContent = lv.level;
 
+  // Stats grid
+  const completedCount = state.completions.filter(c => c.student_id === studentId).length;
+  const unlocBadges = state.badgeDefs.filter(b => earnedBadges.some(eb => eb.badge_id === b.id)).length;
+  const shiftsAttended = new Set(state.completions.filter(c => c.student_id === studentId).map(c => c.shift_id)).size;
+  setEl('pp-stats', `
+    <div class="pp-stat"><div class="pp-stat-num">${lv.level}</div><div class="pp-stat-label">Уровень</div></div>
+    <div class="pp-stat"><div class="pp-stat-num">${xp}</div><div class="pp-stat-label">Опыт</div></div>
+    <div class="pp-stat"><div class="pp-stat-num">${completedCount}</div><div class="pp-stat-label">Миссий</div></div>
+    <div class="pp-stat"><div class="pp-stat-num">${unlocBadges}</div><div class="pp-stat-label">Значков</div></div>
+  `);
+
+  // Skills tab
   const compScores = calcCompetencies(obs, studentId);
   renderRadarChart(compScores);
   renderAIInsights(studentId);
   renderCompBars(compScores);
-
-  renderDISC(obs, studentId);
-
   renderCareer(obs, earnedBadges);
-
   renderRecommendations(obs, earnedBadges, compScores);
 
+  // Badges tab
   const badgesListEl = document.getElementById('talent-badges-list');
   if (badgesListEl) badgesListEl.innerHTML = earnedBadges.length
-    ? earnedBadges.map(b =>
-        `<div class="talent-badge-row rarity-${b.rarity}">
+    ? earnedBadges.map(b => {
+        const def = state.badgeDefs.find(d => d.id === b.badge_id);
+        const shiftObj = def ? state.shifts.find(s => s.id == def.shift_id) : null;
+        const shiftLabel = shiftObj ? shiftObj.name : '';
+        return `<div class="talent-badge-row rarity-${b.rarity}">
           <span class="tbr-icon">${b.icon}</span>
-          <div><strong>${b.name}</strong><p>${b.desc || ''}</p></div>
+          <div><strong>${b.name}</strong><p>${b.desc || ''}</p>${shiftLabel ? '<p style="font-size:0.6rem;color:var(--orange);margin:2px 0 0">' + shiftLabel + '</p>' : ''}</div>
           <span class="tbr-rarity">${rarityLabel(b.rarity)}</span>
-        </div>`).join('')
+        </div>`;
+      }).join('')
     : '<p class="empty-note">Значков пока нет</p>';
+  const badgeCount = document.getElementById('pp-badge-count');
+  if (badgeCount) badgeCount.textContent = earnedBadges.length > 0 ? `(${earnedBadges.length})` : '';
 
+  // Inventory tab
   const inv = computeInventory(studentId);
   const invEl = document.getElementById('talent-inventory');
   if (invEl) {
@@ -916,6 +949,7 @@ function renderTalentCard(studentId) {
     invEl.innerHTML = invHtml;
   }
 
+  // History tab
   const obsListEl = document.getElementById('talent-obs-list');
   if (obsListEl) obsListEl.innerHTML = obs.length
     ? obs.map(o => {
@@ -931,6 +965,12 @@ function renderTalentCard(studentId) {
         </div>`;
       }).join('')
     : '<p class="empty-note">Наблюдений пока нет</p>';
+
+  // DISC tab
+  renderDISC(obs, studentId);
+
+  // Reset to skills tab
+  ppTab('skills');
 }
 
 function getScoredProfessions(obs, badges, compScores) {
