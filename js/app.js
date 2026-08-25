@@ -1426,8 +1426,9 @@ function drawRadar(canvas, scores, o) {
 
   const wrap = canvas.parentElement;
   const wrapW = wrap ? wrap.clientWidth : 400;
-  const logicalW = Math.min(wrapW, 500);
-  const logicalH = logicalW;
+  const isMobile = wrapW < 380;
+  const logicalW = isMobile ? wrapW : Math.min(wrapW, 500);
+  const logicalH = isMobile ? logicalW : logicalW;
 
   canvas.style.width = logicalW + 'px';
   canvas.style.height = logicalH + 'px';
@@ -1436,13 +1437,14 @@ function drawRadar(canvas, scores, o) {
   ctx.scale(dpr, dpr);
 
   const W = logicalW, H = logicalH;
-  const scale = W / 400;
-  const pad = Math.round(65 * scale);
-  const cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 - pad;
+  const cx = W / 2, cy = H / 2;
+  const pad = isMobile ? Math.round(42 * (W / 340)) : Math.round(65 * (W / 400));
+  const R = Math.min(W, H) / 2 - pad;
   const N = state.competencies.length;
 
   ctx.clearRect(0, 0, W, H);
 
+  const gridAlpha = isMobile ? 0.12 : 0.08;
   for (let r = 1; r <= 5; r++) {
     ctx.beginPath();
     for (let i = 0; i < N; i++) {
@@ -1453,16 +1455,24 @@ function drawRadar(canvas, scores, o) {
       i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     }
     ctx.closePath();
-    ctx.strokeStyle = opts.grid || 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = opts.grid || `rgba(255,255,255,${gridAlpha})`;
     ctx.lineWidth = 1;
     ctx.stroke();
   }
 
-  const iconFont = Math.round(22 * scale) + 'px sans-serif';
-  const nameFont = (opts.font || '600 10px sans-serif').replace(/\d+px/, Math.round(10 * scale) + 'px');
-  const iconOffset = Math.round(22 * scale);
-  const nameOffset = Math.round(40 * scale);
-  const iconDy = Math.round(5 * scale);
+  const baseIcon = isMobile ? 18 : 22;
+  const baseFont = isMobile ? 8 : 10;
+  const baseIconOffset = isMobile ? 16 : 22;
+  const baseNameOffset = isMobile ? 30 : 40;
+  const iconDy = isMobile ? 4 : 5;
+
+  const scaleFactor = W / 400;
+  const iconSize = Math.max(14, Math.round(baseIcon * scaleFactor));
+  const textSize = Math.max(7, Math.round(baseFont * scaleFactor));
+  const iconOffset = Math.round(baseIconOffset * scaleFactor);
+  const nameOffset = Math.round(baseNameOffset * scaleFactor);
+
+  const labelColor = opts.label || 'rgba(255,255,255,0.7)';
 
   state.competencies.forEach((c, i) => {
     const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
@@ -1470,22 +1480,23 @@ function drawRadar(canvas, scores, o) {
     ctx.moveTo(cx, cy);
     ctx.lineTo(cx + Math.cos(angle) * R, cy + Math.sin(angle) * R);
     ctx.strokeStyle = opts.axis || 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     const iconR = R + iconOffset;
     const iconX = cx + Math.cos(angle) * iconR;
     const iconY = cy + Math.sin(angle) * iconR;
-    ctx.font = iconFont;
-    ctx.fillStyle = opts.label || 'rgba(255,255,255,0.7)';
+    ctx.font = iconSize + 'px sans-serif';
+    ctx.fillStyle = labelColor;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(c.icon, iconX, iconY - iconDy);
+    ctx.fillText(c.icon, iconX, iconY - Math.round(iconDy * scaleFactor));
 
-    ctx.font = nameFont;
-    ctx.fillStyle = opts.label || 'rgba(255,255,255,0.5)';
     const nameR = R + nameOffset;
     const nameX = cx + Math.cos(angle) * nameR;
     const nameY = cy + Math.sin(angle) * nameR;
+    ctx.font = `600 ${textSize}px 'Space Grotesk', sans-serif`;
+    ctx.fillStyle = isMobile ? 'rgba(255,255,255,0.65)' : (opts.label || 'rgba(255,255,255,0.5)');
     ctx.fillText(c.name || c.id, nameX, nameY);
   });
 
