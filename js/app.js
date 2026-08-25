@@ -695,7 +695,8 @@ function renderCurrentTask() {
   });
 
   if (!trackDir || !trackDir.missions || !trackDir.missions.length) {
-    container.innerHTML = '<p class="empty-note">Нет миссий для этого направления в Смене ' + student.shift + '</p>';
+    const shiftDefName = state.shifts.find(sh => sh.id == student.shift)?.name || 'Смене ' + student.shift;
+    container.innerHTML = '<p class="empty-note">Нет миссий для этого направления в ' + shiftDefName + '</p>';
     return;
   }
 
@@ -1561,7 +1562,7 @@ function renderDashboard() {
         <div class="db-sc-avatar">${(s.first_name?.[0]||'')+(s.last_name?.[0]||'')}<div class="db-sc-level">${lv.level}</div></div>
         <div class="db-sc-info">
           <strong>${s.first_name} ${s.last_name}</strong> <span class="sc-level-tag">${lv.name}</span>
-          <span>отряд ${s.squad} · смена ${s.shift} · ${s.campus || ''} · ${s.grade} кл</span>
+          <span>отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'смена ' + s.shift} · ${s.campus || ''} · ${s.grade} кл</span>
         </div>
         <div class="db-sc-track">${trackIcon}</div>
       </div>
@@ -2259,7 +2260,8 @@ function fillReport(student) {
   set('rp-age', student.age != null ? student.age + ' лет' : '—');
   set('rp-grade', student.grade != null ? student.grade + ' класс' : '—');
   set('rp-squad', 'Отряд ' + student.squad);
-  set('rp-shift', 'Смена ' + student.shift);
+  const shiftDef = state.shifts.find(sh => sh.id == student.shift);
+  set('rp-shift', shiftDef ? shiftDef.name : 'Смена ' + student.shift);
   const rpCampusEl = document.getElementById('rp-campus');
   if (rpCampusEl) rpCampusEl.textContent = student.campus || '';
   set('rp-progress', level.progress + '%');
