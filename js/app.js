@@ -292,7 +292,7 @@ async function loadData() {
   state.completions = Array.isArray(completions) ? completions : [];
 
   if (Array.isArray(shifts) && shifts.length > 0) {
-    state.shifts = shifts.map(s => ({ ...s, id: s.shift_id, name: s.title || s.name || ('Миссия ' + s.shift_id) })).sort((a, b) => a.id - b.id);
+    state.shifts = shifts.map(s => ({ ...s, id: s.shift_id, name: (s.title || s.name || ('Миссия ' + s.shift_id)).replace(/^<|>$/g, '').trim() })).sort((a, b) => a.id - b.id);
   } else {
     state.shifts = typeof DEFAULT_SHIFTS !== 'undefined' ? DEFAULT_SHIFTS : [];
   }
@@ -396,13 +396,18 @@ function rebuildMainContent() {
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
         <div style="flex:1;min-width:200px"><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Участник</label><select class="form-input" id="ach-student-select"><option value="">— Выбрать участника —</option></select></div>
       </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <select class="form-input" id="ach-filter-shift" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все миссии</option></select>
+        <select class="form-input" id="ach-filter-campus" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все кампусы</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select>
+        <select class="form-input" id="ach-filter-squad" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все отряды</option></select>
+      </div>
       <div class="ach-summary" id="ach-summary"></div>
       <div class="badge-grid" id="badge-grid"></div>
     </div>
   </div>
   <div class="page" id="page-talents">
     <div class="page-wrap">
-      <div class="page-header"><h1>🎯 ПРОФИЛЬ ИГРОКА</h1><p>RPG-карточка участника лагеря</p></div>
+      <div class="page-header"><h1>🎯 ПРОФИЛЬ ИГРОКА</h1><p>RPG-карточка участника каникул</p></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
         <button class="btn-primary" onclick="printStudentReport(state.currentStudentId)">🎮 Скачать репорт участника</button>
         <button class="btn-print" style="margin-bottom:0" onclick="window.print()">🖨️ Печать страницы</button>
@@ -411,7 +416,7 @@ function rebuildMainContent() {
       <div class="pp-hero" id="pp-hero"><div class="pp-avatar-wrap"><div class="pp-avatar" id="pp-avatar">--</div><div class="pp-level-badge" id="pp-level">1</div></div><div class="pp-hero-info"><div class="pp-name" id="pp-name">--</div><div class="pp-meta" id="pp-meta">--</div><div class="pp-xp-wrap"><div class="pp-xp-header"><span>Опыт</span><span id="pp-xp-text">0 XP</span></div><div class="pp-xp-bar"><div class="pp-xp-fill" id="pp-xp-fill" style="width:0%"></div></div></div><div class="pp-shift-tag" id="pp-shift-tag">--</div></div></div>
       <div class="pp-stats-grid" id="pp-stats"></div>
       <div class="pp-tabs"><button class="pp-tab active" data-tab="skills" onclick="ppTab('skills')">Навыки</button><button class="pp-tab" data-tab="badges" onclick="ppTab('badges')">Значки</button><button class="pp-tab" data-tab="inventory" onclick="ppTab('inventory')">Инвентарь</button><button class="pp-tab" data-tab="shifts" onclick="ppTab('shifts')">Миссии</button><button class="pp-tab" data-tab="history" onclick="ppTab('history')">История</button><button class="pp-tab" data-tab="disc" onclick="ppTab('disc')">DISC</button><button class="pp-tab" data-tab="recommend" onclick="ppTab('recommend')">Рекомендации</button></div>
-      <div class="pp-panel active" data-panel="skills"><div class="gc"><h3>🕸️ Радар компетенций</h3><div class="radar-wrap"><canvas id="radar-canvas" width="300" height="300"></canvas></div><div id="ai-insights-section" style="margin-top:12px"></div></div><div class="gc"><h3>📈 Шкала компетенций</h3><div class="comp-bars" id="comp-bars"></div></div><div class="gc"><h3>🏆 Ключевое направление</h3><div id="career-content"></div></div></div>
+      <div class="pp-panel active" data-panel="skills"><div class="gc"><h3>🕸️ Радар компетенций</h3><div class="radar-wrap"><canvas id="radar-canvas" width="400" height="400"></canvas></div><div id="ai-insights-section" style="margin-top:12px"></div></div><div class="gc"><h3>📈 Шкала компетенций</h3><div class="comp-bars" id="comp-bars"></div></div><div class="gc"><h3>🏆 Ключевое направление</h3><div id="career-content"></div></div></div>
       <div class="pp-panel" data-panel="badges"><div class="gc"><h3>⭐ Полученные значки <span id="pp-badge-count" style="color:var(--muted);font-weight:400"></span></h3><div id="talent-badges-list"></div></div></div>
       <div class="pp-panel" data-panel="inventory"><div class="gc"><h3>🎒 Инвентарь</h3><div id="talent-inventory"></div></div></div>
       <div class="pp-panel" data-panel="shifts"><div class="gc"><h3>🏕️ Миссии участника</h3><div id="pp-shifts-list"></div></div></div>
@@ -479,7 +484,7 @@ function navigateTo(page) {
 
   if (typeof syncBottomBar === 'function') syncBottomBar(page);
 
-  if (page === 'achievements') populateStudentSelect('ach-student-select', onAchStudentChange);
+  if (page === 'achievements') { populateStudentSelect('ach-student-select', onAchStudentChange); populateAchFilters(); }
   if (page === 'talents')      populateStudentSelect('talent-student-select', onTalentStudentChange);
   if (page === 'dashboard')    renderDashboard();
   if (page === 'shifts')       renderShiftsPage();
@@ -708,7 +713,7 @@ function renderCurrentTask() {
   if (!student) { container.innerHTML = '<p class="empty-note">Участник не найден</p>'; return; }
 
   const shift = state.shifts.find(s => s.id == student.shift);
-  if (!shift || !shift.directions) { container.innerHTML = '<p class="empty-note">Нет данных по смене</p>'; return; }
+  if (!shift || !shift.directions) { container.innerHTML = '<p class="empty-note">Нет данных по миссии</p>'; return; }
 
   const trackDir = shift.directions.find(d => {
     const n = d.name.toLowerCase();
@@ -891,15 +896,58 @@ function onAchStudentChange() {
   renderAchievements(id);
 }
 
+function populateAchFilters() {
+  const shiftSel = document.getElementById('ach-filter-shift');
+  const squadSel = document.getElementById('ach-filter-squad');
+  if (shiftSel && shiftSel.options.length <= 1) {
+    (state.shifts || []).forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name || 'Миссия ' + s.id;
+      shiftSel.appendChild(opt);
+    });
+  }
+  if (squadSel && squadSel.options.length <= 1) {
+    for (let i = 1; i <= 8; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = 'Отряд ' + i;
+      squadSel.appendChild(opt);
+    }
+  }
+}
+
+function renderAchBadges() {
+  const studentId = document.getElementById('ach-student-select').value;
+  if (studentId) renderAchievements(studentId);
+}
+
 function renderAchievements(studentId) {
   const earned = state.badges.filter(b => b.student_id === studentId && b.earned);
   const earnedIds = new Set(earned.map(b => b.badge_id));
+
+  const filterShift = document.getElementById('ach-filter-shift')?.value || '';
+  const filterCampus = document.getElementById('ach-filter-campus')?.value || '';
+  const filterSquad = document.getElementById('ach-filter-squad')?.value || '';
+
+  let filteredDefs = state.badgeDefs;
+  if (filterShift) filteredDefs = filteredDefs.filter(d => String(d.shift_id) === String(filterShift));
+  if (filterCampus || filterSquad) {
+    const matchingStudentIds = state.students
+      .filter(s => (!filterCampus || s.campus === filterCampus) && (!filterSquad || String(s.squad) === String(filterSquad)))
+      .map(s => s.id);
+    const matchingBadges = new Set(
+      state.badges.filter(b => matchingStudentIds.includes(b.student_id) && b.earned).map(b => b.badge_id)
+    );
+    filteredDefs = filteredDefs.filter(d => matchingBadges.has(d.id) || earnedIds.has(d.id));
+  }
+
   const rarityOrder = { legendary:0, epic:1, rare:2, common:3 };
   const badgeGrid = document.getElementById('badge-grid');
   const achSummary = document.getElementById('ach-summary');
 
   if (badgeGrid) {
-    badgeGrid.innerHTML = state.badgeDefs
+    badgeGrid.innerHTML = filteredDefs
       .sort((a,b) => rarityOrder[a.rarity] - rarityOrder[b.rarity])
       .map(def => {
         const isEarned = earnedIds.has(def.id);
@@ -917,7 +965,7 @@ function renderAchievements(studentId) {
       }).join('');
   }
   if (achSummary) achSummary.innerHTML =
-    `<span class="ach-count">${earned.length}</span> из <span>${state.badgeDefs.length}</span> значков получено`;
+    `<span class="ach-count">${earned.length}</span> из <span>${filteredDefs.length}</span> значков получено`;
 }
 
 function rarityLabel(r) {
@@ -977,7 +1025,7 @@ function renderTalentCard(studentId) {
   setEl('pp-stats', `
     <div class="pp-stat"><div class="pp-stat-num">${lv.level}</div><div class="pp-stat-label">Уровень</div></div>
     <div class="pp-stat"><div class="pp-stat-num">${xp}</div><div class="pp-stat-label">Опыт</div></div>
-    <div class="pp-stat"><div class="pp-stat-num">${completedCount}</div><div class="pp-stat-label">Миссий</div></div>
+    <div class="pp-stat"><div class="pp-stat-num">${completedCount}</div><div class="pp-stat-label">Заданий</div></div>
     <div class="pp-stat"><div class="pp-stat-num">${unlocBadges}</div><div class="pp-stat-label">Значков</div></div>
   `);
 
@@ -1047,7 +1095,7 @@ function renderTalentCard(studentId) {
     const studentCompletions = state.completions.filter(c => c.student_id === studentId);
     const shiftIds = [...new Set(studentCompletions.map(c => c.shift_id))];
     if (shiftIds.length === 0) {
-      ppShiftsEl.innerHTML = '<p class="empty-note">Участник пока не записан ни на одну смену</p>';
+      ppShiftsEl.innerHTML = '<p class="empty-note">Участник пока не записан ни на одну миссию</p>';
     } else {
       ppShiftsEl.innerHTML = shiftIds.map(sid => {
         const shiftObj = state.shifts.find(s => s.id == sid);
@@ -1296,7 +1344,7 @@ function drawRadar(canvas, scores, o) {
   const opts = o || {};
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-  const cx = W/2, cy = H/2, R = Math.min(W,H)/2 - 34;
+  const cx = W/2, cy = H/2, R = Math.min(W,H)/2 - 50;
   const N = state.competencies.length;
 
   ctx.clearRect(0, 0, W, H);
@@ -1324,13 +1372,21 @@ function drawRadar(canvas, scores, o) {
     ctx.strokeStyle = opts.axis || 'rgba(255,255,255,0.1)';
     ctx.stroke();
 
-    const lx = cx + Math.cos(angle) * (R + 24);
-    const ly = cy + Math.sin(angle) * (R + 24);
-    ctx.font = opts.font || '11px sans-serif';
-    ctx.fillStyle = opts.label || 'rgba(255,255,255,0.5)';
+    const iconR = R + 28;
+    const iconX = cx + Math.cos(angle) * iconR;
+    const iconY = cy + Math.sin(angle) * iconR;
+    ctx.font = '28px sans-serif';
+    ctx.fillStyle = opts.label || 'rgba(255,255,255,0.7)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(c.icon, lx, ly);
+    ctx.fillText(c.icon, iconX, iconY - 8);
+
+    ctx.font = opts.font || '8px sans-serif';
+    ctx.fillStyle = opts.label || 'rgba(255,255,255,0.5)';
+    const nameR = R + 48;
+    const nameX = cx + Math.cos(angle) * nameR;
+    const nameY = cy + Math.sin(angle) * nameR;
+    ctx.fillText(c.name || c.id, nameX, nameY);
   });
 
   ctx.beginPath();
