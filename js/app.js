@@ -80,37 +80,77 @@ function getLevel(xp) {
 }
 
 // -- Inventory system ---------------------------
-const INVENTORY_ITEMS = {
-  'bio': [
-    { id:'bio_wrench', icon:'🔧', name:'Гаечный ключ', rarity:'common', bonus:'+5% к тех-XP', condition:'any' },
-    { id:'bio_greenhouse', icon:'📐', name:'Чертёж теплицы', rarity:'rare', bonus:'+10% к тех-XP', condition:'score4' },
-    { id:'bio_seeds', icon:'🌱', name:'Семена', rarity:'common', bonus:'+5% к природа-XP', condition:'any' },
-    { id:'bio_harvest', icon:'🌾', name:'Урожай', rarity:'rare', bonus:'+10% к природа-XP', condition:'score4' }
-  ],
-  'eng': [
-    { id:'eng_arduino', icon:'🔌', name:'Плата Arduino', rarity:'common', bonus:'+5% к тех-XP', condition:'any' },
-    { id:'eng_3dmodel', icon:'🧊', name:'3D-модель', rarity:'rare', bonus:'+10% к тех-XP', condition:'score4' },
-    { id:'eng_battery', icon:'🔋', name:'Батарея', rarity:'common', bonus:'+5% к инженерии', condition:'any' }
-  ],
-  'media': [
-    { id:'media_camera', icon:'📹', name:'Камера', rarity:'common', bonus:'+5% к креатив-XP', condition:'any' },
-    { id:'media_mic', icon:'🎤', name:'Микрофон', rarity:'rare', bonus:'+10% к комм-XP', condition:'score4' },
-    { id:'media_tripod', icon:'🎬', name:'Штатив', rarity:'common', bonus:'+5% к медиа', condition:'any' }
-  ],
-  'english': [
-    { id:'eng_book', icon:'📖', name:'Разговорник', rarity:'common', bonus:'+5% к англ.-XP', condition:'any' },
-    { id:'eng_diploma', icon:'📜', name:'Диплом финалиста', rarity:'rare', bonus:'+10% ко всем XP', condition:'score4' },
-    { id:'eng_globe', icon:'🌍', name:'Глобус', rarity:'common', bonus:'+5% к коммуникации', condition:'any' }
-  ],
-  'common': [
-    { id:'com_flag', icon:'🚩', name:'Флаг отряда', rarity:'common', bonus:'+5% к команд-XP', condition:'any' },
-    { id:'com_fire', icon:'🔥', name:'Костёр', rarity:'common', bonus:'+5% к выживанию', condition:'any' }
-  ],
-  'boss': [
-    { id:'boss_trophy', icon:'🏆', name:'Кубок смены', rarity:'rare', bonus:'+15% ко всем XP', condition:'boss' },
-    { id:'boss_medal', icon:'🎖️', name:'Медаль', rarity:'epic', bonus:'+20% ко всем XP', condition:'boss' },
-    { id:'boss_star', icon:'⭐', name:'Звезда лагеря', rarity:'legendary', bonus:'+25% ко всем XP', condition:'boss' }
-  ]
+const SHIFT_INVENTORY = {
+  1: { name:'Кибер-Атлеты', items:[
+    { id:'cyber_neuropod', icon:'⚡', name:'Нейро-под', rarity:'common', bonus:'+5% к спорту' },
+    { id:'cyber_blazecore', icon:'🔥', name:'Blaze-ядро', rarity:'rare', bonus:'+10% к спорту' },
+    { id:'cyber_lasergun', icon:'🔫', name:'Лазер-пистолет', rarity:'common', bonus:'+5% к тактике' },
+    { id:'cyber_balance', icon:'⚖️', name:'Балансборд', rarity:'common', bonus:'+5% к координации' },
+    { id:'cyber_chip', icon:'💾', name:'Нейро-чип', rarity:'rare', bonus:'+10% к IT' }
+  ]},
+  2: { name:'Terraforming', items:[
+    { id:'terra_seedpod', icon:'🌱', name:'Капсула-семя', rarity:'common', bonus:'+5% к биотеху' },
+    { id:'terra_terraformer', icon:'🏗️', name:'Терраформер', rarity:'rare', bonus:'+10% к биотеху' },
+    { id:'terra_rover', icon:'🛞', name:'Ровер-разведчик', rarity:'common', bonus:'+5% к исследованию' },
+    { id:'terra_diploma', icon:'🤝', name:'Дипломатический мандат', rarity:'common', bonus:'+5% к дипломатии' },
+    { id:'terra_colony', icon:'🏕️', name:'Колония', rarity:'rare', bonus:'+10% к команде' }
+  ]},
+  3: { name:'Meta-Agency', items:[
+    { id:'meta_cam', icon:'📹', name:'Шпионская камера', rarity:'common', bonus:'+5% к медиа' },
+    { id:'meta_disguise', icon:'🎭', name:'Маскировка', rarity:'rare', bonus:'+10% к медиа' },
+    { id:'meta_decoder', icon:'🔑', name:'Декодер', rarity:'common', bonus:'+5% к IT' },
+    { id:'meta_tagger', icon:'🎯', name:'Тагер', rarity:'common', bonus:'+5% к спорту' },
+    { id:'meta_dossier', icon:'📁', name:'Досье агента', rarity:'rare', bonus:'+10% к аналитике' }
+  ]},
+  4: { name:'Future Makers', items:[
+    { id:'maker_3dpen', icon:'🖊️', name:'3D-ручка', rarity:'common', bonus:'+5% к дизайну' },
+    { id:'maker_printer', icon:'🖨️', name:'3D-принтер', rarity:'rare', bonus:'+10% к дизайну' },
+    { id:'maker_sensor', icon:'📡', name:'Датчик', rarity:'common', bonus:'+5% к IT' },
+    { id:'maker_flask', icon:'🧪', name:'Лабораторный стакан', rarity:'common', bonus:'+5% к биотеху' },
+    { id:'maker_proto', icon:'🧬', name:'Прототип', rarity:'rare', bonus:'+10% к изобретениям' }
+  ]},
+  5: { name:'Active Tech 2077', items:[
+    { id:'active_exo', icon:'🦾', name:'Экзо-перчатка', rarity:'common', bonus:'+5% к спорту' },
+    { id:'active_core', icon:'⚙️', name:'Био-ядро', rarity:'rare', bonus:'+10% к биотеху' },
+    { id:'active_react', icon:'⚡', name:'Реактор', rarity:'common', bonus:'+5% к IT' },
+    { id:'active_grip', icon:'🧤', name:'Силовая перчатка', rarity:'common', bonus:'+5% к силе' },
+    { id:'active_amplifier', icon:'🔋', name:'Амплификатор', rarity:'rare', bonus:'+10% к производительности' }
+  ]},
+  6: { name:'Urban Quest', items:[
+    { id:'urban_map', icon:'🗺️', name:'Городская карта', rarity:'common', bonus:'+5% к навигации' },
+    { id:'urban_signal', icon:'📡', name:'Сигнал', rarity:'rare', bonus:'+10% к IT' },
+    { id:'urban_mic', icon:'🎤', name:'Репортёрский микрофон', rarity:'common', bonus:'+5% к медиа' },
+    { id:'urban_spray', icon:'🎨', name:'Спрей-маркер', rarity:'common', bonus:'+5% к дизайну' },
+    { id:'urban_blueprint', icon:'📐', name:'Городской чертёж', rarity:'rare', bonus:'+10% к стратегии' }
+  ]},
+  7: { name:'Smart City Lab', items:[
+    { id:'smart_led', icon:'💡', name:'LED-модуль', rarity:'common', bonus:'+5% к IT' },
+    { id:'smart_circuit', icon:'🔌', name:'Микросхема', rarity:'rare', bonus:'+10% к IT' },
+    { id:'smart_brush', icon:'🖌️', name:'Кисть smart-художника', rarity:'common', bonus:'+5% к дизайну' },
+    { id:'smart_biosample', icon:'🧫', name:'Био-образец', rarity:'common', bonus:'+5% к биотеху' },
+    { id:'smart_scale', icon:'⚖️', name:'Миниатюрная модель', rarity:'rare', bonus:'+10% к архитектуре' }
+  ]},
+  8: { name:'English Game Studio', items:[
+    { id:'eng_dice', icon:'🎲', name:'Кубик историй', rarity:'common', bonus:'+5% к английскому' },
+    { id:'eng_book', icon:'📖', name:'Сценарный буклет', rarity:'rare', bonus:'+10% к английскому' },
+    { id:'eng_ctrl', icon:'🎮', name:'Геймпад', rarity:'common', bonus:'+5% к IT' },
+    { id:'eng_palette', icon:'🎨', name:'Палитра', rarity:'common', bonus:'+5% к дизайну' },
+    { id:'eng_stage', icon:'🎭', name:'Мини-сцена', rarity:'rare', bonus:'+10% к презентациям' }
+  ]},
+  9: { name:'Champions Academy', items:[
+    { id:'champ_medal', icon:'🏅', name:'Спортивная медаль', rarity:'common', bonus:'+5% к спорту' },
+    { id:'champ_trophy', icon:'🏆', name:'Кубок чемпиона', rarity:'rare', bonus:'+15% к спорту' },
+    { id:'champ_whistle', icon:'📣', name:'Судейский свисток', rarity:'common', bonus:'+5% к лидерству' },
+    { id:'champ_flag', icon:'🚩', name:'Флаг команды', rarity:'common', bonus:'+5% к дипломатии' },
+    { id:'champ_belt', icon:'🥊', name:'Чемпионский пояс', rarity:'legendary', bonus:'+20% ко всем' }
+  ]},
+  10: { name:'Island Survival', items:[
+    { id:'island_compass', icon:'🧭', name:'Компас', rarity:'common', bonus:'+5% к навигации' },
+    { id:'island_flare', icon:'🔴', name:'Ракета', rarity:'rare', bonus:'+10% к спасению' },
+    { id:'island_cam', icon:'📹', name:'Экспедиционная камера', rarity:'common', bonus:'+5% к медиа' },
+    { id:'island_knife', icon:'🔪', name:'Сапёрный нож', rarity:'common', bonus:'+5% к выживанию' },
+    { id:'island_beacon', icon:'📡', name:'Спасательный маяк', rarity:'legendary', bonus:'+20% ко всем' }
+  ]}
 };
 
 const INVENTORY_SLOTS_BASE = 6;
@@ -118,40 +158,40 @@ const INVENTORY_SLOTS_BASE = 6;
 function computeInventory(studentId) {
   const items = [];
   const completions = state.completions.filter(c => c.student_id == studentId);
-  const badges = state.badges.filter(b => b.student_id == studentId && b.earned);
   const student = state.students.find(s => s.id === studentId);
   const shiftId = student?.shift;
+  const shiftData = SHIFT_INVENTORY[shiftId];
 
+  if (!shiftData) return { items, maxSlots: INVENTORY_SLOTS_BASE };
+
+  const trackHits = {};
   completions.forEach(c => {
-    const track = c.direction_name?.toLowerCase() || '';
-    let trackKey = 'common';
-    if (track.includes('био') || track.includes('eco')) trackKey = 'bio';
-    else if (track.includes('инженер') || track.includes('ит') || track.includes('тех')) trackKey = 'eng';
-    else if (track.includes('медиа')) trackKey = 'media';
-    else if (track.includes('англий') || track.includes('english')) trackKey = 'english';
-
-    const pool = INVENTORY_ITEMS[trackKey] || INVENTORY_ITEMS['common'];
-    pool.forEach(item => {
-      if (items.find(i => i.id === item.id)) return;
-      if (item.condition === 'any') {
-        items.push({...item});
-      } else if (item.condition === 'score4' && c.score >= 4) {
-        items.push({...item});
-      }
-    });
+    const dir = (c.direction_name || '').toLowerCase();
+    if (dir.includes('спорт'))     trackHits['sport'] = (trackHits['sport'] || 0) + 1;
+    if (dir.includes('it'))        trackHits['it'] = (trackHits['it'] || 0) + 1;
+    if (dir.includes('биотех'))    trackHits['bio'] = (trackHits['bio'] || 0) + 1;
+    if (dir.includes('медиа'))     trackHits['media'] = (trackHits['media'] || 0) + 1;
+    if (dir.includes('дипломат'))  trackHits['diplo'] = (trackHits['diplo'] || 0) + 1;
+    if (dir.includes('art') || dir.includes('design')) trackHits['art'] = (trackHits['art'] || 0) + 1;
+    if (dir.includes('предприн'))  trackHits['biz'] = (trackHits['biz'] || 0) + 1;
   });
 
-  const hasBoss = completions.some(c => c.score >= 5);
-  if (hasBoss) {
-    const bossPool = INVENTORY_ITEMS['boss'];
-    const bossIdx = Math.min(badges.length - 1, bossPool.length - 1);
-    if (bossIdx >= 0 && !items.find(i => i.id === bossPool[bossIdx].id)) {
-      items.push({...bossPool[bossIdx]});
-    }
-  }
+  const hasHighScore = completions.some(c => c.score >= 5);
+  const completedCount = completions.length;
 
-  const maxSlots = INVENTORY_SLOTS_BASE + Math.floor(completions.length / 3);
-  return { items, maxSlots: Math.min(maxSlots, 12) };
+  shiftData.items.forEach(item => {
+    if (items.find(i => i.id === item.id)) return;
+    if (item.rarity === 'legendary' && hasHighScore) {
+      items.push({...item});
+    } else if (item.rarity === 'rare' && completedCount >= 2) {
+      items.push({...item});
+    } else if (item.rarity === 'common') {
+      items.push({...item});
+    }
+  });
+
+  const maxSlots = INVENTORY_SLOTS_BASE + Math.floor(completedCount / 3);
+  return { items, maxSlots: Math.min(maxSlots, 12), shiftName: shiftData.name };
 }
 
 // -- Инициализация -----------------------------
