@@ -1344,7 +1344,7 @@ function drawRadar(canvas, scores, o) {
   const opts = o || {};
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-  const cx = W/2, cy = H/2, R = Math.min(W,H)/2 - 50;
+  const cx = W/2, cy = H/2, R = Math.min(W,H)/2 - 65;
   const N = state.competencies.length;
 
   ctx.clearRect(0, 0, W, H);
