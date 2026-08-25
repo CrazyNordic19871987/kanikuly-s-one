@@ -323,6 +323,29 @@ window.addEventListener('popstate', (e) => {
   }
 });
 
+let _radarResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_radarResizeTimer);
+  _radarResizeTimer = setTimeout(() => {
+    if (state.currentPage === 'talents' && state.currentStudentId) {
+      const canvas = document.getElementById('radar-canvas');
+      if (canvas && canvas.parentElement) {
+        const obs = state.observations.filter(o => o.student_id === state.currentStudentId);
+        const scores = calcCompetencies(obs, state.currentStudentId);
+        drawRadar(canvas, scores, {
+          grid: 'rgba(255,255,255,0.08)',
+          axis: 'rgba(255,255,255,0.1)',
+          label: 'rgba(255,255,255,0.7)',
+          font: '600 10px sans-serif',
+          fillGrad: ['rgba(232,168,56,0.35)', 'rgba(232,168,56,0.15)'],
+          stroke: '#E8A838',
+          point: '#E8A838'
+        });
+      }
+    }
+  }, 200);
+});
+
 async function loadData() {
   const safeGet = async (table) => { try { return await api.getAll(table); } catch(e) { console.warn('Fetch failed:', table, e); return []; } };
 
@@ -1400,18 +1423,22 @@ function drawRadar(canvas, scores, o) {
   const opts = o || {};
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
-  const logicalW = parseInt(canvas.getAttribute('width')) || 400;
-  const logicalH = parseInt(canvas.getAttribute('height')) || 400;
 
-  canvas.style.width = '100%';
-  canvas.style.height = 'auto';
-  canvas.style.maxWidth = logicalW + 'px';
-  canvas.width = logicalW * dpr;
-  canvas.height = logicalH * dpr;
+  const wrap = canvas.parentElement;
+  const wrapW = wrap ? wrap.clientWidth : 400;
+  const logicalW = Math.min(wrapW, 500);
+  const logicalH = logicalW;
+
+  canvas.style.width = logicalW + 'px';
+  canvas.style.height = logicalH + 'px';
+  canvas.width = Math.round(logicalW * dpr);
+  canvas.height = Math.round(logicalH * dpr);
   ctx.scale(dpr, dpr);
 
   const W = logicalW, H = logicalH;
-  const cx = W/2, cy = H/2, R = Math.min(W,H)/2 - 70;
+  const scale = W / 400;
+  const pad = Math.round(65 * scale);
+  const cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 - pad;
   const N = state.competencies.length;
 
   ctx.clearRect(0, 0, W, H);
@@ -1420,7 +1447,7 @@ function drawRadar(canvas, scores, o) {
     ctx.beginPath();
     for (let i = 0; i < N; i++) {
       const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
-      const rr = (r/5) * R;
+      const rr = (r / 5) * R;
       const x = cx + Math.cos(angle) * rr;
       const y = cy + Math.sin(angle) * rr;
       i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
@@ -1431,6 +1458,12 @@ function drawRadar(canvas, scores, o) {
     ctx.stroke();
   }
 
+  const iconFont = Math.round(22 * scale) + 'px sans-serif';
+  const nameFont = (opts.font || '600 10px sans-serif').replace(/\d+px/, Math.round(10 * scale) + 'px');
+  const iconOffset = Math.round(22 * scale);
+  const nameOffset = Math.round(40 * scale);
+  const iconDy = Math.round(5 * scale);
+
   state.competencies.forEach((c, i) => {
     const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
     ctx.beginPath();
@@ -1439,18 +1472,18 @@ function drawRadar(canvas, scores, o) {
     ctx.strokeStyle = opts.axis || 'rgba(255,255,255,0.1)';
     ctx.stroke();
 
-    const iconR = R + 24;
+    const iconR = R + iconOffset;
     const iconX = cx + Math.cos(angle) * iconR;
     const iconY = cy + Math.sin(angle) * iconR;
-    ctx.font = '24px sans-serif';
+    ctx.font = iconFont;
     ctx.fillStyle = opts.label || 'rgba(255,255,255,0.7)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(c.icon, iconX, iconY - 6);
+    ctx.fillText(c.icon, iconX, iconY - iconDy);
 
-    ctx.font = opts.font || '600 10px sans-serif';
+    ctx.font = nameFont;
     ctx.fillStyle = opts.label || 'rgba(255,255,255,0.5)';
-    const nameR = R + 42;
+    const nameR = R + nameOffset;
     const nameX = cx + Math.cos(angle) * nameR;
     const nameY = cy + Math.sin(angle) * nameR;
     ctx.fillText(c.name || c.id, nameX, nameY);
