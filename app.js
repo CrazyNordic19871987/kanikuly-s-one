@@ -578,7 +578,7 @@ function renderStudentList() {
         <div class="sc-avatar">${initials}<div class="sc-level-badge">${lv.level}</div></div>
         <div class="sc-info">
           <div class="sc-name">${s.first_name} ${s.last_name} <span class="sc-level-tag">${lv.name}</span></div>
-          <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · смена ${s.shift} · ${s.campus || ''}</div>
+          <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'смена ' + s.shift} · ${s.campus || ''}</div>
           <div class="sc-xp-bar"><div class="sc-xp-fill" style="width:${lv.progress}%"></div></div>
           <div class="sc-progress">
             <div class="sc-progress-bar"><div class="sc-progress-fill" style="width:${progress}%"></div></div>
