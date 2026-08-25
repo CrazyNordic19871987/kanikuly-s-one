@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Профиль игрока — Bio-Crafters</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --surface: #ffffff;
+    --surface-muted: #f0f0f2;
+    --border: #e0e0e3;
+    --text-primary: #1a1a1c;
+    --text-secondary: #6b6b70;
+    --text-tertiary: #9a9aa2;
+    --text-quaternary: #c4c4cc;
+    --accent: #2563eb;
+    --accent-light: rgba(37,99,235,0.08);
+    --accent-border: rgba(37,99,235,0.2);
+    --danger: #dc2626;
+    --positive: #16a34a;
+    --warning: #ca8a04;
+    --chart-1: #2563eb;
+    --chart-2: #dc2626;
+    --chart-3: #16a34a;
+    --chart-4: #7c3aed;
+    --chart-5: #6b7280;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "SF Mono", "Fira Code", "JetBrains Mono", monospace;
+    --t-fast: 150ms;
+    --t-normal: 250ms;
+    --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding: 16px;
+  }
+
+  .pp-container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  /* === HERO CARD === */
+  .pp-hero {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    padding: 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    position: relative;
+    overflow: hidden;
+  }
+  .pp-hero::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--chart-1), var(--chart-2), var(--chart-3), var(--chart-4));
+  }
+  .pp-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .pp-avatar {
+    width: 88px; height: 88px;
+    border-radius: var(--radius-lg);
+    background: var(--surface-muted);
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    overflow: hidden;
+  }
+  .pp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .pp-level-badge {
+    position: absolute;
+    bottom: -6px; right: -6px;
+    background: var(--text-primary);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 2px solid var(--surface);
+    font-variant-numeric: tabular-nums;
+  }
+  .pp-hero-info { flex: 1; min-width: 0; }
+  .pp-name {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    letter-spacing: -0.01em;
+  }
+  .pp-meta {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+  .pp-xp-wrap { margin-bottom: 4px; }
+  .pp-xp-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+  .pp-xp-bar {
+    height: 8px;
+    background: var(--surface-muted);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .pp-xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--chart-1), var(--chart-3));
+    border-radius: 4px;
+    transition: width 0.8s var(--ease-out);
+    position: relative;
+  }
+  .pp-xp-fill::after {
+    content: "";
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 20px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+  }
+  .pp-classes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .pp-class {
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--t-fast) var(--ease-out);
+  }
+  .pp-class:hover { border-color: var(--text-tertiary); }
+  .pp-class.active {
+    background: var(--text-primary);
+    color: #fff;
+    border-color: var(--text-primary);
+  }
+  .pp-class .pp-class-icon { margin-right: 4px; }
+
+  /* === TABS === */
+  .pp-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  .pp-tab {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--t-fast) var(--ease-out);
+    white-space: nowrap;
+    text-align: center;
+  }
+  .pp-tab:hover { color: var(--text-secondary); background: var(--surface-muted); }
+  .pp-tab.active {
+    color: var(--text-primary);
+    background: var(--surface-muted);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  /* === PANELS === */
+  .pp-panel { display: none; animation: fadeIn 0.3s var(--ease-out); }
+  .pp-panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .pp-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .pp-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pp-card-title-icon {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  /* === STATS GRID === */
+  .pp-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .pp-stat {
+    background: var(--surface-muted);
+    border-radius: var(--radius-md);
+    padding: 16px 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+    transition: transform var(--t-fast) var(--ease-out);
+  }
+  .pp-stat:hover { transform: translateY(-2px); }
+  .pp-stat-val {
+    font-size: 28px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+  .pp-stat-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  /* === RADAR === */
+  .pp-radar-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 8px 0 20px;
+  }
+  .pp-radar-wrap svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* === SKILLS === */
+  .pp-skills { display: flex; flex-direction: column; gap: 14px; }
+  .pp-skill {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pp-skill-info { width: 110px; flex-shrink: 0; }
+  .pp-skill-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .pp-skill-sub {
+    font-size: 11px;
+    color: var(--text-quaternary);
+    margin-top: 1px;
+  }
+  .pp-skill-track {
+    flex: 1;
+    height: 10px;
+    background: var(--surface-muted);
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .pp-skill-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.8s var(--ease-out);
+    position: relative;
+  }
+  .pp-skill-fill::after {
+    content: "";
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 12px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25));
+  }
+  .pp-skill-val {
+    width: 32px;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+  }
+
+  /* === BADGES === */
+  .pp-badges { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--accent-light);
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+    transition: all var(--t-fast) var(--ease-out);
+    cursor: default;
+  }
+  .pp-badge:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .pp-badge.locked {
+    background: var(--surface-muted);
+    color: var(--text-quaternary);
+    border-color: var(--border);
+  }
+  .pp-badge .pp-badge-icon { font-size: 15px; }
+  .pp-badge-progress {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-left: 4px;
+  }
+
+  /* === TIMELINE === */
+  .pp-timeline { display: flex; flex-direction: column; gap: 0; position: relative; }
+  .pp-timeline::before {
+    content: "";
+    position: absolute;
+    left: 15px;
+    top: 8px; bottom: 8px;
+    width: 2px;
+    background: var(--border);
+  }
+  .pp-event {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 12px 0;
+    position: relative;
+  }
+  .pp-event-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--text-primary);
+    margin-top: 5px;
+    margin-left: 11px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    border: 2px solid var(--surface);
+  }
+  .pp-event-body { flex: 1; min-width: 0; }
+  .pp-event-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .pp-event-desc {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  .pp-event-xp {
+    font-size: 12px;
+    color: var(--positive);
+    font-weight: 600;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .pp-event-date {
+    font-size: 11px;
+    color: var(--text-quaternary);
+    margin-top: 2px;
+  }
+
+  /* === LEADERBOARD MINI === */
+  .pp-leaderboard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pp-lb-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    transition: all var(--t-fast) var(--ease-out);
+  }
+  .pp-lb-row:hover { background: var(--surface); }
+  .pp-lb-row.me { background: var(--accent-light); border-color: var(--accent-border); }
+  .pp-lb-rank {
+    width: 24px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+  .pp-lb-rank.gold { color: #ca8a04; }
+  .pp-lb-rank.silver { color: #6b7280; }
+  .pp-lb-rank.bronze { color: #92400e; }
+  .pp-lb-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .pp-lb-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .pp-lb-xp {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* === INVENTORY === */
+  .pp-inventory {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .pp-inv-item {
+    aspect-ratio: 1;
+    background: var(--surface-muted);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px;
+    transition: all var(--t-fast) var(--ease-out);
+    cursor: pointer;
+  }
+  .pp-inv-item:hover { border-color: var(--text-tertiary); transform: translateY(-2px); }
+  .pp-inv-item.empty {
+    background: transparent;
+    border-style: dashed;
+    color: var(--text-quaternary);
+  }
+  .pp-inv-icon { font-size: 22px; }
+  .pp-inv-name {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 600px) {
+    .pp-hero { flex-direction: column; align-items: center; text-align: center; }
+    .pp-hero-info { width: 100%; }
+    .pp-stats-grid { grid-template-columns: repeat(3, 1fr); }
+    .pp-skill-info { width: 90px; }
+    .pp-skill-name { font-size: 12px; }
+    .pp-inventory { grid-template-columns: repeat(3, 1fr); }
+    .pp-tabs { gap: 2px; padding: 4px; }
+    .pp-tab { min-width: 80px; padding: 8px 10px; font-size: 13px; }
+  }
+
+  /* === DARK MODE SUPPORT === */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f0f11;
+      --surface: #1a1a1e;
+      --surface-muted: #242428;
+      --border: #2a2a30;
+      --text-primary: #f0f0f5;
+      --text-secondary: #a0a0ac;
+      --text-tertiary: #6b6b78;
+      --text-quaternary: #4a4a55;
+      --accent-light: rgba(59,130,246,0.12);
+      --accent-border: rgba(59,130,246,0.25);
+    }
+    .pp-xp-fill::after, .pp-skill-fill::after { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pp-container">
+
+  <!-- HERO -->
+  <div class="pp-hero">
+    <div class="pp-avatar-wrap">
+      <div class="pp-avatar" id="playerAvatar">🧑‍🔬</div>
+      <div class="pp-level-badge" id="playerLevel">7</div>
+    </div>
+    <div class="pp-hero-info">
+      <div class="pp-name" id="playerName">Алексей В.</div>
+      <div class="pp-meta" id="playerMeta">Инженер-исследователь · Отряд «Альфа» · Смена «Bio-Engineering»</div>
+      <div class="pp-xp-wrap">
+        <div class="pp-xp-header">
+          <span>Опыт</span>
+          <span id="xpText">1 360 / 2 000 XP</span>
+        </div>
+        <div class="pp-xp-bar">
+          <div class="pp-xp-fill" id="xpBar" style="width: 0%;"></div>
+        </div>
+      </div>
+      <div class="pp-classes" id="playerClasses">
+        <span class="pp-class active" data-class="engineer"><span class="pp-class-icon">🔧</span>Инженер</span>
+        <span class="pp-class" data-class="media"><span class="pp-class-icon">🎬</span>Медиамейкер</span>
+        <span class="pp-class" data-class="nature"><span class="pp-class-icon">🌿</span>Натуралист</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="pp-tabs">
+    <button class="pp-tab active" data-tab="overview">Обзор</button>
+    <button class="pp-tab" data-tab="skills">Навыки</button>
+    <button class="pp-tab" data-tab="badges">Достижения</button>
+    <button class="pp-tab" data-tab="history">История</button>
+    <button class="pp-tab" data-tab="squad">Отряд</button>
+  </div>
+
+  <!-- PANEL: OVERVIEW -->
+  <div class="pp-panel active" data-panel="overview">
+    <div class="pp-card">
+      <div class="pp-card-title">
+        <div class="pp-card-title-icon">📊</div>
+        Статистика
+      </div>
+      <div class="pp-stats-grid">
+        <div class="pp-stat">
+          <div class="pp-stat-val" style="color: var(--chart-1);">7</div>
+          <div class="pp-stat-label">Уровень</div>
+        </div>
+        <div class="pp-stat">
+          <div class="pp-stat-val" style="color: var(--chart-2);">13</div>
+          <div class="pp-stat-label">Миссий</div>
+        </div>
+        <div class="pp-stat">
+          <div class="pp-stat-val" style="color: var(--chart-3);">8</div>
+          <div class="pp-stat-label">Баджей</div>
+        </div>
+        <div class="pp-stat">
+          <div class="pp-stat-val" style="color: var(--chart-4);">1 360</div>
+          <div class="pp-stat-label">Всего XP</div>
+        </div>
+        <div class="pp-stat">
+          <div class="pp-stat-val" style="color: var(--chart-5);">3</div>
+          <div class="pp-stat-label">Смены</div>
+        </div>
+        <div class="pp-stat">
+          <div class="pp-stat-val" style="color: var(--accent);">2-е</div>
+          <div class="pp-stat-label">В отряде</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pp-card">
+      <div class="pp-card-title">
+        <div class="pp-card-title-icon">🎒</div>
+        Инвентарь
+      </div>
+      <div class="pp-inventory">
+        <div class="pp-inv-item"><span class="pp-inv-icon">🔧</span><span class="pp-inv-name">Гаечный ключ</span></div>
+        <div class="pp-inv-item"><span class="pp-inv-icon">🌱</span><span class="pp-inv-name">Семена</span></div>
+        <div class="pp-inv-item"><span class="pp-inv-icon">📹</span><span class="pp-inv-name">Камера</span></div>
+        <div class="pp-inv-item"><span class="pp-inv-icon">📐</span><span class="pp-inv-name">Чертёж</span></div>
+        <div class="pp-inv-item"><span class="pp-inv-icon">🔋</span><span class="pp-inv-name">Батарея</span></div>
+        <div class="pp-inv-item"><span class="pp-inv-icon">🧪</span><span class="pp-inv-name">Пробирка</span></div>
+        <div class="pp-inv-item empty">+</div>
+        <div class="pp-inv-item empty">+</div>
+      </div>
+    </div>
+
+    <div class="pp-card">
+      <div class="pp-card-title">
+        <div class="pp-card-title-icon">🔥</div>
+        Последние достижения
+      </div>
+      <div class="pp-badges">
+        <span class="pp-badge"><span class="pp-badge-icon">🔥</span>Первый огонь</span>
+        <span class="pp-badge"><span class="pp-badge-icon">🧪</span>Лаборант</span>
+        <span class="pp-badge"><span class="pp-badge-icon">🎥</span>Стример</span>
+        <span class="pp-badge"><span class="pp-badge-icon">🏕️</span>Выживальщик</span>
+        <span class="pp-badge"><span class="pp-badge-icon">🤝</span>Командный игрок</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: SKILLS -->
+  <div class="pp-panel" data-panel="skills">
+    <div class="pp-card">
+      <div class="pp-card-title">
+        <div class="pp-card-title-icon">🕸️</div>
+        Радар компетенций
+      </div>
+      <div class="pp-radar-wrap">
+        <svg width="300" height="240" viewBox="0 0 300 240">
+          <defs>
+            <radialGradient id="radarGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="var(--chart-1)" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="var(--chart-1)" stop-opacity="0.05"/>
+            </radialGradient>
+          </defs>
+          <g transform="translate(150,115)">
+            <!-- Grid -->
+            <polygon points="0,-95 82.3,-47.5 82.3,47.5 0,95 -82.3,47.5 -82.3,-47.5" fill="none" stroke="var(--border)" stroke-width="1"/>
+            <polygon points="0,-63.3 54.9,-31.7 54.9,31.7 0,63.3 -54.9,31.7 -54.9,-31.7" fill="none" stroke="var(--border)" stroke-width="1"/>
+            <polygon points="0,-31.7 27.4,-15.8 27.4,15.8 0,31.7 -27.4,15.8 -27.4,-15.8" fill="none" stroke="var(--border)" stroke-width="1"/>
+            <line x1="0" y1="0" x2="0" y2="-95" stroke="var(--border)" stroke-width="1"/>
+            <line x1="0" y1="0" x2="82.3" y2="-47.5" stroke="var(--border)" stroke-width="1"/>
+            <line x1="0" y1="0" x2="82.3" y2="47.5" stroke="var(--border)" stroke-width="1"/>
+            <line x1="0" y1="0" x2="0" y2="95" stroke="var(--border)" stroke-width="1"/>
+            <line x1="0" y1="0" x2="-82.3" y2="47.5" stroke="var(--border)" stroke-width="1"/>
+            <line x1="0" y1="0" x2="-82.3" y2="-47.5" stroke="var(--border)" stroke-width="1"/>
+            <!-- Data polygon -->
+            <polygon id="radarPolygon" points="0,-76 65.8,-38 49.4,28.5 0,66.5 -57.6,38.9 -61.7,-28.5" fill="url(#radarGrad)" stroke="var(--chart-1)" stroke-width="2.5" stroke-linejoin="round"/>
+            <!-- Data dots -->
+            <circle cx="0" cy="-76" r="4" fill="var(--chart-1)" stroke="var(--surface)" stroke-width="2"/>
+            <circle cx="65.8" cy="-38" r="4" fill="var(--chart-1)" stroke="var(--surface)" stroke-width="2"/>
+            <circle cx="49.4" cy="28.5" r="4" fill="var(--chart-1)" stroke="var(--surface)" stroke-width="2"/>
+            <circle cx="0" cy="66.5" r="4" fill="var(--chart-1)" stroke="var(--surface)" stroke-width="2"/>
+            <circle cx="-57.6" cy="38.9" r="4" fill="var(--chart-1)" stroke="var(--surface)" stroke-width="2"/>
+            <circle cx="-61.7" cy="-28.5" r="4" fill="var(--chart-1)" stroke="var(--surface)" stroke-width="2"/>
+            <!-- Labels -->
+            <text x="0" y="-108" text-anchor="middle" font-size="12" fill="var(--text-secondary)" font-weight="500">Техника</text>
+            <text x="98" y="-56" text-anchor="start" font-size="12" fill="var(--text-secondary)" font-weight="500">Креатив</text>
+            <text x="98" y="62" text-anchor="start" font-size="12" fill="var(--text-secondary)" font-weight="500">Коммуникация</text>
+            <text x="0" y="116" text-anchor="middle" font-size="12" fill="var(--text-secondary)" font-weight="500">Природа</text>
+            <text x="-98" y="62" text-anchor="end" font-size="12" fill="var(--text-secondary)" font-weight="500">Командность</text>
+            <text x="-98" y="-56" text-anchor="end" font-size="12" fill="var(--text-secondary)" font-weight="500">Аналитика</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="pp-card">
+      <div class="pp-card-title">
+        <div class="pp-card-title-icon">📈</div>
+        Шкала компетенций
+      </div>
+      <div class="pp-skills">
+        <div class="pp-skill">
+          <div class="pp-skill-info">
+            <div class="pp-skill-name">Техника</div>
+            <div class="pp-skill-sub">Инженерия, робототехника</div>
+          </div>
+          <div class="pp-skill-track"><div class="pp-skill-fill" style="width: 0%; background: var(--chart-1);" data-width="80"></div></div>
+          <div class="pp-skill-val">80</div>
+        </div>
+        <div class="pp-skill">
+          <div class="pp-skill-info">
+            <div class="pp-skill-name">Креатив</div>
+            <div class="pp-skill-sub">Дизайн, медиа, арт</div>
+          </div>
+          <div class="pp-skill-track"><div class="pp-skill-fill" style="width: 0%; background: var(--chart-2);" data-width="65"></div></div>
+          <div class="pp-skill-val">65</div>
+        </div>
+        <div class="pp-skill">
+          <div class="pp-skill-info">
+            <div class="pp-skill-name">Коммуникация</div>
+            <div class="pp-skill-sub">Презентации, блогинг</div>
+          </div>
+          <div class="pp-skill-track"><div class="pp-skill-fill" style="width: 0%; background: var(--chart-4);" data-width="55"></div></div>
+          <div class="pp-skill-val">55</div>
+        </div>
+        <div class="pp-skill">
+          <div class="pp-skill-info">
+            <div class="pp-skill-name">Природа</div>
+            <div class="pp-skill-sub">Биология, экология</div>
+          </div>
+          <div class="pp-skill-track"><div class="pp-skill-fill" style="width: 0%; background: var(--chart-3);" data-width="70"></div></div>
+          <div class="pp-skill-val">70</div>
+        </div>
+        <div class="pp-skill">
+          <div class="pp-skill-info">
+            <div class="pp-skill-name">Командность</div>
+            <div class="pp-skill-sub">Лидерство, кооперация</div>
+          </div>
+          <div class="pp-skill-track"><div class="pp-skill-fill" style="width: 0%; background: var(--chart-5);" data-width="60"></div></div>
+          <div class="pp-skill-val">60</div>
+        </div>
+        <div class="pp-skill">
+          <div class="pp-skill-info">
+            <div class="pp-skill-name">Аналитика</div>
+            <div class="pp-skill-sub">Логика, данные, исследования</div>
+          </div>
+          <div class="pp-skill-track"><div class="pp-skill-fill" style="width: 0%; background: var(--accent);" data-width="75"></div></div>
+          <div class="pp-skill-val">75</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: BADGES -->
+  <div class="pp-panel" data-panel="badges">
+    <div class="pp-card">
+      <div class="pp-card-title">
+        <div class="pp-card-title-icon">🏅</div>
+        Полученные <span style="color: var(--text-tertiary); font-weight: 400;">(8 из 13)</span>
+      </div>
+      <div class="pp-badges">
+        <span class="pp-badge"><span class="pp-badge-icon">🔥</span>Первый огонь<span class="pp-badge-progress">· 24.06</span></span>
+        <span class="pp-badge"><span class="pp-badge-icon">🧪</span>Лаборант<span class="pp-badge-progress">· 26.06</span></span>
+        <span class="pp-badge"><span class="pp-badge-icon">🎥</span>Стример<span class="pp-badge-progress">· 28.06</span></span>
+        <span class="pp-badge"><span class="pp-badge-icon">🏕️</span>Выживальщик<span class="pp-badge-progress">· 30.06</span></span>
+        <span class="pp-badge"><span class="pp-badge-icon">🤝</span>Командный игрок<span class="pp-badge-progress">· 02.07</span></span>
+        <span class="pp-badge"><span class="pp-badge-icon">💡</span>Изобретатель<span class="pp-badge-progress">· 05.07</span></span>
+        <span class="pp-badge"><span class="pp-badge-icon">🌿</span>Эколог<span class="pp-badge-progress">· 08.07</span></span>
+        <span class="pp-badge"><span class="pp-badge-icon">🎯</span>Снайпер<span class="pp-badge-progress">· 10.07</span></span>
+      </div>
+    </div>
+
+    <div class="pp-card">
+      <div class="pp-card-title">
+        <div class="pp-card-title-icon">🔒</div>
+        Заблокированные
+      </div>
+      <div class="pp-badges">
+        <span class="pp-badge locked"><span class="pp-badge-icon">🔒</span>Мастер <span style="font-size:11px;color:var(--text-tertiary);">(2 миссии)</span></span>
+        <span class="pp-badge locked"><span class="pp-badge-icon">🔒</span>Легенда <span style="font-size:11px;color:var(--text-tertiary);">(5 миссий)</span></span>
+        <span class="pp-badge locked"><span class="pp-badge-icon">🔒</span>Хакатонщик <span style="font-size:11px;color:var(--text-tertiary);">(3 смены)</span></span>
+        <span class="pp-badge locked"><span class="pp-badge-icon">🔒</span>Путешественник <span style="font-size:11px;color:var(--text-tertiary);">(все смены)</span></span>
+        <span class="pp-badge locked"><span class="pp-badge-icon">🔒</span>Архитектор <span style="font-size:11px;color:var(--text-tertiary);">(10 проектов)</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: HISTORY -->
+  <div class="pp-panel" data-panel="history">
+    <div class="pp-card">
+      <div class="pp-card-title">
+        <div class="pp-card-title-icon">📜</div>
+        Лента событий
+      </div>
+      <div class="pp-timeline">
+        <div class="pp-event">
+          <div class="pp-event-dot" style="background: var(--chart-1);"></div>
+          <div class="pp-event-body">
+            <div class="pp-event-title">Собрал прототип робота-поливальщика</div>
+            <div class="pp-event-desc">Смена «Bio-Engineering» · Миссия 3 · Инженерия</div>
+            <div class="pp-event-date">12 июля 2026</div>
+          </div>
+          <div class="pp-event-xp">+120 XP</div>
+        </div>
+        <div class="pp-event">
+          <div class="pp-event-dot" style="background: var(--chart-2);"></div>
+          <div class="pp-event-body">
+            <div class="pp-event-title">Снял и смонтировал видеоотчёт</div>
+            <div class="pp-event-desc">Смена «Медиа-шторм» · Миссия 2 · Медиа</div>
+            <div class="pp-event-date">8 июля 2026</div>
+          </div>
+          <div class="pp-event-xp">+90 XP</div>
+        </div>
+        <div class="pp-event">
+          <div class="pp-event-dot" style="background: var(--chart-3);"></div>
+          <div class="pp-event-body">
+            <div class="pp-event-title">Выявил 12 видов насекомых в биозоне</div>
+            <div class="pp-event-desc">Смена «Эко-разведка» · Миссия 5 · Биология</div>
+            <div class="pp-event-date">5 июля 2026</div>
+          </div>
+          <div class="pp-event-xp">+150 XP</div>
+        </div>
+        <div class="pp-event">
+          <div class="pp-event-dot" style="background: var(--chart-4);"></div>
+          <div class="pp-event-body">
+            <div class="pp-event-title">Организовал командный квест</div>
+            <div class="pp-event-desc">Смена «Командир» · Миссия 1 · Командность</div>
+            <div class="pp-event-date">2 июля 2026</div>
+          </div>
+          <div class="pp-event-xp">+80 XP</div>
+        </div>
+        <div class="pp-event">
+          <div class="pp-event-dot" style="background: var(--chart-5);"></div>
+          <div class="pp-event-body">
+            <div class="pp-event-title">Расшифровал шифр Цезаря за 4 минуты</div>
+            <div class="pp-event-desc">Смена «Крипто» · Миссия 4 · Аналитика</div>
+            <div class="pp-event-date">28 июня 2026</div>
+          </div>
+          <div class="pp-event-xp">+110 XP</div>
+        </div>
+        <div class="pp-event">
+          <div class="pp-event-dot" style="background: var(--text-quaternary);"></div>
+          <div class="pp-event-body">
+            <div class="pp-event-title">Зарегистрировался в игре</div>
+            <div class="pp-event-desc">Смена «Старт» · Приветственная миссия</div>
+            <div class="pp-event-date">24 июня 2026</div>
+          </div>
+          <div class="pp-event-xp">+50 XP</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: SQUAD -->
+  <div class="pp-panel" data-panel="squad">
+    <div class="pp-card">
+      <div class="pp-card-title">
+        <div class="pp-card-title-icon">🏆</div>
+        Рейтинг отряда «Альфа»
+      </div>
+      <div class="pp-leaderboard">
+        <div class="pp-lb-row">
+          <div class="pp-lb-rank gold">1</div>
+          <div class="pp-lb-avatar">👩‍🔬</div>
+          <div class="pp-lb-name">Мария К.</div>
+          <div class="pp-lb-xp">1 580 XP</div>
+        </div>
+        <div class="pp-lb-row me">
+          <div class="pp-lb-rank silver">2</div>
+          <div class="pp-lb-avatar">🧑‍🔬</div>
+          <div class="pp-lb-name">Алексей В. <span style="font-size:11px;color:var(--text-tertiary);">(ты)</span></div>
+          <div class="pp-lb-xp">1 360 XP</div>
+        </div>
+        <div class="pp-lb-row">
+          <div class="pp-lb-rank bronze">3</div>
+          <div class="pp-lb-avatar">👦</div>
+          <div class="pp-lb-name">Дмитрий С.</div>
+          <div class="pp-lb-xp">1 210 XP</div>
+        </div>
+        <div class="pp-lb-row">
+          <div class="pp-lb-rank">4</div>
+          <div class="pp-lb-avatar">👧</div>
+          <div class="pp-lb-name">Анна П.</div>
+          <div class="pp-lb-xp">980 XP</div>
+        </div>
+        <div class="pp-lb-row">
+          <div class="pp-lb-rank">5</div>
+          <div class="pp-lb-avatar">🧒</div>
+          <div class="pp-lb-name">Иван М.</div>
+          <div class="pp-lb-xp">840 XP</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // === TABS ===
+  document.querySelectorAll('.pp-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      document.querySelectorAll('.pp-tab').forEach(t => t.classList.toggle('active', t === tab));
+      document.querySelectorAll('.pp-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === target));
+    });
+  });
+
+  // === ANIMATE XP BAR ON LOAD ===
+  setTimeout(() => {
+    document.getElementById('xpBar').style.width = '68%';
+  }, 200);
+
+  // === ANIMATE SKILL BARS ===
+  const skillObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const fill = entry.target;
+        fill.style.width = fill.dataset.width + '%';
+        skillObserver.unobserve(fill);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.pp-skill-fill').forEach(fill => {
+    skillObserver.observe(fill);
+  });
+
+  // === CLASS SWITCHER ===
+  document.querySelectorAll('.pp-class').forEach(cls => {
+    cls.addEventListener('click', () => {
+      document.querySelectorAll('.pp-class').forEach(c => c.classList.remove('active'));
+      cls.classList.add('active');
+      const type = cls.dataset.class;
+      const avatars = { engineer: '🧑‍🔬', media: '🎬', nature: '🌿' };
+      const names = { engineer: 'Инженер-исследователь', media: 'Медиа-продюсер', nature: 'Натуралист-эколог' };
+      document.getElementById('playerAvatar').textContent = avatars[type];
+      const meta = document.getElementById('playerMeta');
+      const parts = meta.textContent.split('·');
+      meta.textContent = names[type] + ' ·' + parts.slice(1).join('·');
+    });
+  });
+
+  // === DATA API (example) ===
+  // window.PlayerProfile = {
+  //   render: (data) => { ... },
+  //   updateXP: (amount) => { ... },
+  //   addBadge: (badge) => { ... }
+  // };
+</script>
+
+</body>
+</html>

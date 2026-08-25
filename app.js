@@ -41,6 +41,44 @@ function esc(s) {
   return d.innerHTML;
 }
 
+// -- XP + Level system ---------------------------
+const LEVEL_NAMES = ['Новичок','Стажёр','Ученик','Практикант','Специалист','Эксперт','Мастер','Профи','Гуру','Легенда'];
+
+function xpToNextLevel(level) {
+  if (level >= 10) return Infinity;
+  return 200 + (level * 150);
+}
+
+function calcStudentXP(studentId) {
+  let xp = 0;
+  state.completions.filter(c => c.student_id == studentId).forEach(c => {
+    const score = c.score || 1;
+    xp += 20 + score * 15;
+  });
+  state.badges.filter(b => b.student_id == studentId && b.earned).forEach(b => {
+    if (b.rarity === 'legendary') xp += 100;
+    else if (b.rarity === 'epic') xp += 60;
+    else if (b.rarity === 'rare') xp += 40;
+    else xp += 20;
+  });
+  return xp;
+}
+
+function getLevel(xp) {
+  let level = 1;
+  let totalNeeded = 0;
+  while (level < 10) {
+    const needed = xpToNextLevel(level);
+    if (totalNeeded + needed > xp) break;
+    totalNeeded += needed;
+    level++;
+  }
+  const currentLevelXP = xp - totalNeeded;
+  const nextLevelXP = level >= 10 ? 0 : xpToNextLevel(level);
+  const progress = level >= 10 ? 100 : Math.round((currentLevelXP / nextLevelXP) * 100);
+  return { level, name: LEVEL_NAMES[level - 1], xp: currentLevelXP, nextXP: nextLevelXP, progress };
+}
+
 // -- Инициализация -----------------------------
 function populateShiftSelect() {
   const sel = ge('s-shift');
@@ -369,15 +407,18 @@ function renderStudentList() {
     const bdgs  = state.badges.filter(b => b.student_id === s.id && b.earned).length;
     const initials = (s.first_name?.[0] || '') + (s.last_name?.[0] || '');
     const progress = Math.round((obs / 40) * 100);
+    const xp = calcStudentXP(s.id);
+    const lv = getLevel(xp);
     return `
       <div class="student-card" data-id="${s.id}" onclick="quickViewStudent('${s.id}')">
-        <div class="sc-avatar">${initials}</div>
+        <div class="sc-avatar">${initials}<div class="sc-level-badge">${lv.level}</div></div>
         <div class="sc-info">
-          <div class="sc-name">${s.first_name} ${s.last_name}</div>
+          <div class="sc-name">${s.first_name} ${s.last_name} <span class="sc-level-tag">${lv.name}</span></div>
           <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · смена ${s.shift} · ${s.campus || ''}</div>
+          <div class="sc-xp-bar"><div class="sc-xp-fill" style="width:${lv.progress}%"></div></div>
           <div class="sc-progress">
             <div class="sc-progress-bar"><div class="sc-progress-fill" style="width:${progress}%"></div></div>
-            <span class="sc-progress-label">${obs} занятий · ${bdgs} значков</span>
+            <span class="sc-progress-label">${obs} занятий · ${bdgs} значков · ${xp} XP</span>
           </div>
         </div>
         <button class="sc-delete" onclick="deleteStudent(event,'${s.id}')">✕</button>
@@ -1141,16 +1182,19 @@ function renderDashboard() {
     obs.forEach(o => { if (trackCounts[o.track] !== undefined) trackCounts[o.track]++; });
     const dominantTrack = Object.entries(trackCounts).sort((a,b) => b[1]-a[1])[0];
     const trackIcon = {bio:'🧬', eng:'⚙️', media:'🎥', english:'🌍'}[dominantTrack?.[0]] || '📋';
+    const xp = calcStudentXP(s.id);
+    const lv = getLevel(xp);
 
     return `<div class="db-student-card" onclick="openStudentTalents('${s.id}')">
       <div class="db-sc-top">
-        <div class="db-sc-avatar">${(s.first_name?.[0]||'')+(s.last_name?.[0]||'')}</div>
+        <div class="db-sc-avatar">${(s.first_name?.[0]||'')+(s.last_name?.[0]||'')}<div class="db-sc-level">${lv.level}</div></div>
         <div class="db-sc-info">
-          <strong>${s.first_name} ${s.last_name}</strong>
+          <strong>${s.first_name} ${s.last_name}</strong> <span class="sc-level-tag">${lv.name}</span>
           <span>отряд ${s.squad} · смена ${s.shift} · ${s.campus || ''} · ${s.grade} кл</span>
         </div>
         <div class="db-sc-track">${trackIcon}</div>
       </div>
+      <div class="db-sc-xp"><div class="db-sc-xp-bar"><div style="width:${lv.progress}%;background:linear-gradient(90deg,#FFD93D,var(--orange))"></div></div><span>${xp} XP</span></div>
       <div class="db-sc-progress">
         <div class="db-sc-bar"><div style="width:${progress}%;background:var(--orange)"></div></div>
         <span>${progress}%</span>
