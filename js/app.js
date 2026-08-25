@@ -321,6 +321,114 @@ function setupNav() {
   });
 }
 
+function rebuildMainContent() {
+  const mainEl = document.querySelector('.main');
+  if (!mainEl) return;
+  const sq = esc(state.searchQuery);
+  mainEl.innerHTML = `<div class="topbar">
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+    <button class="mobile-back-btn" id="mobile-back-btn" onclick="goBack()" style="display:none">←</button>
+    <div class="topbar-logo"><svg viewBox="0 0 200 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#E8A838"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><line x1="24" y1="4" x2="24" y2="1" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="8" x2="34" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="36" y1="16" x2="39" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="8" x2="14" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="16" x2="9" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><polygon points="24,22 18,32 30,32" fill="#E8A838" opacity="0.9"/><polygon points="24,22 20,32 24,31" fill="#d66a12" opacity="0.8"/></svg></div>
+    <div class="topbar-title">КАНИКУЛЫ С ONE!</div>
+    <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="Поиск участников..." value="${sq}"></div>
+    <div class="topbar-right"><div class="status-dot"></div></div>
+  </div>
+  <div class="page" id="page-students">
+    <div class="page-wrap">
+      <div class="page-header"><h1>👥 УЧАСТНИКИ</h1><p>Регистрация и управление профилями</p></div>
+      <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
+      <div class="form-card"><h3 style="font-size:0.85rem;margin-bottom:12px">➕ Новый участник</h3>
+        <form id="student-form"><div class="form-grid">
+          <div class="form-group"><label>Имя</label><input class="form-input" id="s-firstname" required placeholder="Имя"></div>
+          <div class="form-group"><label>Фамилия</label><input class="form-input" id="s-lastname" required placeholder="Фамилия"></div>
+          <div class="form-group"><label>Возраст</label><input class="form-input" id="s-age" type="number" min="7" max="12" required placeholder="7-12"></div>
+          <div class="form-group"><label>Пол</label><select class="form-input" id="s-gender" required><option value="">Выбрать...</option><option value="Мужской">Мужской</option><option value="Женский">Женский</option></select></div>
+          <div class="form-group"><label>Класс</label><input class="form-input" id="s-grade" type="number" min="1" max="11" required placeholder="Класс"></div>
+          <div class="form-group"><label>Отряд</label><select class="form-input" id="s-squad" required><option value="">Выбрать...</option><option value="1">Отряд 1</option><option value="2">Отряд 2</option><option value="3">Отряд 3</option><option value="4">Отряд 4</option><option value="5">Отряд 5</option><option value="6">Отряд 6</option><option value="7">Отряд 7</option><option value="8">Отряд 8</option></select></div>
+          <div class="form-group"><label>Кампус</label><select class="form-input" id="s-campus" required><option value="">Выбрать...</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select></div>
+          <div class="form-group"><label>Смена</label><select class="form-input" id="s-shift" required><option value="">Выбрать...</option></select></div>
+        </div>
+        <div class="form-group" style="margin-top:8px"><label>Заметки</label><textarea class="form-input" id="s-notes" rows="2" placeholder="Дополнительная информация..."></textarea></div>
+        <button class="btn-primary" type="submit">✅ Добавить участника</button></form>
+      </div>
+      <div class="students-layout"><div>
+        <div class="student-filters" id="student-filters">
+          <select class="form-input st-filter-select" id="st-filter-shift" onchange="onStFilterChange()"><option value="">Все смены</option></select>
+          <select class="form-input st-filter-select" id="st-filter-squad" onchange="onStFilterChange()"><option value="">Все отряды</option></select>
+          <select class="form-input st-filter-select" id="st-filter-campus" onchange="onStFilterChange()"><option value="">Все кампусы</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select>
+        </div>
+        <h3 style="font-size:0.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Список · <span id="student-count">0</span></h3>
+        <div id="student-list"></div>
+      </div></div>
+    </div>
+  </div>
+  <div class="page" id="page-shifts">
+    <div class="page-wrap">
+      <div class="page-header"><h1>🏕️ СМЕНЫ</h1><p>Концепции смен — 10 сюжетов на выбор</p></div>
+      <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
+      <div class="shifts-grid" id="shifts-grid"></div>
+    </div>
+  </div>
+  <div class="page" id="page-achievements">
+    <div class="page-wrap">
+      <div class="page-header"><h1>🏆 БАДЖИ</h1><p>Коллекция достижений участников</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <div style="flex:1;min-width:200px"><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Участник</label><select class="form-input" id="ach-student-select"><option value="">— Выбрать участника —</option></select></div>
+      </div>
+      <div class="ach-summary" id="ach-summary"></div>
+      <div class="badge-grid" id="badge-grid"></div>
+    </div>
+  </div>
+  <div class="page" id="page-talents">
+    <div class="page-wrap">
+      <div class="page-header"><h1>🎯 ПРОФИЛЬ ИГРОКА</h1><p>RPG-карточка участника лагеря</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn-primary" onclick="printStudentReport(state.currentStudentId)">🎮 Скачать репорт участника</button>
+        <button class="btn-print" style="margin-bottom:0" onclick="window.print()">🖨️ Печать страницы</button>
+      </div>
+      <div style="margin-bottom:12px"><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block">Участник</label><select class="student-selector" id="talent-student-select"><option value="">— Выбрать участника —</option></select></div>
+      <div class="pp-hero" id="pp-hero"><div class="pp-avatar-wrap"><div class="pp-avatar" id="pp-avatar">--</div><div class="pp-level-badge" id="pp-level">1</div></div><div class="pp-hero-info"><div class="pp-name" id="pp-name">--</div><div class="pp-meta" id="pp-meta">--</div><div class="pp-xp-wrap"><div class="pp-xp-header"><span>Опыт</span><span id="pp-xp-text">0 XP</span></div><div class="pp-xp-bar"><div class="pp-xp-fill" id="pp-xp-fill" style="width:0%"></div></div></div><div class="pp-shift-tag" id="pp-shift-tag">--</div></div></div>
+      <div class="pp-stats-grid" id="pp-stats"></div>
+      <div class="pp-tabs"><button class="pp-tab active" data-tab="skills" onclick="ppTab('skills')">Навыки</button><button class="pp-tab" data-tab="badges" onclick="ppTab('badges')">Значки</button><button class="pp-tab" data-tab="inventory" onclick="ppTab('inventory')">Инвентарь</button><button class="pp-tab" data-tab="shifts" onclick="ppTab('shifts')">Смены</button><button class="pp-tab" data-tab="history" onclick="ppTab('history')">История</button><button class="pp-tab" data-tab="disc" onclick="ppTab('disc')">DISC</button><button class="pp-tab" data-tab="recommend" onclick="ppTab('recommend')">Рекомендации</button></div>
+      <div class="pp-panel active" data-panel="skills"><div class="gc"><h3>🕸️ Радар компетенций</h3><div class="radar-wrap"><canvas id="radar-canvas" width="300" height="300"></canvas></div><div id="ai-insights-section" style="margin-top:12px"></div></div><div class="gc"><h3>📈 Шкала компетенций</h3><div class="comp-bars" id="comp-bars"></div></div><div class="gc"><h3>🏆 Ключевое направление</h3><div id="career-content"></div></div></div>
+      <div class="pp-panel" data-panel="badges"><div class="gc"><h3>⭐ Полученные значки <span id="pp-badge-count" style="color:var(--muted);font-weight:400"></span></h3><div id="talent-badges-list"></div></div></div>
+      <div class="pp-panel" data-panel="inventory"><div class="gc"><h3>🎒 Инвентарь</h3><div id="talent-inventory"></div></div></div>
+      <div class="pp-panel" data-panel="shifts"><div class="gc"><h3>🏕️ Смены участника</h3><div id="pp-shifts-list"></div></div></div>
+      <div class="pp-panel" data-panel="history"><div class="gc"><h3>📜 История наблюдений</h3><div class="obs-list" id="talent-obs-list"></div></div></div>
+      <div class="pp-panel" data-panel="disc"><div class="gc"><h3>🧩 DISC-профиль</h3><div class="disc-bars" id="disc-bars"></div><div class="disc-combo" id="disc-combo"></div></div></div>
+      <div class="pp-panel" data-panel="recommend"><div class="gc"><h3>🔮 Рекомендации</h3><div id="pp-recommendations"></div></div></div>
+    </div>
+  </div>
+  <div class="page" id="page-dashboard">
+    <div class="page-wrap">
+      <div class="page-header"><h1>📊 ДАШБОРД</h1><p>Общая статистика</p></div>
+      <div class="filter-row"><span class="filter-label">Кампус:</span><button class="filter-pill active" data-filter="db-campus" data-val="" onclick="setDbFilter('campus','')">Все</button><button class="filter-pill" data-filter="db-campus" data-val="ШОП" onclick="setDbFilter('campus','ШОП')">ШОП</button><button class="filter-pill" data-filter="db-campus" data-val="ШСТ" onclick="setDbFilter('campus','ШСТ')">ШСТ</button></div>
+      <div class="filter-row"><span class="filter-label">Смена:</span><select class="form-input" id="db-shift-select" onchange="onDbShiftFilter()" style="width:auto;display:inline-block"><option value="">Все смены</option></select></div>
+      <div class="filter-row"><span class="filter-label">Отряд:</span><select class="form-input" id="db-squad-select" onchange="onDbSquadFilter()" style="width:auto;display:inline-block"><option value="">Все отряды</option></select></div>
+      <div class="stats-row" id="db-stats"></div>
+      <div class="db-student-grid" id="db-student-grid"></div>
+    </div>
+  </div>
+  <div class="page" id="page-assessments">
+    <div class="page-wrap">
+      <div class="page-header"><h1>📋 ОЦЕНКА МИССИЙ</h1><p>Выставление баллов за задания</p></div>
+      <div class="assess-selectors">
+        <div><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Смена</label><select class="form-input" id="ass-shift" onchange="onAssShiftChange()"><option value="">Выбрать смену...</option></select></div>
+        <div><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Направление</label><select class="form-input" id="ass-direction" onchange="onAssDirectionChange()"><option value="">Выбрать направление...</option></select></div>
+        <div><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Участник</label><select class="form-input" id="ass-student" onchange="onAssStudentChange()"><option value="">Выбрать участника...</option></select></div>
+      </div>
+      <div id="ass-missions-area"></div>
+      <div id="ass-summary-area"></div>
+    </div>
+  </div>`;
+  populateShiftSelect();
+  populateStudentFilters();
+  populateAssShiftSelect();
+  populateStudentSelect('ach-student-select', onAchStudentChange);
+  populateStudentSelect('talent-student-select', onTalentStudentChange);
+  rebindSearch();
+}
+
 function navigateTo(page) {
   closeReport();
   if (page === state.currentPage) return;
@@ -335,67 +443,8 @@ function navigateTo(page) {
 
   const needsMainRebuild = state.currentPage === 'shift-detail' || state.currentPage === 'shift-dashboard';
 
-  if (page === 'shifts' && needsMainRebuild) {
-    const mainEl = document.querySelector('.main');
-    if (mainEl) {
-      mainEl.innerHTML = `<div class="topbar">
-        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
-        <div class="topbar-logo"><svg viewBox="0 0 200 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#E8A838"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><polygon points="24,22 18,32 30,32" fill="#E8A838" opacity="0.9"/></svg></div>
-        <div class="topbar-title">КАНИКУЛЫ С ONE!</div>
-        <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="Поиск участников..." value="${esc(state.searchQuery)}"></div>
-        <div class="topbar-right"><div class="status-dot"></div></div>
-      </div>
-      <div class="page active" id="page-shifts">
-        <div class="page-wrap">
-          <div class="page-header">
-            <h1>🏕️ СМЕНЫ</h1>
-            <p>Концепции смен — 10 сюжетов на выбор</p>
-          </div>
-          <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
-          <div class="shifts-grid" id="shifts-grid"></div>
-        </div>
-      </div>`;
-    }
-    rebindSearch();
-  }
-
-  if (page === 'shift-dashboard' && needsMainRebuild) {
-    const mainEl = document.querySelector('.main');
-    if (mainEl) {
-      mainEl.innerHTML = `<div class="topbar">
-        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
-        <button class="mobile-back-btn" id="mobile-back-btn" onclick="goBack()">←</button>
-        <div class="topbar-logo"><svg viewBox="0 0 200 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#E8A838"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><polygon points="24,22 18,32 30,32" fill="#E8A838" opacity="0.9"/></svg></div>
-        <div class="topbar-title">КАНИКУЛЫ С ONE!</div>
-        <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="Поиск участников..." value="${esc(state.searchQuery)}"></div>
-        <div class="topbar-right"><div class="status-dot"></div></div>
-      </div>
-      <div class="page active" id="page-shift-dashboard">
-        <div class="page-wrap">
-          <div class="page-header">
-            <button class="shift-detail-back" onclick="navigateTo('shifts')" style="margin-bottom:12px">← Назад к сменам</button>
-            <h1 id="sd-title">📊 ДАШБОРД СМЕНЫ</h1>
-            <p id="sd-subtitle">Прогресс участников</p>
-          </div>
-          <div class="filter-row">
-            <span class="filter-label">Кампус:</span>
-            <button class="filter-pill active" data-filter="sd-campus" data-val="" onclick="setSdFilter('campus','')">Все</button>
-            <button class="filter-pill" data-filter="sd-campus" data-val="ШОП" onclick="setSdFilter('campus','ШОП')">ШОП</button>
-            <button class="filter-pill" data-filter="sd-campus" data-val="ШСТ" onclick="setSdFilter('campus','ШСТ')">ШСТ</button>
-          </div>
-          <div class="filter-row">
-            <span class="filter-label">Отряд:</span>
-            <button class="filter-pill active" data-filter="sd-squad" data-val="" onclick="setSdFilter('squad','')">Все</button>
-          </div>
-          <div class="sd-stats" id="sd-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px"></div>
-          <h3 style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">🏆 Рейтинг участников</h3>
-          <div id="sd-leaderboard"></div>
-          <h3 style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin:20px 0 12px">📈 Распределение по отрядам</h3>
-          <div id="sd-squads"></div>
-        </div>
-      </div>`;
-    }
-    rebindSearch();
+  if (needsMainRebuild) {
+    rebuildMainContent();
   }
 
   const el = ge('page-' + page);
@@ -968,6 +1017,159 @@ function renderTalentCard(studentId) {
 
   // DISC tab
   renderDISC(obs, studentId);
+
+  // Shifts tab — show all shifts the student participated in with completion details
+  const ppShiftsEl = document.getElementById('pp-shifts-list');
+  if (ppShiftsEl) {
+    const studentCompletions = state.completions.filter(c => c.student_id === studentId);
+    const shiftIds = [...new Set(studentCompletions.map(c => c.shift_id))];
+    if (shiftIds.length === 0) {
+      ppShiftsEl.innerHTML = '<p class="empty-note">Участник пока не записан ни на одну смену</p>';
+    } else {
+      ppShiftsEl.innerHTML = shiftIds.map(sid => {
+        const shiftObj = state.shifts.find(s => s.id == sid);
+        const shiftName = shiftObj ? shiftObj.name : 'Смена ' + sid;
+        const shiftComps = studentCompletions.filter(c => c.shift_id == sid);
+        const directions = [...new Set(shiftComps.map(c => c.direction_name))];
+        const avgScore = shiftComps.reduce((sum, c) => sum + (c.score || 0), 0) / (shiftComps.length || 1);
+        const badgeCount = earnedBadges.filter(b => {
+          const def = state.badgeDefs.find(d => d.id === b.badge_id);
+          return def && def.shift_id == sid;
+        }).length;
+        const pct = Math.round(avgScore * 20);
+        const barColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--orange)' : 'var(--sky)';
+        return `<div class="obs-row" style="flex-direction:column;align-items:stretch;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="obs-icon">🏕️</span>
+            <div class="obs-info"><strong>${esc(shiftName)}</strong></div>
+            <span style="font-size:0.65rem;color:var(--muted)">${shiftComps.length} миссий · ${badgeCount} баджей</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${directions.map(d => `<span style="font-size:0.6rem;padding:2px 6px;border-radius:4px;background:var(--glass-b);color:var(--muted)">${esc(d)}</span>`).join('')}
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;height:6px;background:var(--glass-b);border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px"></div></div>
+            <span style="font-size:0.65rem;font-weight:700;color:${barColor};min-width:32px;text-align:right">${pct}%</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Recommendations tab — AI-style analysis based on competencies, badges, and shift activity
+  const ppRecEl = document.getElementById('pp-recommendations');
+  if (ppRecEl) {
+    const allComps = Object.entries(compScores).sort((a, b) => b[1] - a[1]);
+    const topComps = allComps.filter(([, v]) => v > 0).slice(0, 5);
+    const weakComps = allComps.filter(([, v]) => v < 30 && v > 0);
+
+    // Map competencies to profession families
+    const professionMap = {
+      leader: ['IT-стартап', 'Предприниматель', 'Тимлид в технологиях'],
+      communicator: ['PR-менеджер', 'Дипломат', 'HR-директор'],
+      analyst: ['Data Scientist', 'Исследователь', 'Аналитик данных'],
+      creator: ['UX/UI-дизайнер', 'Арт-директор', 'Креативный продюсер'],
+      researcher: ['Биотехнолог', 'Научный сотрудник', 'Фармацевт'],
+      teamplayer: ['Проджект-менеджер', 'Организатор событий', 'Координатор'],
+      optimizer: ['Продуктовый менеджер', 'Операционист', 'Логист'],
+      tech_lover: ['Разработчик', 'Инженер IoT', 'Системный администратор'],
+      entrepreneur: ['Стартапер', 'Маркетолог', 'Финансовый аналитик'],
+      athlete: ['Тренер', 'Спортивный менеджер', 'Физиотерапевт'],
+      diplomat: ['Юрист', 'Международный аналитик', 'Переговорщик'],
+      designer: ['Графический дизайнер', 'Архитектор', 'Промдизайнер'],
+      media_pro: ['Видеопродюсер', 'Контент-мейкер', 'SMM-специалист'],
+      english_master: ['Переводчик', 'Тьютор английского', 'Международный менеджер']
+    };
+
+    // Extracurricular map based on top skills
+    const extraMap = {
+      leader: ['Школа лидеров', 'Дебаты', 'Студенческий совет'],
+      communicator: ['Школа ораторского мастерства', 'Подкаст-клуб', 'Театральная студия'],
+      analyst: ['Программирование', 'Математический кружок', 'Научная олимпиада'],
+      creator: ['Арт-студия', 'Фотоклуб', 'Дизайн-марафон'],
+      researcher: ['Биоклуб', 'Научная лаборатория', 'STEM-кружок'],
+      teamplayer: ['Волонтёрство', 'Спортивная команда', 'Тимбилдинг-клуб'],
+      optimizer: ['Робототехника', 'Шахматный клуб', 'STEM-лагерь'],
+      tech_lover: ['Кoding club', 'Hackathon', 'Клуб робототехники'],
+      entrepreneur: ['Молодёжный бизнес-инкубатор', 'Финансовая грамотность', 'Стартап-клуб'],
+      athlete: ['Спортивная секция', 'Фитнес-клуб', 'Туристический кружок'],
+      diplomat: ['Модель ООН', 'Клуб дипломатии', 'Школа переговоров'],
+      designer: ['Арт-студия', '3D-моделирование', 'Летняя дизайнерская школа'],
+      media_pro: ['Видеопродакшн', 'Журналистика', 'Блогер-клуб'],
+      english_master: ['Разговорный клуб', 'Клуб путешественников', 'English theater']
+    };
+
+    let html = '';
+
+    // Top strengths
+    if (topComps.length > 0) {
+      html += '<h4 style="font-size:0.8rem;margin-bottom:10px;color:var(--green)">💪 Сильные стороны</h4>';
+      topComps.forEach(([id, val]) => {
+        const comp = state.competencies.find(c => c.id === id);
+        if (!comp) return;
+        const barColor = val >= 70 ? 'var(--green)' : val >= 40 ? 'var(--orange)' : 'var(--sky)';
+        html += `<div class="rec-comment" style="margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+            <span>${comp.icon} ${comp.name}</span><span style="font-size:0.65rem;font-weight:700;color:${barColor}">${val}%</span>
+          </div>
+          <div style="height:4px;background:var(--glass-b);border-radius:2px;overflow:hidden"><div style="height:100%;width:${val}%;background:${barColor};border-radius:2px"></div></div>
+        </div>`;
+      });
+    }
+
+    // Profession recommendations
+    const profRecs = [];
+    topComps.forEach(([id]) => {
+      if (professionMap[id]) professionMap[id].forEach(p => profRecs.push(p));
+    });
+    if (profRecs.length > 0) {
+      html += '<h4 style="font-size:0.8rem;margin:16px 0 10px;color:var(--orange)">🔮 Профессии будущего</h4>';
+      const unique = [...new Set(profRecs)].slice(0, 6);
+      html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${unique.map(p =>
+        `<span style="padding:4px 10px;border-radius:8px;background:var(--orange-dim);color:var(--orange);font-size:0.7rem;font-weight:600">${esc(p)}</span>`
+      ).join('')}</div>`;
+    }
+
+    // Extracurricular recommendations
+    const extraRecs = [];
+    topComps.forEach(([id]) => {
+      if (extraMap[id]) extraMap[id].forEach(e => extraRecs.push(e));
+    });
+    if (extraRecs.length > 0) {
+      html += '<h4 style="font-size:0.8rem;margin:16px 0 10px;color:var(--sky)">🌟 Рекомендации по кружкам и секциям</h4>';
+      const unique = [...new Set(extraRecs)].slice(0, 8);
+      html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${unique.map(e =>
+        `<span style="padding:4px 10px;border-radius:8px;background:rgba(100,181,246,0.12);color:var(--sky);font-size:0.7rem;font-weight:600">${esc(e)}</span>`
+      ).join('')}</div>`;
+    }
+
+    // Areas to develop
+    if (weakComps.length > 0) {
+      html += '<h4 style="font-size:0.8rem;margin:16px 0 10px;color:var(--muted)">📚 Рекомендуется развить</h4>';
+      weakComps.forEach(([id, val]) => {
+        const comp = state.competencies.find(c => c.id === id);
+        if (!comp) return;
+        html += `<div class="rec-comment" style="margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span>${comp.icon} ${comp.name}</span><span style="font-size:0.65rem;color:var(--muted)">${val}%</span>
+          </div>
+        </div>`;
+      });
+    }
+
+    // Summary
+    const totalObs = obs.length;
+    const totalBadges = earnedBadges.length;
+    const avgObs = totalObs > 0 ? Math.round(obs.reduce((s, o) => s + (o.quality || 0), 0) / totalObs * 20) : 0;
+    html += `<div class="disc-combo" style="margin-top:16px">
+      <strong>📊 Итоговый профиль</strong>
+      <p>Уровень ${lv.level} · ${xp} XP · ${totalObs} наблюдений · ${totalBadges} значков · средний балл ${avgObs}%</p>
+      <p style="margin-top:4px">Основной профиль: <strong style="color:var(--orange)">${topComps.length > 0 ? (state.competencies.find(c => c.id === topComps[0][0])?.name || '--') : 'Пока нет данных'}</strong></p>
+    </div>`;
+
+    if (!html) html = '<p class="empty-note">Недостаточно данных для анализа. Начните выставлять оценки!</p>';
+    ppRecEl.innerHTML = html;
+  }
 
   // Reset to skills tab
   ppTab('skills');
