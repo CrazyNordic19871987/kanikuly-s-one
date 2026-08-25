@@ -213,7 +213,7 @@ function populateStudentFilters() {
   state.shifts.forEach(s => {
     const opt = document.createElement('option');
     opt.value = s.id;
-    opt.textContent = 'Смена ' + s.id;
+    opt.textContent = s.name || 'Смена ' + s.id;
     shiftSel.appendChild(opt);
   });
   for (let i = 1; i <= 8; i++) {
@@ -234,6 +234,27 @@ function getStudentFilters() {
     squad: ge('st-filter-squad')?.value || '',
     campus: ge('st-filter-campus')?.value || ''
   };
+}
+
+function populateDbFilters() {
+  const shiftSel = ge('db-shift-select');
+  const squadSel = ge('db-squad-select');
+  if (shiftSel && typeof state.shifts !== 'undefined' && shiftSel.options.length <= 1) {
+    state.shifts.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name || 'Смена ' + s.id;
+      shiftSel.appendChild(opt);
+    });
+  }
+  if (squadSel && squadSel.options.length <= 1) {
+    for (let i = 1; i <= 8; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = 'Отряд ' + i;
+      squadSel.appendChild(opt);
+    }
+  }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -424,6 +445,7 @@ function rebuildMainContent() {
   populateShiftSelect();
   populateStudentFilters();
   populateAssShiftSelect();
+  populateDbFilters();
   populateStudentSelect('ach-student-select', onAchStudentChange);
   populateStudentSelect('talent-student-select', onTalentStudentChange);
   rebindSearch();
@@ -2479,7 +2501,7 @@ function populateAssShiftSelect() {
   state.shifts.forEach(s => {
     const opt = document.createElement('option');
     opt.value = s.id;
-    opt.textContent = 'Смена ' + s.id;
+    opt.textContent = s.name || 'Смена ' + s.id;
     sel.appendChild(opt);
   });
 }
