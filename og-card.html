@@ -64,16 +64,16 @@ ctx.stroke();
 ctx.font = '600 14px Inter, sans-serif';
 ctx.fillStyle = '#E8A838';
 ctx.textAlign = 'center';
-ctx.fillText('МИССИЯ 5', 100, 64);
+ctx.fillText('МИССИЯ 1', 100, 64);
 
 // ── Shift title ──
 ctx.textAlign = 'left';
 ctx.font = '800 48px Orbitron, sans-serif';
 ctx.fillStyle = '#F0EDE5';
-ctx.fillText('ACTIVE TECH 2077', 40, 140);
+ctx.fillText('CYBER ATHLETES', 40, 140);
 ctx.font = '700 28px Orbitron, sans-serif';
 ctx.fillStyle = '#E8A838';
-ctx.fillText('БИО-ТЕХ СПОРТ', 40, 180);
+ctx.fillText('ХРОНИКИ БУДУЩЕГО', 40, 180);
 
 // ── Date pill ──
 roundRect(ctx, 40, 210, 280, 36, 8);
@@ -81,15 +81,15 @@ ctx.fillStyle = 'rgba(232,168,56,0.12)';
 ctx.fill();
 ctx.font = '600 15px Inter, sans-serif';
 ctx.fillStyle = '#E8A838';
-ctx.fillText('📅  20.06 – 29.06.2027', 56, 234);
+ctx.fillText('📅  05.10 – 09.10.2026', 56, 234);
 
 // ── Description ──
 ctx.font = '500 17px Inter, sans-serif';
 ctx.fillStyle = 'rgba(240,237,229,0.65)';
-wrapText(ctx, 'Будущее спорта — биомеханика и нейроинтерфейсы. Ребёнок проектирует экзоскелет, тестирует нейроуправление и соревнуется в техно-олимпиаде.', 40, 290, 600, 26);
+wrapText(ctx, 'Спорт + IT + Биотех. Ребёнок создаёт AR-стартап, тестирует нейроинтерфейсы, проектирует экзоскелет и соревнуется в техно-олимпиаде.', 40, 290, 600, 26);
 
 // ── Tags ──
-const tags = ['🏅 Спорт', '🧬 Биотех', '💻 IT'];
+const tags = ['🏅 Спорт', '💻 IT', '🧬 Биотех'];
 let tx = 40;
 tags.forEach(tag => {
   const tw = ctx.measureText(tag).width + 24;
