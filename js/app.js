@@ -424,8 +424,8 @@ function rebuildMainContent() {
   mainEl.innerHTML = `<div class="topbar">
     <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
     <button class="mobile-back-btn" id="mobile-back-btn" onclick="goBack()" style="display:none">←</button>
-    <div class="topbar-logo" style="cursor:pointer" onclick="navigateTo('shifts')" title="На главную"><svg viewBox="0 0 200 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#E8A838"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><line x1="24" y1="4" x2="24" y2="1" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="8" x2="34" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="36" y1="16" x2="39" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="8" x2="14" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="16" x2="9" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><polygon points="24,22 18,32 30,32" fill="#E8A838" opacity="0.9"/><polygon points="24,22 20,32 24,31" fill="#d66a12" opacity="0.8"/></svg></div>
-    <div class="topbar-title" style="cursor:pointer" onclick="navigateTo('shifts')" title="На главную">КАНИКУЛЫ С ONE!</div>
+    <div class="topbar-logo" style="cursor:pointer" onclick="goHome()" title="На главную"><svg viewBox="0 0 200 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#E8A838"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><line x1="24" y1="4" x2="24" y2="1" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="8" x2="34" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="36" y1="16" x2="39" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="8" x2="14" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="16" x2="9" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><polygon points="24,22 18,32 30,32" fill="#E8A838" opacity="0.9"/><polygon points="24,22 20,32 24,31" fill="#d66a12" opacity="0.8"/></svg></div>
+    <div class="topbar-title" style="cursor:pointer" onclick="goHome()" title="На главную">КАНИКУЛЫ С ONE!</div>
     <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="Поиск участников..." value="${sq}"></div>
     <div class="topbar-right"><div class="status-dot"></div></div>
   </div>
@@ -529,6 +529,11 @@ function rebuildMainContent() {
   populateStudentSelect('ach-student-select', onAchStudentChange);
   populateStudentSelect('talent-student-select', onTalentStudentChange);
   rebindSearch();
+}
+
+function goHome() {
+  state.currentPage = '';
+  navigateTo('shifts');
 }
 
 function navigateTo(page, skipHistory) {
