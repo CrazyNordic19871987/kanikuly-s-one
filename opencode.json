@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md"],
+  "references": {
+    "docs": {
+      "path": ".",
+      "description": "Project root — index.html, app.js, js/ directory, migrations/, programs"
+    }
+  }
+}
