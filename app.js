@@ -1588,10 +1588,10 @@ function calcDisc(obs, studentId) {
 
   const dc = state.discConfig.colors || {};
   const labels = {
-    D:{label:'Доминирование', color:dc.D || '#EF4444', desc:'Активный, решительный'},
-    I:{label:'Влияние',       color:dc.I || '#FBBF24', desc:'Общительный, креативный'},
-    S:{label:'Стабильность',  color:dc.S || '#22C55E', desc:'Уравновешенный, надёжный'},
-    C:{label:'Постоянство',   color:dc.C || '#3B82F6', desc:'Аналитик, точный'}
+    D:{label:'Командир', color:dc.D || '#EF4444', desc:'Я беру высоту!', slogan:'Сила воли, скорость, преодоление препятствий'},
+    I:{label:'Звездочет', color:dc.I || '#FBBF24', desc:'Я зажигаю свет!', slogan:'Энергия, общение, вдохновение и веселье'},
+    S:{label:'Хранитель', color:dc.S || '#22C55E', desc:'Я держу строй!', slogan:'Забота, дружба, помощь и терпение'},
+    C:{label:'Мастер',    color:dc.C || '#3B82F6', desc:'Я знаю секрет!', slogan:'Точность, знания, логика и порядок'}
   };
 
   const dominant = Object.entries(disc).sort((a,b) => b[1]-a[1])[0];
