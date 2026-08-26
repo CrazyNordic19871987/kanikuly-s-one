@@ -1,0 +1,512 @@
+﻿=== Shift 1 : «Кибер-Атлеты: Хроники Будущего» ===
+  Direction: 🏅 Спорт
+    Mission: Нейрофитнес на Blazepod
+      Desc: Тренировка реакции и координации с LED-панелями
+      Skills: persistence, adaptability
+    Mission: Балансборды и стабильность
+      Desc: Работа на нестабильных платформах для укрепления кора
+      Skills: persistence, self_organization
+    Mission: Лазертаг-миссия
+      Desc: Командная тактическая игра в условиях «цифровой вселенной»
+      Skills: cooperation, problem_solving
+    Mission: Archery Tag
+      Desc: Стрельба из лука мягкими стрелами в формате соревнования
+      Skills: persistence, self_organization
+    Mission: Мечевой бой
+      Desc: Современный фехтовальный бой с безопасным инвентарём
+      Skills: initiative, adaptability
+  Direction: 💻 IT
+    Mission: Программирование на micro:bit
+      Desc: Настройка сенсоров и первые шаги в коде
+      Skills: problem_solving, learning_ability
+    Mission: Сборка датчика-гаджета
+      Desc: Конструирование персонального устройства из компонентов
+      Skills: creativity, problem_solving
+    Mission: Основы анализа данных
+      Desc: Сбор данных с датчиков и визуализация результатов
+      Skills: critical_thinking, learning_ability
+    Mission: Эко-полис: мини-проект
+      Desc: Проектирование элемента умного города с 3D-моделированием
+      Skills: creativity, communication
+  Direction: 🧬 Биотех
+    Mission: Биохакинг: пульс и反应
+      Desc: Измерение реакции и пульса до и после нагрузки
+      Skills: curiosity, critical_thinking
+    Mission: Анализ данных тела
+      Desc: Сравнение биометрических показателей участников
+      Skills: critical_thinking, problem_solving
+    Mission: Эко-полис: зелёные технологии
+      Desc: Проектирование экологичных решений для умного города
+      Skills: creativity, social_position
+  Direction: 📊 Предпринимательство
+    Mission: Нейро-коины: внутренняя валюта
+      Desc: Заработок и управление игровой валютой через задания
+      Skills: self_organization, problem_solving
+    Mission: Питчинг гаджета
+      Desc: Защита своего проекта перед «инвестиционным комитетом»
+      Skills: communication, initiative
+    Mission: Юнит-экономика продукта
+      Desc: Расчёт стоимости и ценности созданного устройства
+      Skills: critical_thinking, problem_solving
+
+=== Shift 2 : «Terraforming: Колонизаторы Новых Миров» ===
+  Direction: 🏅 Спорт
+    Mission: Школа выживания
+      Desc: Базовые навыки ориентирования и пребывания на природе
+      Skills: adaptability, problem_solving
+    Mission: Верёвочный курс
+      Desc: Преодоление препятствий на высоте с элементами скалодрома
+      Skills: persistence, cooperation
+    Mission: Захват флага
+      Desc: Командная тактическая игра за контроль территории
+      Skills: cooperation, initiative
+    Mission: Полоса препятствий Spartan
+      Desc: Физическое испытание на выносливость и ловкость
+      Skills: persistence, adaptability
+  Direction: 🧬 Биотех
+    Mission: Гидропонная установка
+      Desc: Сборка мини-фермы для выращивания растений без почвы
+      Skills: problem_solving, learning_ability
+    Mission: Альтернативная энергетика
+      Desc: Проектирование источников энергии для колонии
+      Skills: creativity, problem_solving
+    Mission: Переработка ресурсов
+      Desc: Система tái利用 отходов в замкнутом цикле
+      Skills: critical_thinking, social_position
+  Direction: 🤝 Дипломатия
+    Mission: Совет Альянса
+      Desc: Утренние совещания команд-баз для планирования дня
+      Skills: communication, self_organization
+    Mission: Переговоры о ресурсах
+      Desc: Обмен ресурсами между командами на английском
+      Skills: communication, critical_thinking
+    Mission: Разрешение конфликтов
+      Desc: Поиск компромиссов в спорных ситуациях колонии
+      Skills: communication, adaptability
+  Direction: 📊 Предпринимательство
+    Mission: Стартап колонии
+      Desc: Каждая команда — стартап с распределёнными ролями
+      Skills: initiative, creativity
+    Mission: Защита перед Советом директоров
+      Desc: Презентация гидропонной установки жюри из взрослых
+      Skills: communication, social_position
+    Mission: Бизнес-план колонии
+      Desc: Расчёт ресурсов и планирование развития поселения
+      Skills: critical_thinking, self_organization
+
+=== Shift 3 : «Meta-Agency: Детективы Времени» ===
+  Direction: 🎬 Медиа
+    Mission: Детективный ролик
+      Desc: Съёмка мини-фильма-расследования на английском
+      Skills: creativity, communication
+    Mission: Подкаст Агента
+      Desc: Запись аудио-расследования с эффектами и интервью
+      Skills: communication, creativity
+    Mission: Хромакей и ИИ-монтаж
+      Desc: Использование зелёного экрана и ИИ для спецэффектов
+      Skills: creativity, learning_ability
+    Mission: Финальный брифинг
+      Desc: Презентация результатов расследования родителям
+      Skills: communication, social_position
+  Direction: 🏅 Спорт
+    Mission: Капоэйра
+      Desc: Бразильское боевое искусство-танец для координации
+      Skills: adaptability, persistence
+    Mission: Фехтование на мягких мечах
+      Desc: Тактический бой с элементами фехтования
+      Skills: initiative, critical_thinking
+    Mission: Фрисби-алтимат
+      Desc: Командная игра с летающим диском
+      Skills: cooperation, communication
+    Mission: Доджбол-турнир
+      Desc: Быстрая реакция и командная стратегия
+      Skills: adaptability, cooperation
+  Direction: 💻 IT
+    Mission: Расшифровка шифров
+      Desc: Взлом кодов и密码 с помощью логики и программирования
+      Skills: problem_solving, critical_thinking
+    Mission: Цифровое портфолио Агента
+      Desc: Ведение личного досье в цифровом формате
+      Skills: self_organization, creativity
+    Mission: ИИ-монтаж видео
+      Desc: Автоматизация монтажа с помощью искусственного интеллекта
+      Skills: learning_ability, creativity
+  Direction: 🤝 Дипломатия
+    Mission: Интервью со свидетелями
+      Desc: Допрос «иностранных агентов» на английском
+      Skills: communication, curiosity
+    Mission: Межагентские переговоры
+      Desc: Координация с другими «отделами» для раскрытия дела
+      Skills: cooperation, communication
+    Mission: Защита расследования
+      Desc: Публичная презентация выводов перед жюри
+      Skills: communication, social_position
+
+=== Shift 4 : «Future Makers: Академия Прикладного Будущего» ===
+  Direction: 💻 IT
+    Mission: Лаборатория Робототехники
+      Desc: Сборка и программирование роботов на Arduino
+      Skills: problem_solving, creativity
+    Mission: Лаборатория Программирования
+      Desc: Создание приложений и игр на Scratch/Python
+      Skills: problem_solving, learning_ability
+    Mission: IoT: умное устройство
+      Desc: Проектирование.connected-устройства для дома
+      Skills: critical_thinking, problem_solving
+    Mission: Хакатон-час
+      Desc: Быстрое решение практической задачи за ограниченное время
+      Skills: adaptability, initiative
+  Direction: 🧬 Биотех
+    Mission: Лаборатория Экотехнологий
+      Desc: Изучение возобновляемых источников энергии
+      Skills: curiosity, critical_thinking
+    Mission: Лаборатория Медицины
+      Desc: Основы биометрии и измерения параметров тела
+      Skills: curiosity, learning_ability
+    Mission: Биоинженерные решения
+      Desc: Проектирование экологичных систем для жизни
+      Skills: creativity, problem_solving
+  Direction: 🎨 Art & Design
+    Mission: Лаборатория Дизайна
+      Desc: UX/UI-проектирование интерфейсов устройств
+      Skills: creativity, critical_thinking
+    Mission: Концепт-арт продукта
+      Desc: Визуализация идеи перед началом разработки
+      Skills: creativity, communication
+    Mission: Прототипирование
+      Desc: Быстрое создание физической модели решения
+      Skills: creativity, self_organization
+  Direction: 🏅 Спорт
+    Mission: Лабораторная разминка
+      Desc: Активные паузы с Blazepod и балансбордами
+      Skills: adaptability, persistence
+    Mission: Инженерная эстафета
+      Desc: Командное соревнование с инженерными задачами
+      Skills: cooperation, initiative
+    Mission: Программистская йога
+      Desc: Растяжка и релаксация между блоками работы
+      Skills: self_organization, persistence
+  Direction: 📊 Предпринимательство
+    Mission: Стартап-команды
+      Desc: Формирование команд с распределением ролей
+      Skills: initiative, cooperation
+    Mission: Интервью с пользователями
+      Desc: Исследование потребностей для улучшения продукта
+      Skills: communication, curiosity
+    Mission: Demo Day
+      Desc: Финальная презентация проектов перед «инвестиционным комитетом»
+      Skills: communication, social_position
+
+=== Shift 5 : «Active Tech 2077: Академия Био-Тех Спорта» ===
+  Direction: 🏅 Спорт
+    Mission: Техно-футбол с GPS
+      Desc: Игра с отслеживанием перемещений через GPS-трекеры
+      Skills: cooperation, adaptability
+    Mission: Лёгкая атлетика с биометрией
+      Desc: Бег и прыжки с анализом через биометрические браслеты
+      Skills: persistence, critical_thinking
+    Mission: Кибер-йога
+      Desc: Йога с элементами геймификации и датчиками
+      Skills: self_organization, adaptability
+    Mission: AR-ориентирование
+      Desc: Поиск точек по augmented reality карте
+      Skills: problem_solving, adaptability
+    Mission: Техно-фрисби
+      Desc: Фрисби с электронными метками для подсчёта очков
+      Skills: cooperation, initiative
+  Direction: 🧬 Биотех
+    Mission: Биометрия атлета
+      Desc: Измерение пульса, SpO2, уровня стресса до и после нагрузки
+      Skills: curiosity, critical_thinking
+    Mission: Персональный имплант
+      Desc: Сборка носимого устройства для мониторинга здоровья
+      Skills: problem_solving, creativity
+    Mission: Биохакинг: восстановление
+      Desc: Изучение методов восстановления после тренировок
+      Skills: learning_ability, self_organization
+  Direction: 💻 IT
+    Mission: Цифровой паспорт атлета
+      Desc: Создание личного профиля с показателями в приложении
+      Skills: self_organization, learning_ability
+    Mission: Сборка трекера на Arduino
+      Desc: Программирование и настройка спортивного трекера
+      Skills: problem_solving, persistence
+    Mission: Анализ спортивных данных
+      Desc: Обработка и визуализация данных тренировок
+      Skills: critical_thinking, learning_ability
+  Direction: 📊 Предпринимательство
+    Mission: Турнирная таблица
+      Desc: Соревнование между участниками на основе баллов
+      Skills: critical_thinking, initiative
+    Mission: Персональная программа
+      Desc: Создание индивидуального плана тренировок на основе данных
+      Skills: self_organization, critical_thinking
+    Mission: Защита на Спортивном саммите
+      Desc: Презентация результатов и персонального трекера
+      Skills: communication, social_position
+
+=== Shift 6 : «Urban Quest: Агенты Городского Разума» ===
+  Direction: 💻 IT
+    Mission: QR/AR-квест по карте
+      Desc: Прохождение миссий через сканирование QR-кодов и AR-меток
+      Skills: problem_solving, curiosity
+    Mission: Telegram-бот навигатор
+      Desc: Использование бота для получения заданий и координат
+      Skills: learning_ability, problem_solving
+    Mission: Кибербезопасность: взлом ядра
+      Desc: Финальная миссия по восстановлению контроля над ИИ
+      Skills: critical_thinking, persistence
+    Mission: Анализ геоданных
+      Desc: Сбор и обработка данных о городе (шум, маршруты, воздух)
+      Skills: critical_thinking, learning_ability
+  Direction: 🎬 Медиа
+    Mission: Промо-ролик квеста
+      Desc: Съёмка трейлера мини-квеста на английском
+      Skills: creativity, communication
+    Mission: Оперативные донесения
+      Desc: Ведение видеодневника агента с ежедневными отчётами
+      Skills: communication, self_organization
+    Mission: Медиажурналистика
+      Desc: Интервью с «информаторами» и создание репортажей
+      Skills: communication, curiosity
+  Direction: 🏅 Спорт
+    Mission: Паркур-разведка
+      Desc: Преодоление препятствий на территории кампуса
+      Skills: adaptability, persistence
+    Mission: Эстафета «Спасение заложника»
+      Desc: Командная миссия на скорость и ловкость
+      Skills: cooperation, initiative
+    Mission: Доджбол-штурм
+      Desc: Тактическая игра для захвата контрольной точки
+      Skills: adaptability, cooperation
+    Mission: Ориентирование с AR
+      Desc: Поиск скрытых объектов по augmented reality подсказкам
+      Skills: problem_solving, curiosity
+  Direction: 🎨 Art & Design
+    Mission: Дизайн QR-точек
+      Desc: Создание визуального оформления для QR-квеста
+      Skills: creativity, self_organization
+    Mission: Карта города
+      Desc: Проектирование интерактивной карты с зонами миссий
+      Skills: creativity, critical_thinking
+    Mission: Айдентика агента
+      Desc: Разработка кодового имени и визуального стиля персонажа
+      Skills: creativity, communication
+  Direction: 📊 Предпринимательство
+    Mission: Мини-квест для родителей
+      Desc: Создание коммерческого продукта — квеста для внешней аудитории
+      Skills: initiative, creativity
+    Mission: Защита «Ключей к Городскому Разуму»
+      Desc: Презентация накопленных данных и решений
+      Skills: communication, social_position
+    Mission: Юнит-экономика квеста
+      Desc: Расчёт стоимости создания и монетизации квест-продукта
+      Skills: critical_thinking, problem_solving
+
+=== Shift 7 : «Smart City Lab: Архитекторы Умного Города» ===
+  Direction: 💻 IT
+    Mission: Программирование на micro:bit
+      Desc: Создание работающих элементов: шлагбаумы, освещение, датчики
+      Skills: problem_solving, learning_ability
+    Mission: Система мониторинга воздуха
+      Desc: Сборка датчика качества воздуха и визуализация данных
+      Skills: critical_thinking, curiosity
+    Mission: Логистические кейсы
+      Desc: Оптимизация маршрутов и распределения ресурсов в городе
+      Skills: critical_thinking, problem_solving
+    Mission: Сетевая инфраструктура
+      Desc: Проектирование связи между объектами умного квартала
+      Skills: problem_solving, self_organization
+  Direction: 🎨 Art & Design
+    Mission: Физический макет квартала
+      Desc: Сборка масштабной модели умного городского квартала
+      Skills: creativity, cooperation
+    Mission: Проектирование чертежей
+      Desc: Создание планов инфраструктуры и инженерных систем
+      Skills: self_organization, critical_thinking
+    Mission: Визуализация данных
+      Desc: Оформление результатов мониторинга в наглядном виде
+      Skills: creativity, critical_thinking
+  Direction: 🧬 Биотех
+    Mission: Эко-инженерия
+      Desc: Проектирование систем очистки воздуха и воды
+      Skills: problem_solving, social_position
+    Mission: Мониторинг окружающей среды
+      Desc: Сбор данных о качестве воздуха, шуме, температуре
+      Skills: curiosity, persistence
+    Mission: Устойчивые решения
+      Desc: Интеграция экологичных технологий в городскую среду
+      Skills: critical_thinking, social_position
+  Direction: 🏅 Спорт
+    Mission: Доставка грузов
+      Desc: Полоса препятствий с переносом модулей инфраструктуры
+      Skills: persistence, cooperation
+    Mission: Пилотирование мини-дронов
+      Desc: Управление дронами для облёта территории
+      Skills: adaptability, problem_solving
+    Mission: Светофор на Blazepod
+      Desc: Тренировка реакции в формате городской игры
+      Skills: adaptability, persistence
+    Mission: Паркур-доставка
+      Desc: Быстрая доставка компонентов через препятствия
+      Skills: initiative, adaptability
+  Direction: 🤝 Дипломатия
+    Mission: Брифинги с мэрией
+      Desc: Презентация проектов «Инвестиционному фонду города» на английском
+      Skills: communication, social_position
+    Mission: Межкомандная координация
+      Desc: Распределение зон ответственности между архитекторами
+      Skills: cooperation, self_organization
+    Mission: Защита чертежей
+      Desc: Публичная презентация urban-проекта перед жюри
+      Skills: communication, critical_thinking
+
+=== Shift 8 : «ENGLISH GAME STUDIO: Код Доступа» ===
+  Direction: 💻 IT
+    Mission: Разработка в Roblox/Scratch
+      Desc: Создание играбельного прототипа 3D-игры
+      Skills: problem_solving, creativity
+    Mission: Код-ревью
+      Desc: Проверка и оптимизация кода коллег по команде
+      Skills: critical_thinking, communication
+    Mission: Stand-up планёрка
+      Desc: Ежедневная синхронизация команды по методологии Agile
+      Skills: communication, self_organization
+    Mission: QA-тестирование
+      Desc: Поиск багов и тестирование геймплея
+      Skills: critical_thinking, persistence
+  Direction: 🎨 Art & Design
+    Mission: 3D-моделлинг
+      Desc: Создание персонажей, окружения и объектов для игры
+      Skills: creativity, self_organization
+    Mission: Кастомный геймпад
+      Desc: Проектирование и сборка физического контроллера из картона и электроники
+      Skills: creativity, problem_solving
+    Mission: Дизайн интерфейса
+      Desc: Разработка UI/UX внутриигрового интерфейса
+      Skills: creativity, critical_thinking
+    Mission: 3D-печать брелоков
+      Desc: Создание физических мерч-продуктов с героями игры
+      Skills: creativity, persistence
+  Direction: 🎬 Медиа
+    Mission: Написание лора
+      Desc: Создание истории мира и персонажей на английском
+      Skills: creativity, communication
+    Mission: Маркетинговый питч
+      Desc: Презентация игры «издателям» (вожатым) на английском
+      Skills: communication, initiative
+    Mission: Промо-ролик игры
+      Desc: Съёмка трейлера для продвижения продукта
+      Skills: creativity, communication
+  Direction: 📊 Предпринимательство
+    Mission: Юнит-экономика игры
+      Desc: Расчёт стоимости создания и потенциальной прибыли
+      Skills: critical_thinking, problem_solving
+    Mission: Studio Coins: внутренняя валюта
+      Desc: Управление бюджетом студии и аукцион инвентаря
+      Skills: self_organization, critical_thinking
+    Mission: Фокус-группы
+      Desc: Тестирование игры с реальными пользователями и сбор фидбека
+      Skills: communication, curiosity
+    Mission: Релиз и Demo Day
+      Desc: Финальная презентация игры родителям в зоне с ноутбуками
+      Skills: communication, social_position
+  Direction: 🏅 Спорт
+    Mission: Битва с боссом
+      Desc: Физические челленджи на время как элемент геймплея
+      Skills: persistence, initiative
+    Mission: VR/AR-активности
+      Desc: Игры в виртуальной и дополненной реальности
+      Skills: adaptability, curiosity
+    Mission: Танцевальные баттлы
+      Desc: Just Dance и другие ритм-игры для разминки
+      Skills: creativity, adaptability
+    Mission: Эстафета «Сбор апгрейдов»
+      Desc: Командное соревнование на скорость и точность
+      Skills: cooperation, persistence
+
+=== Shift 9 : «CHAMPIONS ACADEMY: Био-Механика Побед» ===
+  Direction: 🏅 Спорт
+    Mission: Бег с GPS-трекерами
+      Desc: Анализ пульса и маршрута в реальном времени
+      Skills: persistence, critical_thinking
+    Mission: Тренировки на Blazepod
+      Desc: Развитие реакции с LED-тренажёрами
+      Skills: adaptability, persistence
+    Mission: Балансборды
+      Desc: Укрепление кора и координации на нестабильных платформах
+      Skills: persistence, self_organization
+    Mission: Нейрогимнастика
+      Desc: Координационные упражнения для связи мозга и тела
+      Skills: curiosity, adaptability
+    Mission: Фехтование с датчиками
+      Desc: Бой на мягких мечах с электронным подсчётом попаданий
+      Skills: initiative, critical_thinking
+  Direction: 🤝 Дипломатия
+    Mission: Спортивные комментарии
+      Desc: Ведение трансляции соревнований на английском
+      Skills: communication, creativity
+    Mission: Интервью с чемпионами
+      Desc: Проведение интервью с участниками после соревнований
+      Skills: communication, curiosity
+    Mission: Анатомия на английском
+      Desc: Изучение терминологии фитнеса и спортивной медицины
+      Skills: learning_ability, curiosity
+  Direction: 📊 Предпринимательство
+    Mission: Биометрический паспорт
+      Desc: Создание личного профиля атлета с показателями
+      Skills: self_organization, learning_ability
+    Mission: Атлетический дашборд
+      Desc: Анализ графиков прогресса за смену
+      Skills: critical_thinking, problem_solving
+    Mission: Защита на Спортивном саммите
+      Desc: Презентация результатов и личного прогресса перед жюри
+      Skills: communication, social_position
+    Mission: Bio-points: система баллов
+      Desc: Управление личными достижениями и рейтингом
+      Skills: self_organization, critical_thinking
+
+=== Shift 10 : «ISLAND SURVIVAL: Eco-Tech Экспедиция» ===
+  Direction: 🏅 Спорт
+    Mission: Ориентирование с GPS
+      Desc: Поиск точек по координатам и компасу на территории
+      Skills: problem_solving, adaptability
+    Mission: Верёвочный курс «Переправа»
+      Desc: Преодоление водной преграды с помощью верёвок
+      Skills: cooperation, persistence
+    Mission: Строительство плотов
+      Desc: Конструирование плавсредств из подручных материалов
+      Skills: creativity, problem_solving
+    Mission: Слэклайн
+      Desc: Балансировка на натянутой ленте для координации
+      Skills: persistence, adaptability
+    Mission: Эвакуация раненого
+      Desc: Эстафета с транспортировкой «пострадавшего» на носилках
+      Skills: cooperation, initiative
+  Direction: 🤝 Дипломатия
+    Mission: Обмен ресурсами
+      Desc: Переговоры между базами обмена «Литрами пресной воды»
+      Skills: communication, critical_thinking
+    Mission: Бортовой журнал
+      Desc: Ведение дневника экспедиции на английском
+      Skills: self_organization, communication
+    Mission: Описание биологических видов
+      Desc: Классификация и описание найденных растений/животных на английском
+      Skills: curiosity, learning_ability
+    Mission: Координация спасения
+      Desc: Планирование и управление спасательной операцией
+      Skills: initiative, cooperation
+  Direction: 📊 Предпринимательство
+    Mission: Техно-дропы
+      Desc: Заработок деталей для проектов через физические испытания
+      Skills: initiative, persistence
+    Mission: Литры пресной воды
+      Desc: Управление внутренней валютой острова
+      Skills: self_organization, critical_thinking
+    Mission: Защита станции
+      Desc: Презентация работающей «Станции выживания» родителям
+      Skills: communication, social_position
+    Mission: Бизнес-план экоотдыха
+      Desc: Расчёт ресурсов и планирование инфраструктуры
+      Skills: critical_thinking, creativity
+
