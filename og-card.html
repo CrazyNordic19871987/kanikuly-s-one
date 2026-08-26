@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>OG Card Generator</title>
+<style>body{margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh}canvas{border:1px solid #333}</style>
+</head>
+<body>
+<canvas id="c" width="1200" height="630"></canvas>
+<div id="ui" style="position:fixed;top:16px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:99">
+  <button onclick="download()" style="padding:10px 24px;border-radius:8px;border:none;background:#E8A838;color:#000;font-weight:700;font-size:14px;cursor:pointer">💾 Save as PNG</button>
+  <span style="padding:10px;color:rgba(240,237,229,0.5);font:500 13px Inter,sans-serif" id="status"></span>
+</div>
+<script>
+function download() {
+  const link = document.createElement('a');
+  link.download = 'og-card.png';
+  link.href = document.getElementById('c').toDataURL('image/png');
+  link.click();
+  document.getElementById('status').textContent = '✓ Saved to Downloads';
+}
+// Auto-generate after fonts load
+document.fonts.ready.then(() => {
+  setTimeout(download, 500);
+});
+</script>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 1200, H = 630;
+
+// ── Background gradient ──
+const bg = ctx.createLinearGradient(0, 0, W, H);
+bg.addColorStop(0, '#0f1923');
+bg.addColorStop(0.5, '#1B2838');
+bg.addColorStop(1, '#0f1923');
+ctx.fillStyle = bg;
+ctx.fillRect(0, 0, W, H);
+
+// ── Subtle grid pattern ──
+ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+ctx.lineWidth = 1;
+for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+// ── Glow orb ──
+const glow = ctx.createRadialGradient(900, 200, 0, 900, 200, 400);
+glow.addColorStop(0, 'rgba(232,168,56,0.08)');
+glow.addColorStop(1, 'transparent');
+ctx.fillStyle = glow;
+ctx.fillRect(0, 0, W, H);
+
+// ── Left accent bar ──
+ctx.fillStyle = '#E8A838';
+ctx.fillRect(0, 0, 6, H);
+
+// ── Mission number badge ──
+roundRect(ctx, 40, 40, 120, 36, 8);
+ctx.fillStyle = 'rgba(232,168,56,0.15)';
+ctx.fill();
+ctx.strokeStyle = 'rgba(232,168,56,0.4)';
+ctx.lineWidth = 1;
+ctx.stroke();
+ctx.font = '600 14px Inter, sans-serif';
+ctx.fillStyle = '#E8A838';
+ctx.textAlign = 'center';
+ctx.fillText('МИССИЯ 5', 100, 64);
+
+// ── Shift title ──
+ctx.textAlign = 'left';
+ctx.font = '800 48px Orbitron, sans-serif';
+ctx.fillStyle = '#F0EDE5';
+ctx.fillText('ACTIVE TECH 2077', 40, 140);
+ctx.font = '700 28px Orbitron, sans-serif';
+ctx.fillStyle = '#E8A838';
+ctx.fillText('БИО-ТЕХ СПОРТ', 40, 180);
+
+// ── Date pill ──
+roundRect(ctx, 40, 210, 280, 36, 8);
+ctx.fillStyle = 'rgba(232,168,56,0.12)';
+ctx.fill();
+ctx.font = '600 15px Inter, sans-serif';
+ctx.fillStyle = '#E8A838';
+ctx.fillText('📅  20.06 – 29.06.2027', 56, 234);
+
+// ── Description ──
+ctx.font = '500 17px Inter, sans-serif';
+ctx.fillStyle = 'rgba(240,237,229,0.65)';
+wrapText(ctx, 'Будущее спорта — биомеханика и нейроинтерфейсы. Ребёнок проектирует экзоскелет, тестирует нейроуправление и соревнуется в техно-олимпиаде.', 40, 290, 600, 26);
+
+// ── Tags ──
+const tags = ['🏅 Спорт', '🧬 Биотех', '💻 IT'];
+let tx = 40;
+tags.forEach(tag => {
+  const tw = ctx.measureText(tag).width + 24;
+  roundRect(ctx, tx, 370, tw, 32, 6);
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fill();
+  ctx.font = '500 13px Inter, sans-serif';
+  ctx.fillStyle = 'rgba(240,237,229,0.6)';
+  ctx.fillText(tag, tx + 12, 391);
+  tx += tw + 8;
+});
+
+// ── Stats row ──
+const stats = [
+  { num: '10', label: 'Уровней' },
+  { num: '84', label: 'Бейджа' },
+  { num: '50', label: 'Предметов' },
+  { num: '7', label: 'Направлений' }
+];
+let sx = 40;
+stats.forEach(s => {
+  ctx.font = '800 32px Orbitron, sans-serif';
+  ctx.fillStyle = '#E8A838';
+  ctx.fillText(s.num, sx, 480);
+  ctx.font = '500 12px Inter, sans-serif';
+  ctx.fillStyle = 'rgba(240,237,229,0.4)';
+  ctx.fillText(s.label, sx, 500);
+  sx += 140;
+});
+
+// ── Bottom bar ──
+ctx.fillStyle = 'rgba(255,255,255,0.04)';
+ctx.fillRect(0, H - 60, W, 60);
+ctx.font = '700 18px Orbitron, sans-serif';
+ctx.fillStyle = '#E8A838';
+ctx.textAlign = 'left';
+ctx.fillText('КАНИКУЛЫ С ONE!', 40, H - 24);
+ctx.font = '500 14px Inter, sans-serif';
+ctx.fillStyle = 'rgba(240,237,229,0.4)';
+ctx.textAlign = 'right';
+ctx.fillText('Phygital-платформа для детских каникул', W - 40, H - 24);
+
+// ── Right side: game element icons ──
+// XP badge
+drawIconBlock(ctx, 780, 50, '⚔️', 'XP × 2', '#7CB342');
+drawIconBlock(ctx, 920, 50, '🏆', 'БОСС', '#E8A838');
+drawIconBlock(ctx, 1060, 50, '🎲', 'ТЗК', '#64B5F6');
+
+// Level bar
+ctx.font = '600 13px Inter, sans-serif';
+ctx.fillStyle = 'rgba(240,237,229,0.4)';
+ctx.textAlign = 'left';
+ctx.fillText('УРОВЕНЬ', 780, 140);
+roundRect(ctx, 780, 150, 380, 12, 6);
+ctx.fillStyle = 'rgba(255,255,255,0.06)';
+ctx.fill();
+roundRect(ctx, 780, 150, 260, 12, 6);
+ctx.fillStyle = '#7CB342';
+ctx.fill();
+ctx.font = '700 11px Inter, sans-serif';
+ctx.fillStyle = '#fff';
+ctx.fillText('260 / 400 XP', 790, 160);
+
+// Streak flame
+ctx.font = '48px serif';
+ctx.textAlign = 'center';
+ctx.fillText('🔥', 830, 260);
+ctx.font = '800 28px Orbitron, sans-serif';
+ctx.fillStyle = '#E8A838';
+ctx.fillText('5', 830, 295);
+ctx.font = '500 12px Inter, sans-serif';
+ctx.fillStyle = 'rgba(240,237,229,0.4)';
+ctx.fillText('дней подряд', 830, 315);
+
+// Coins
+ctx.font = '48px serif';
+ctx.textAlign = 'center';
+ctx.fillText('🪙', 960, 260);
+ctx.font = '800 28px Orbitron, sans-serif';
+ctx.fillStyle = '#E8A838';
+ctx.fillText('1,250', 960, 295);
+ctx.font = '500 12px Inter, sans-serif';
+ctx.fillStyle = 'rgba(240,237,229,0.4)';
+ctx.fillText('монет', 960, 315);
+
+// Squad
+ctx.font = '48px serif';
+ctx.textAlign = 'center';
+ctx.fillText('🛡️', 1090, 260);
+ctx.font = '700 16px Inter, sans-serif';
+ctx.fillStyle = '#64B5F6';
+ctx.fillText('ФЛАДЖИНГ', 1090, 295);
+ctx.font = '500 12px Inter, sans-serif';
+ctx.fillStyle = 'rgba(240,237,229,0.4)';
+ctx.fillText('отряд · 4/5', 1090, 315);
+
+// Avatar circle
+ctx.beginPath();
+ctx.arc(1000, 440, 50, 0, Math.PI * 2);
+ctx.fillStyle = 'rgba(100,181,246,0.15)';
+ctx.fill();
+ctx.strokeStyle = 'rgba(100,181,246,0.4)';
+ctx.lineWidth = 2;
+ctx.stroke();
+ctx.font = '48px serif';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('🧑‍🚀', 1000, 440);
+ctx.textBaseline = 'alphabetic';
+ctx.font = '700 14px Inter, sans-serif';
+ctx.fillStyle = '#F0EDE5';
+ctx.fillText('Алексей, 10 лет', 1000, 510);
+ctx.font = '500 12px Inter, sans-serif';
+ctx.fillStyle = 'rgba(240,237,229,0.4)';
+ctx.fillText('Уровень 5 · Легенда', 1000, 530);
+
+// ── Helper functions ──
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawIconBlock(ctx, x, y, emoji, label, color) {
+  roundRect(ctx, x, y, 110, 50, 10);
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  ctx.fill();
+  ctx.strokeStyle = color + '33';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.font = '24px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(emoji, x + 30, y + 33);
+  ctx.font = '700 13px Inter, sans-serif';
+  ctx.fillStyle = color;
+  ctx.textAlign = 'left';
+  ctx.fillText(label, x + 52, y + 30);
+}
+
+function wrapText(ctx, text, x, y, maxW, lineH) {
+  const words = text.split(' ');
+  let line = '';
+  let ly = y;
+  for (const word of words) {
+    const test = line + word + ' ';
+    if (ctx.measureText(test).width > maxW && line) {
+      ctx.fillText(line.trim(), x, ly);
+      line = word + ' ';
+      ly += lineH;
+    } else {
+      line = test;
+    }
+  }
+  ctx.fillText(line.trim(), x, ly);
+}
+</script>
+</body>
+</html>
