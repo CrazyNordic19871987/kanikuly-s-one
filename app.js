@@ -1089,9 +1089,9 @@ function renderTalentCard(studentId) {
   setEl('pp-avatar', initials || '?');
   setText('pp-level', lv.level);
   setText('pp-meta', student.age + ' лет · ' + student.grade + ' класс · отряд ' + student.squad);
-  setText('pp-xp-text', xp + ' / ' + lv.xpForNext + ' XP');
+  setText('pp-xp-text', xp + ' / ' + lv.nextXP + ' XP');
   setText('pp-shift-tag', shiftName);
-  const pct = lv.xpForNext > 0 ? Math.min(100, Math.round((xp / lv.xpForNext) * 100)) : 0;
+  const pct = lv.nextXP > 0 ? Math.min(100, Math.round((xp / lv.nextXP) * 100)) : 0;
   const xpFill = document.getElementById('pp-xp-fill');
   if (xpFill) xpFill.style.width = pct + '%';
   const lvlBadge = document.getElementById('pp-level');
