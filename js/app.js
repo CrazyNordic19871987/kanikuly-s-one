@@ -1810,7 +1810,8 @@ function showToast(msg, type = 'success') {
 }
 
 function getShiftSvg(id) {
-  return `<img src="img/mission${id}-banner.JPG" alt="Миссия ${id}" loading="lazy" style="width:100%;height:100%;object-fit:cover">`;
+  const pos = id === 2 ? 'object-position:center 25%' : '';
+  return `<img src="img/mission${id}-banner.JPG" alt="Миссия ${id}" loading="lazy" style="width:100%;height:100%;object-fit:cover;${pos}">`;
 }
 
 function renderShiftsPage() {
