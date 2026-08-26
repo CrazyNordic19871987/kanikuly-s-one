@@ -2342,7 +2342,7 @@ function renderShiftsPage() {
     return;
   }
   grid.innerHTML = state.shifts.map(s => {
-    const dateStr = (typeof SHIFT_DATES !== 'undefined' && SHIFT_DATES[s.id]) ? SHIFT_DATES[s.id] : '';
+    const dateStr = (window.SHIFT_DATES && window.SHIFT_DATES[s.id]) ? window.SHIFT_DATES[s.id] : (window.SHIFT_DATES && window.SHIFT_DATES[parseInt(s.id)]) ? window.SHIFT_DATES[parseInt(s.id)] : '';
     return `
     <div class="shift-card card-enter" onclick="openShiftDetail(${s.id})" style="cursor:pointer">
       <div class="shift-card-header">
@@ -2560,7 +2560,7 @@ function openShiftDetail(shiftId) {
   history.pushState({ page: 'shift-detail', shiftId }, '', '#shift-detail');
   if (typeof syncBottomBar === 'function') syncBottomBar('shifts');
 
-  let detailDate = (typeof SHIFT_DATES !== 'undefined' && SHIFT_DATES[s.id]) ? SHIFT_DATES[s.id] : '';
+  let detailDate = (window.SHIFT_DATES && window.SHIFT_DATES[s.id]) ? window.SHIFT_DATES[s.id] : (window.SHIFT_DATES && window.SHIFT_DATES[parseInt(s.id)]) ? window.SHIFT_DATES[parseInt(s.id)] : '';
   let html = `<div class="page-wrap shift-detail">
     <button class="shift-detail-back" onclick="navigateTo('shifts')">← Назад к миссиям</button>
     <div class="shift-detail-banner">
