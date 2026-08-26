@@ -2341,7 +2341,9 @@ function renderShiftsPage() {
     grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🏕️</div><p>Нет данных о миссиях</p></div>';
     return;
   }
-  grid.innerHTML = state.shifts.map(s => `
+  grid.innerHTML = state.shifts.map(s => {
+    const dateStr = (typeof SHIFT_DATES !== 'undefined' && SHIFT_DATES[s.id]) ? SHIFT_DATES[s.id] : '';
+    return `
     <div class="shift-card card-enter" onclick="openShiftDetail(${s.id})" style="cursor:pointer">
       <div class="shift-card-header">
         <div class="shift-card-img">
@@ -2350,6 +2352,7 @@ function renderShiftsPage() {
             <div class="shift-card-num">Миссия ${s.id}</div>
             <div class="shift-card-title">${s.title}</div>
             <div class="shift-card-subtitle">${s.subtitle}</div>
+            ${dateStr ? '<div class="shift-card-date">📅 ' + dateStr + '</div>' : ''}
           </div>
         </div>
       </div>
@@ -2375,7 +2378,8 @@ function renderShiftsPage() {
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 // =============================================
@@ -2556,6 +2560,7 @@ function openShiftDetail(shiftId) {
   history.pushState({ page: 'shift-detail', shiftId }, '', '#shift-detail');
   if (typeof syncBottomBar === 'function') syncBottomBar('shifts');
 
+  let detailDate = (typeof SHIFT_DATES !== 'undefined' && SHIFT_DATES[s.id]) ? SHIFT_DATES[s.id] : '';
   let html = `<div class="page-wrap shift-detail">
     <button class="shift-detail-back" onclick="navigateTo('shifts')">← Назад к миссиям</button>
     <div class="shift-detail-banner">
@@ -2564,6 +2569,7 @@ function openShiftDetail(shiftId) {
         <div class="shift-detail-num">Миссия ${s.id}</div>
         <div class="shift-detail-title">${s.title}</div>
         <div class="shift-detail-subtitle">${s.subtitle}</div>
+        ${detailDate ? '<div class="shift-detail-date">📅 ' + detailDate + '</div>' : ''}
       </div>
     </div>
     <div class="shift-detail-header">

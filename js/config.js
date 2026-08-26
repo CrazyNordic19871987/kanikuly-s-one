@@ -54,6 +54,20 @@ const DEFAULT_DISC_CONFIG = {
 
 const DEFAULT_SHIFTS = [];
 
+// ── Shift Dates ──────────────────────────────────────────────
+const SHIFT_DATES = {
+  1: '05.10 – 09.10.2026',
+  2: '16.11 – 20.11.2026',
+  3: '22.02 – 26.02.2027',
+  4: '29.03 – 02.04.2027',
+  5: '20.06 – 29.06.2027',
+  6: '30.06 – 09.07.2027',
+  7: '09.07 – 19.07.2027',
+  8: '20.07 – 29.07.2027',
+  9: '30.07 – 08.08.2027',
+  10: '09.08 – 18.08.2027'
+};
+
 // ── CD8: Streak System ──────────────────────────────────────
 const STREAK_BONUS = [0, 0, 10, 15, 25, 40, 60, 80, 110, 150, 200]; // bonus XP per streak day (index = day)
 const STREAK_MILESTONES = [
@@ -150,3 +164,4 @@ window.LEGENDARY_RELICS = LEGENDARY_RELICS;
 window.AVATAR_COLORS = AVATAR_COLORS;
 window.AVATAR_ICONS = AVATAR_ICONS;
 window.DISC_MISSION_BOOSTS = DISC_MISSION_BOOSTS;
+window.SHIFT_DATES = SHIFT_DATES;
