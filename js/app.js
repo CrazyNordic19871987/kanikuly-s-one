@@ -57,6 +57,23 @@ function esc(s) {
   return d.innerHTML;
 }
 
+// ── Image helpers (drop-in ready) ──────────────────────────
+function badgeImg(badgeId, emoji, size) {
+  size = size || 48;
+  const src = 'img/badges/' + badgeId + '.png';
+  return '<img src="' + src + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:12px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="badge-emoji-fallback" style="display:none;font-size:' + (size * 0.6) + 'px">' + emoji + '</span>';
+}
+function itemImg(itemId, emoji, size) {
+  size = size || 40;
+  const src = 'img/items/' + itemId + '.png';
+  return '<img src="' + src + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:10px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="item-emoji-fallback" style="display:none;font-size:' + (size * 0.6) + 'px">' + emoji + '</span>';
+}
+function avatarImg(studentId, fallbackInitials, size) {
+  size = size || 80;
+  const src = 'img/avatars/' + studentId + '.jpg';
+  return '<img src="' + src + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:50%;object-fit:cover;border:3px solid var(--orange)" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="avatar-fallback" style="display:none;width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--glass-b);border:3px solid var(--orange);align-items:center;justify-content:center;font-size:' + (size * 0.4) + 'px;font-weight:700">' + fallbackInitials + '</span>';
+}
+
 // -- XP + Level system ---------------------------
 const LEVEL_NAMES = ['Новичок','Стажёр','Ученик','Практикант','Специалист','Эксперт','Мастер','Профи','Гуру','Легенда'];
 
@@ -1217,7 +1234,7 @@ async function checkAndAwardBadges(studentId, day, track, obs) {
 function showBadgeNotification(def) {
   const el = document.createElement('div');
   el.className = 'badge-notification rarity-' + def.rarity;
-  el.innerHTML = `<div class="bn-icon">${def.icon}</div>
+  el.innerHTML = `<div class="bn-icon">${badgeImg(def.id, def.icon, 56)}</div>
     <div class="bn-text"><strong>Новый значок!</strong><span>${def.name}</span></div>`;
   document.body.appendChild(el);
   setTimeout(() => el.classList.add('show'), 50);
@@ -1291,7 +1308,7 @@ function renderAchievements(studentId) {
         return `
           <div class="badge-card ${isEarned ? 'earned' : 'locked'} rarity-${def.rarity}">
             <div class="badge-glow"></div>
-            <div class="badge-emoji">${isEarned ? def.icon : '🔒'}</div>
+            <div class="badge-icon-wrap">${isEarned ? badgeImg(def.id, def.icon, 56) : '<div class="badge-emoji" style="font-size:2rem">🔒</div>'}</div>
             <div class="badge-name">${def.name}</div>
             <div class="badge-desc">${def.desc}</div>
             <div class="badge-rarity">${rarityLabel(def.rarity)}</div>
@@ -1427,7 +1444,7 @@ function renderTalentCard(studentId) {
 
   // Hero card
   setText('pp-name', student.first_name + ' ' + student.last_name);
-  setEl('pp-avatar', initials || '?');
+  setEl('pp-avatar', avatarImg(studentId, initials || '?', 80));
   setText('pp-level', lv.level);
   setText('pp-meta', student.age + ' лет · ' + student.grade + ' класс · отряд ' + student.squad);
   setText('pp-xp-text', xp + ' / ' + lv.nextXP + ' XP');
@@ -1465,7 +1482,7 @@ function renderTalentCard(studentId) {
         const shiftObj = def ? state.shifts.find(s => s.id == def.shift_id) : null;
         const shiftLabel = shiftObj ? shiftObj.name : '';
         return `<div class="talent-badge-row rarity-${b.rarity}">
-          <span class="tbr-icon">${b.icon}</span>
+          <span class="tbr-icon">${badgeImg(b.badge_id, b.icon, 36)}</span>
           <div><strong>${b.name}</strong><p>${b.desc || ''}</p>${shiftLabel ? '<p style="font-size:0.6rem;color:var(--orange);margin:2px 0 0">' + shiftLabel + '</p>' : ''}</div>
           <span class="tbr-rarity">${rarityLabel(b.rarity)}</span>
         </div>`;
@@ -1480,7 +1497,7 @@ function renderTalentCard(studentId) {
   if (invEl) {
     let invHtml = `<div class="inv-header"><span>${inv.items.length} / ${inv.maxSlots} слотов</span></div><div class="inv-grid">`;
     inv.items.forEach(item => {
-      invHtml += `<div class="inv-item rarity-${item.rarity}" title="${item.name} — ${item.bonus}"><span class="inv-icon">${item.icon}</span><span class="inv-name">${item.name}</span></div>`;
+      invHtml += `<div class="inv-item rarity-${item.rarity}" title="${item.name} — ${item.bonus}"><span class="inv-icon">${itemImg(item.id, item.icon, 48)}</span><span class="inv-name">${item.name}</span></div>`;
     });
     for (let i = inv.items.length; i < inv.maxSlots; i++) {
       invHtml += `<div class="inv-item empty"><span class="inv-icon">+</span></div>`;
@@ -2960,7 +2977,7 @@ function fillReport(student) {
 
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
 
-  set('rp-avatar', (student.first_name?.[0] || '') + (student.last_name?.[0] || ''));
+  set('rp-avatar', avatarImg(student.id, (student.first_name?.[0] || '') + (student.last_name?.[0] || ''), 64));
   set('rp-name', student.first_name + ' ' + student.last_name);
   set('rp-age', student.age != null ? student.age + ' лет' : '—');
   set('rp-grade', student.grade != null ? student.grade + ' класс' : '—');
@@ -3081,7 +3098,7 @@ function fillReport(student) {
     badgesEl.innerHTML = state.badgeDefs.map(def => {
       const is = earnedIds.has(def.id);
       return `<div class="rp-badge ${is ? 'earned' : 'locked'} rarity-${def.rarity}">
-        <span class="rp-badge-ico">${is ? def.icon : '🔒'}</span>
+        <span class="rp-badge-ico">${is ? badgeImg(def.id, def.icon, 32) : '🔒'}</span>
         <span class="rp-badge-name">${def.name}</span>
         <span class="rp-badge-rarity">${is ? rarityLabel(def.rarity) : 'закрыт'}</span>
       </div>`;
