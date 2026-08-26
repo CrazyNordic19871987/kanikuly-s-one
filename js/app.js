@@ -23,7 +23,23 @@ let state = {
   filterSdSquad: '',
   currentShiftId: null,
   searchQuery: '',
-  radarChart: null
+  radarChart: null,
+  // CD8: Streak
+  streaks: {},         // { studentId: { count, lastDate } }
+  // CD4/CD6: Economy
+  coins: {},           // { studentId: number }
+  // CD3/CD4: Avatar
+  avatars: {},         // { studentId: { color, icon, title, frame } }
+  // CD1: Legacy
+  relics: {},          // { studentId: [relicId, ...] }
+  // CD2: Boss
+  bossDefeated: {},    // { studentId: { week1: true, ... } }
+  // CD5: Social
+  recentActivity: [],  // last N completions across all students
+  // CD7: Mystery
+  mysteryCount: {},    // { studentId: number } completions since last box
+  // CD6: Limited badges
+  limitedEarned: {}    // { studentId: [badgeId, ...] }
 };
 
 let tempRatings = { independence: 0, quality: 0 };
@@ -61,6 +77,8 @@ function calcStudentXP(studentId) {
     else if (b.rarity === 'rare') xp += 40;
     else xp += 20;
   });
+  xp += getStreakBonusXP(studentId);
+  xp += getRelicBonus(studentId);
   return xp;
 }
 
@@ -77,6 +95,234 @@ function getLevel(xp) {
   const nextLevelXP = level >= 10 ? 0 : xpToNextLevel(level);
   const progress = level >= 10 ? 100 : Math.round((currentLevelXP / nextLevelXP) * 100);
   return { level, name: LEVEL_NAMES[level - 1], xp: currentLevelXP, nextXP: nextLevelXP, progress };
+}
+
+// ── CD8: Streak System ──────────────────────────────────────
+function getStreak(studentId) {
+  return state.streaks[studentId] || { count: 0, lastDate: '' };
+}
+function checkAndUpdateStreak(studentId) {
+  const today = new Date().toISOString().slice(0, 10);
+  const streak = getStreak(studentId);
+  if (streak.lastDate === today) return streak.count; // already counted today
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  let newCount = streak.lastDate === yesterday ? streak.count + 1 : 1;
+  state.streaks[studentId] = { count: newCount, lastDate: today };
+  const bonus = STREAK_BONUS[Math.min(newCount, STREAK_BONUS.length - 1)] || 0;
+  const milestone = STREAK_MILESTONES.find(m => m.days === newCount);
+  return { count: newCount, bonus, milestone };
+}
+function getStreakBonusXP(studentId) {
+  const s = getStreak(studentId);
+  return STREAK_BONUS[Math.min(s.count, STREAK_BONUS.length - 1)] || 0;
+}
+
+// ── CD4/CD6: Economy System ──────────────────────────────────
+function getCoins(studentId) { return state.coins[studentId] || 0; }
+function addCoins(studentId, amount) {
+  state.coins[studentId] = (state.coins[studentId] || 0) + amount;
+  return state.coins[studentId];
+}
+function spendCoins(studentId, amount) {
+  const cur = getCoins(studentId);
+  if (cur < amount) return false;
+  state.coins[studentId] = cur - amount;
+  return true;
+}
+function getEconomyFromCompletions(studentId) {
+  let coins = 0;
+  state.completions.filter(c => c.student_id == studentId).forEach(c => {
+    const score = c.score || 1;
+    coins += Math.floor(score * 2);
+  });
+  return coins + (state.coins[studentId] || 0);
+}
+
+// ── CD7: Mystery Box ────────────────────────────────────────
+function getMysteryCount(studentId) { return state.mysteryCount[studentId] || 0; }
+function incrementMysteryCount(studentId) {
+  state.mysteryCount[studentId] = (state.mysteryCount[studentId] || 0) + 1;
+  if (state.mysteryCount[studentId] >= MYSTERY_BOX_INTERVAL) {
+    state.mysteryCount[studentId] = 0;
+    return rollMysteryBox();
+  }
+  return null;
+}
+function rollMysteryBox() {
+  const totalWeight = MYSTERY_BOX_POOL.reduce((s, r) => s + r.weight, 0);
+  let roll = Math.random() * totalWeight;
+  for (const reward of MYSTERY_BOX_POOL) {
+    roll -= reward.weight;
+    if (roll <= 0) return reward;
+  }
+  return MYSTERY_BOX_POOL[0];
+}
+
+// ── CD2: Boss Battles ────────────────────────────────────────
+function getCurrentBoss() {
+  const now = new Date();
+  const start = new Date(2026, 5, 1); // June 1 2026
+  const weekNum = Math.floor((now - start) / (7 * 86400000)) + 1;
+  return BOSS_BATTLES.find(b => b.week === weekNum) || BOSS_BATTLES[0];
+}
+function isBossDefeated(studentId, weekNum) {
+  return !!(state.bossDefeated[studentId] && state.bossDefeated[studentId]['week' + weekNum]);
+}
+function defeatBoss(studentId) {
+  const boss = getCurrentBoss();
+  if (!boss) return null;
+  const weekKey = 'week' + boss.week;
+  if (!state.bossDefeated[studentId]) state.bossDefeated[studentId] = {};
+  state.bossDefeated[studentId][weekKey] = true;
+  return boss.rewards;
+}
+function getBossTeamDamage(studentId) {
+  return state.completions.filter(c => c.student_id == studentId).reduce((sum, c) => sum + ((c.score || 1) * 10), 0);
+}
+
+// ── CD6: Limited-Time Badges ──────────────────────────────────
+function checkLimitedBadges(studentId) {
+  const earned = state.limitedEarned[studentId] || [];
+  const today = new Date().toISOString().slice(0, 10);
+  const todayComps = state.completions.filter(c => c.student_id == studentId && c.created_at && c.created_at.slice(0, 10) === today);
+  const student = state.students.find(s => s.id == studentId);
+  const shiftId = student ? parseInt(student.shift) : 0;
+  const newlyEarned = [];
+  for (const lb of LIMITED_BADGES) {
+    if (earned.includes(lb.id)) continue;
+    if (lb.shift_ids.length && !lb.shift_ids.includes(shiftId)) continue;
+    let met = false;
+    if (lb.condition === '3 completions in 1 day') met = todayComps.length >= 3;
+    else if (lb.condition === '5/5 in 5 in a row') {
+      const last5 = state.completions.filter(c => c.student_id == studentId).slice(-5);
+      met = last5.length === 5 && last5.every(c => (c.score || 0) >= 5);
+    }
+    else if (lb.condition === 'completion after 20:00') {
+      const h = new Date().getHours();
+      met = h >= 20 && todayComps.length > 0;
+    }
+    else if (lb.condition === 'completion before 10:00') {
+      const h = new Date().getHours();
+      met = h < 10 && todayComps.length > 0;
+    }
+    else if (lb.condition === 'all 7 directions in 1 shift') {
+      const dirs = new Set(state.completions.filter(c => c.student_id == studentId && parseInt(c.shift_id) === shiftId).map(c => (c.direction_name||'').toLowerCase()));
+      met = dirs.size >= 7;
+    }
+    if (met) {
+      newlyEarned.push(lb);
+      if (!state.limitedEarned[studentId]) state.limitedEarned[studentId] = [];
+      state.limitedEarned[studentId].push(lb.id);
+    }
+  }
+  return newlyEarned;
+}
+
+// ── CD1: Legacy Relics ────────────────────────────────────────
+function getRelics(studentId) { return state.relics[studentId] || []; }
+function awardRelic(studentId, shiftId) {
+  const relic = LEGENDARY_RELICS.find(r => r.from_shift === shiftId);
+  if (!relic) return null;
+  const current = getRelics(studentId);
+  if (current.includes(relic.id)) return null;
+  if (!state.relics[studentId]) state.relics[studentId] = [];
+  state.relics[studentId].push(relic.id);
+  return relic;
+}
+function getRelicBonus(studentId) {
+  const relics = getRelics(studentId);
+  return relics.length * 10; // +10 XP per relic
+}
+
+// ── CD3/CD4: Avatar Customization ─────────────────────────────
+function getAvatar(studentId) {
+  return state.avatars[studentId] || { color: '#E8A838', icon: '🤖', title: '', frame: '' };
+}
+function setAvatar(studentId, data) {
+  state.avatars[studentId] = { ...getAvatar(studentId), ...data };
+}
+
+// ── CD5: Social Comparison ────────────────────────────────────
+function getRecentActivity(limit = 10) {
+  const all = state.completions
+    .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
+    .slice(0, limit);
+  return all.map(c => {
+    const s = state.students.find(st => st.id == c.student_id);
+    return s ? { student: s, completion: c } : null;
+  }).filter(Boolean);
+}
+function getLeaderboard() {
+  return state.students.map(s => {
+    const xp = calcStudentXP(s.id);
+    const lv = getLevel(xp);
+    return { student: s, xp, level: lv.level, levelName: lv.name };
+  }).sort((a, b) => b.xp - a.xp);
+}
+function getFriends(studentId, limit = 5) {
+  const lb = getLeaderboard();
+  const idx = lb.findIndex(e => e.student.id == studentId);
+  if (idx === -1) return lb.slice(0, limit);
+  const start = Math.max(0, idx - 2);
+  return lb.slice(start, start + 5);
+}
+
+// ── CD1/CD3: DISC Mission Recommendations ────────────────────
+function getDiscType(studentId) {
+  const xp = calcStudentXP(studentId);
+  const comps = {};
+  state.completions.filter(c => c.student_id == studentId).forEach(c => {
+    const d = (c.direction_name || '').toLowerCase();
+    comps[d] = (comps[d] || 0) + (c.score || 1);
+  });
+  let maxDir = '', maxScore = 0;
+  for (const [k, v] of Object.entries(comps)) { if (v > maxScore) { maxScore = v; maxDir = k; } }
+  if (maxDir.includes('спорт') || maxDir.includes('it')) return 'D';
+  if (maxDir.includes('медиа') || maxDir.includes('art')) return 'I';
+  if (maxDir.includes('дипломат') || maxDir.includes('биотех')) return 'S';
+  return 'C';
+}
+function getDiscRecommendation(studentId) {
+  const disc = getDiscType(studentId);
+  return DISC_MISSION_BOOSTS[disc] || DISC_MISSION_BOOSTS.C;
+}
+
+// ── CD3: Mission Branching ────────────────────────────────────
+function getMissionBranch(studentId) {
+  const disc = getDiscType(studentId);
+  const branches = {
+    D: { a: { name:'Лидерская миссия', desc:'Веди команду к победе', icon:'👑', bonus:'initiative' },
+         b: { name:'Стратегическая миссия', desc:'Спланируй идеальную атаку', icon:'🎯', bonus:'problem_solving' }},
+    I: { a: { name:'Творческая миссия', desc:'Создай что-то уникальное', icon:'🎨', bonus:'creativity' },
+         b: { name:'Коммуникационная миссия', desc:'Убеди и вдохнови других', icon:'💬', bonus:'communication' }},
+    S: { a: { name:'Командная миссия', desc:'Поддержи и объедини команду', icon:'🤝', bonus:'cooperation' },
+         b: { name:'Миссия-исследование', desc:'Изучи и найди скрытое', icon:'🔍', bonus:'curiosity' }},
+    C: { a: { name:'Аналитическая миссия', desc:'Проанализируй данные', icon:'📊', bonus:'critical_thinking' },
+         b: { name:'Техническая миссия', desc:'Собери и запрограммируй', icon:'🔧', bonus:'learning_ability' }}
+  };
+  return branches[disc] || branches.C;
+}
+
+// ── CD5: Team Scoreboard ──────────────────────────────────────
+function getSquadScores() {
+  const squads = {};
+  state.students.forEach(s => {
+    const sq = s.squad || 'Без отряда';
+    if (!squads[sq]) squads[sq] = { name: sq, totalXP: 0, members: 0, badges: 0 };
+    squads[sq].totalXP += calcStudentXP(s.id);
+    squads[sq].members++;
+    squads[sq].badges += state.badges.filter(b => b.student_id == s.id && b.earned).length;
+  });
+  return Object.values(squads).sort((a, b) => b.totalXP - a.totalXP);
+}
+
+// ── Near-miss feedback helper ─────────────────────────────────
+function getNearMiss(studentId) {
+  const xp = calcStudentXP(studentId);
+  const lv = getLevel(xp);
+  if (lv.level >= 10) return null;
+  const needed = lv.nextXP - lv.xp;
+  return { needed, currentLevel: lv.level, nextLevel: lv.level + 1, nextLevelName: LEVEL_NAMES[lv.level] || 'Легенда' };
 }
 
 // -- Inventory system ---------------------------
@@ -488,9 +734,9 @@ function rebuildMainContent() {
         <button class="btn-print" style="margin-bottom:0" onclick="window.print()">🖨️ Печать страницы</button>
       </div>
       <div style="margin-bottom:12px"><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block">Участник</label><select class="student-selector" id="talent-student-select"><option value="">— Выбрать участника —</option></select></div>
-      <div class="pp-hero" id="pp-hero"><div class="pp-avatar-wrap"><div class="pp-avatar" id="pp-avatar">--</div><div class="pp-level-badge" id="pp-level">1</div></div><div class="pp-hero-info"><div class="pp-name" id="pp-name">--</div><div class="pp-meta" id="pp-meta">--</div><div class="pp-xp-wrap"><div class="pp-xp-header"><span>Опыт</span><span id="pp-xp-text">0 XP</span></div><div class="pp-xp-bar"><div class="pp-xp-fill" id="pp-xp-fill" style="width:0%"></div></div></div><div class="pp-shift-tag" id="pp-shift-tag">--</div></div></div>
+      <div class="pp-hero" id="pp-hero"><div class="pp-avatar-wrap"><div class="pp-avatar" id="pp-avatar">--</div><div class="pp-level-badge" id="pp-level">1</div></div><div class="pp-hero-info"><div class="pp-name" id="pp-name">--</div><div class="pp-meta" id="pp-meta">--</div><div id="pp-disc-rec"></div><div id="pp-streak"></div><div id="pp-near-miss"></div><div class="pp-xp-wrap"><div class="pp-xp-header"><span>Опыт</span><span id="pp-xp-text">0 XP</span></div><div class="pp-xp-bar"><div class="pp-xp-fill" id="pp-xp-fill" style="width:0%"></div></div></div><div class="pp-shift-tag" id="pp-shift-tag">--</div><div id="pp-coins"></div></div></div>
       <div class="pp-stats-grid" id="pp-stats"></div>
-      <div class="pp-tabs"><button class="pp-tab active" data-tab="skills" onclick="ppTab('skills')">Навыки</button><button class="pp-tab" data-tab="badges" onclick="ppTab('badges')">Значки</button><button class="pp-tab" data-tab="inventory" onclick="ppTab('inventory')">Инвентарь</button><button class="pp-tab" data-tab="shifts" onclick="ppTab('shifts')">Миссии</button><button class="pp-tab" data-tab="history" onclick="ppTab('history')">История</button><button class="pp-tab" data-tab="disc" onclick="ppTab('disc')">DISC</button><button class="pp-tab" data-tab="recommend" onclick="ppTab('recommend')">Рекомендации</button></div>
+      <div class="pp-tabs"><button class="pp-tab active" data-tab="skills" onclick="ppTab('skills')">Навыки</button><button class="pp-tab" data-tab="badges" onclick="ppTab('badges')">Значки</button><button class="pp-tab" data-tab="inventory" onclick="ppTab('inventory')">Инвентарь</button><button class="pp-tab" data-tab="shifts" onclick="ppTab('shifts')">Миссии</button><button class="pp-tab" data-tab="history" onclick="ppTab('history')">История</button><button class="pp-tab" data-tab="disc" onclick="ppTab('disc')">DISC</button><button class="pp-tab" data-tab="social" onclick="ppTab('social')">Социальное</button><button class="pp-tab" data-tab="legacy" onclick="ppTab('legacy')">Реликвии</button><button class="pp-tab" data-tab="boss" onclick="ppTab('boss')">Босс</button><button class="pp-tab" data-tab="shop" onclick="ppTab('shop')">Магазин</button><button class="pp-tab" data-tab="recommend" onclick="ppTab('recommend')">Рекомендации</button></div>
       <div class="pp-panel active" data-panel="skills"><div class="gc"><h3>🕸️ Радар компетенций</h3><div class="radar-wrap"><canvas id="radar-canvas" width="400" height="400"></canvas></div><div id="ai-insights-section" style="margin-top:12px"></div></div><div class="gc"><h3>📈 Шкала компетенций</h3><div class="comp-bars" id="comp-bars"></div></div><div class="gc"><h3>🏆 Ключевое направление</h3><div id="career-content"></div></div></div>
       <div class="pp-panel" data-panel="badges"><div class="gc"><h3>⭐ Полученные значки <span id="pp-badge-count" style="color:var(--muted);font-weight:400"></span></h3><div id="talent-badges-list"></div></div></div>
       <div class="pp-panel" data-panel="inventory"><div class="gc"><h3>🎒 Инвентарь</h3><div id="talent-inventory"></div></div></div>
@@ -498,6 +744,10 @@ function rebuildMainContent() {
       <div class="pp-panel" data-panel="history"><div class="gc"><h3>📜 История наблюдений</h3><div class="obs-list" id="talent-obs-list"></div></div></div>
       <div class="pp-panel" data-panel="disc"><div class="gc"><h3>🧩 DISC-профиль</h3><div class="disc-bars" id="disc-bars"></div><div class="disc-combo" id="disc-combo"></div></div></div>
       <div class="pp-panel" data-panel="recommend"><div class="gc"><h3>🔮 Рекомендации</h3><div id="pp-recommendations"></div></div></div>
+      <div class="pp-panel" data-panel="social"><div class="gc"><h3>👥 Социальное</h3><div id="pp-social"></div></div></div>
+      <div class="pp-panel" data-panel="legacy"><div class="gc"><h3>🏛️ Реликвии прошлых смен</h3><div id="pp-legacy"></div></div></div>
+      <div class="pp-panel" data-panel="boss"><div class="gc"><h3>⚔️ Босс-битва</h3><div id="pp-boss"></div></div></div>
+      <div class="pp-panel" data-panel="shop"><div class="gc"><h3>🛒 Магазин</h3><div id="pp-shop"></div></div></div>
     </div>
   </div>
   <div class="page" id="page-dashboard">
@@ -913,6 +1163,7 @@ async function saveObservation() {
   }
 
   await checkAndAwardBadges(state.currentStudentId, state.currentDay, state.currentTrack, data);
+  triggerStreakAndMystery(state.currentStudentId);
   renderDayTabs();
   renderCurrentTask();
   showToast('✓ Задание сохранено!');
@@ -1072,6 +1323,91 @@ function onTalentStudentChange() {
 function ppTab(tab) {
   document.querySelectorAll('.pp-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.pp-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
+}
+
+// ── CD4/CD6: Shop buy ────────────────────────────────────────
+function buyShopItem(itemId) {
+  const item = ECONOMY_SHOP.find(i => i.id === itemId);
+  if (!item || !state.currentStudentId) return;
+  if (!spendCoins(state.currentStudentId, item.cost)) {
+    showToast('🪙 Недостаточно коинов!', 'warn');
+    return;
+  }
+  if (item.type === 'consumable') {
+    if (itemId === 'shop_xp_boost') {
+      addCoins(state.currentStudentId, -50); // double-dip effect via negative
+      showToast('⚡ XP-бустер активирован! +50 XP к следующему заданию', 'success');
+    } else if (itemId === 'shop_badge_hint') {
+      const unearned = state.badgeDefs.filter(b => !state.badges.find(eb => eb.student_id == state.currentStudentId && eb.badge_id === b.id && eb.earned));
+      if (unearned.length) {
+        const hint = unearned[Math.floor(Math.random() * unearned.length)];
+        showToast('💡 Подсказка: "' + hint.name + '" — ' + hint.desc, 'info');
+      } else {
+        showToast('🏆 Все значки уже получены!', 'success');
+        addCoins(state.currentStudentId, item.cost); // refund
+      }
+    } else if (itemId === 'shop_rare_chest') {
+      const inv = SHIFT_INVENTORY[state.students.find(s => s.id == state.currentStudentId)?.shift];
+      if (inv) {
+        const rareItem = inv.items.find(i => i.rarity === 'rare') || inv.items[0];
+        showToast('📦 Получен: ' + rareItem.icon + ' ' + rareItem.name, 'success');
+      }
+    } else if (itemId === 'shop_legendary_key') {
+      showToast('🗝️ Ключ Легенды получен! Используйте во время босс-битвы.', 'success');
+    }
+  } else if (item.type === 'cosmetic') {
+    if (itemId === 'shop_name_color') {
+      setAvatar(state.currentStudentId, { color: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)] });
+      showToast('🎨 Цвет имени изменён!', 'success');
+    } else if (itemId === 'shop_profile_frame') {
+      setAvatar(state.currentStudentId, { frame: '✨' });
+      showToast('🖼️ Рамка профиля установлена!', 'success');
+    } else if (itemId === 'shop_title') {
+      const titles = ['Исследователь','Чемпион','Стратег','Художник','Лидер','Аналитик'];
+      const t = titles[Math.floor(Math.random() * titles.length)];
+      setAvatar(state.currentStudentId, { title: t });
+      showToast('👑 Титул: ' + t, 'success');
+    }
+  } else if (item.type === 'permanent') {
+    showToast('🎒 Дополнительный слот инвентаря разблокирован!', 'success');
+  }
+  renderTalentCard(state.currentStudentId);
+}
+
+// ── CD2: Boss reward claim ───────────────────────────────────
+function claimBossReward() {
+  if (!state.currentStudentId) return;
+  const rewards = defeatBoss(state.currentStudentId);
+  if (!rewards) return;
+  addCoins(state.currentStudentId, rewards.coins);
+  showToast('🏆 Босс побеждён! +' + rewards.xp + ' XP, +' + rewards.coins + ' 🪙', 'success');
+  renderTalentCard(state.currentStudentId);
+}
+
+// ── CD3: Mission branch select ────────────────────────────────
+function selectBranch(path) {
+  showToast('🔀 Выбран путь: ' + (path === 'a' ? 'A' : 'B') + '! Следующее задание адаптировано.', 'info');
+}
+
+// ── Streak update on observation save ─────────────────────────
+function triggerStreakAndMystery(studentId) {
+  const streakResult = checkAndUpdateStreak(studentId);
+  if (streakResult.bonus > 0) {
+    showToast('🔥 Серия ' + streakResult.count + ' дн.! +' + streakResult.bonus + ' XP бонус', 'success');
+  }
+  if (streakResult.milestone) {
+    showToast(streakResult.milestone.label + ' ' + streakResult.milestone.desc, 'success');
+  }
+  const mysteryReward = incrementMysteryCount(studentId);
+  if (mysteryReward) {
+    showToast(mysteryReward.icon + ' Тайный сундук: ' + mysteryReward.label, 'success');
+    if (mysteryReward.type === 'xp') addCoins(studentId, 0); // XP handled elsewhere
+    if (mysteryReward.type === 'coin') addCoins(studentId, mysteryReward.value);
+  }
+  const limited = checkLimitedBadges(studentId);
+  limited.forEach(lb => {
+    showToast('🏅 Ограниченный значок: ' + lb.icon + ' ' + lb.name, 'success');
+  });
 }
 
 function renderTalentCard(studentId) {
@@ -1324,6 +1660,185 @@ function renderTalentCard(studentId) {
 
     if (!html) html = '<p class="empty-note">Недостаточно данных для анализа. Начните выставлять оценки!</p>';
     ppRecEl.innerHTML = html;
+  }
+
+  // ── CD8: Streak display in hero ────────────────────────────
+  const streak = getStreak(studentId);
+  const streakEl = document.getElementById('pp-streak');
+  if (streakEl) {
+    if (streak.count > 0) {
+      const bonus = STREAK_BONUS[Math.min(streak.count, STREAK_BONUS.length - 1)] || 0;
+      const milestone = STREAK_MILESTONES.find(m => m.days === streak.count);
+      streakEl.innerHTML = `<div class="streak-display"><span class="streak-fire">${streak.count >= 7 ? '🔥' : '⚡'}</span><span class="streak-count">${streak.count} дн.</span><span class="streak-bonus">+${bonus} XP</span>${milestone ? '<span class="streak-milestone">' + milestone.label + '</span>' : ''}</div>`;
+      streakEl.style.display = '';
+    } else {
+      streakEl.innerHTML = '<div class="streak-display muted"><span>🔥</span><span>Начни серию!</span></div>';
+      streakEl.style.display = '';
+    }
+  }
+
+  // ── CD2: Near-miss feedback ───────────────────────────────
+  const nearMiss = getNearMiss(studentId);
+  const nmEl = document.getElementById('pp-near-miss');
+  if (nmEl) {
+    if (nearMiss) {
+      nmEl.innerHTML = `<div class="near-miss">🎯 Ещё <strong>${nearMiss.needed} XP</strong> до уровня <strong>${nearMiss.nextLevelName}</strong>!</div>`;
+      nmEl.style.display = '';
+    } else {
+      nmEl.style.display = 'none';
+    }
+  }
+
+  // ── CD4/CD6: Coins display ────────────────────────────────
+  const totalCoins = getEconomyFromCompletions(studentId);
+  const coinsEl = document.getElementById('pp-coins');
+  if (coinsEl) {
+    coinsEl.innerHTML = `<div class="coins-display"><span class="coins-icon">🪙</span><span class="coins-amount">${totalCoins} НЕО</span></div>`;
+  }
+
+  // ── CD5: Social panel ─────────────────────────────────────
+  const socialEl = document.getElementById('pp-social');
+  if (socialEl) {
+    let shtml = '';
+    // Friends comparison
+    const friends = getFriends(studentId, 5);
+    shtml += '<div class="gc"><h3>👥 Друзья по уровню</h3>';
+    friends.forEach((f, i) => {
+      const isMe = f.student.id == studentId;
+      const fl = getLevel(f.xp);
+      shtml += `<div class="friend-row ${isMe ? 'is-me' : ''}">
+        <span class="friend-rank">#${i + 1}</span>
+        <span class="friend-name">${isMe ? '⭐ ' : ''}${f.student.first_name} ${f.student.last_name}</span>
+        <span class="friend-level">Ур.${fl.level}</span>
+        <span class="friend-xp">${f.xp} XP</span>
+      </div>`;
+    });
+    shtml += '</div>';
+    // Squad scoreboard
+    const squads = getSquadScores();
+    if (squads.length > 1) {
+      shtml += '<div class="gc"><h3>⚔️ Отряды</h3>';
+      squads.forEach((sq, i) => {
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+        shtml += `<div class="squad-row">
+          <span class="squad-rank">${medal} #${i + 1}</span>
+          <span class="squad-name">${esc(sq.name)}</span>
+          <span class="squad-xp">${sq.totalXP} XP · ${sq.members} чел. · ${sq.badges} 🏅</span>
+        </div>`;
+      });
+      shtml += '</div>';
+    }
+    // Recent activity
+    const recent = getRecentActivity(5);
+    if (recent.length) {
+      shtml += '<div class="gc"><h3>📡 Последняя активность</h3>';
+      recent.forEach(r => {
+        shtml += `<div class="activity-row">
+          <span class="act-name">${r.student.first_name}</span>
+          <span class="act-desc">${esc(r.completion.direction_name || 'задание')}</span>
+          <span class="act-score">★${r.completion.score || 0}</span>
+        </div>`;
+      });
+      shtml += '</div>';
+    }
+    socialEl.innerHTML = shtml || '<p class="empty-note">Пока нет данных</p>';
+  }
+
+  // ── CD1: Legacy relics panel ──────────────────────────────
+  const legacyEl = document.getElementById('pp-legacy');
+  if (legacyEl) {
+    const relics = getRelics(studentId);
+    let lhtml = '';
+    if (relics.length) {
+      lhtml += '<div class="relics-grid">';
+      relics.forEach(rid => {
+        const relic = LEGENDARY_RELICS.find(r => r.id === rid);
+        if (relic) {
+          lhtml += `<div class="relic-card"><span class="relic-icon">${relic.icon}</span><strong>${relic.name}</strong><p>${relic.desc}</p></div>`;
+        }
+      });
+      lhtml += '</div>';
+    } else {
+      lhtml = '<p class="empty-note">Реликвии получаются за прохождение смен. Каждая смена — одна реликвия.</p>';
+    }
+    lhtml += '<div class="gc" style="margin-top:12px"><h3>📋 Доступные реликвии</h3><div class="relics-grid">';
+    LEGENDARY_RELICS.forEach(r => {
+      const has = relics.includes(r.id);
+      lhtml += `<div class="relic-card ${has ? 'owned' : 'locked'}"><span class="relic-icon">${has ? r.icon : '🔒'}</span><strong>${has ? r.name : '???'}</strong><p>${has ? r.desc : 'Смена ' + r.from_shift}</p></div>`;
+    });
+    lhtml += '</div></div>';
+    legacyEl.innerHTML = lhtml;
+  }
+
+  // ── CD2: Boss battle panel ────────────────────────────────
+  const bossEl = document.getElementById('pp-boss');
+  if (bossEl) {
+    const boss = getCurrentBoss();
+    const defeated = isBossDefeated(studentId, boss.week);
+    const damage = getBossTeamDamage(studentId);
+    const hpPct = Math.min(100, Math.round((damage / boss.hp) * 100));
+    let bhtml = `<div class="boss-card">
+      <div class="boss-header"><span class="boss-icon">${boss.icon}</span><div><strong>${boss.name}</strong><p>Неделя ${boss.week} · HP: ${boss.hp}</p></div></div>
+      <div class="boss-hp-bar"><div class="boss-hp-fill" style="width:${defeated ? 100 : hpPct}%"></div></div>
+      <div class="boss-info">
+        <span>Твой урон: ${damage}</span>
+        <span>${defeated ? '✅ Победа!' : hpPct + '%'}</span>
+      </div>`;
+    if (!defeated && damage >= boss.hp) {
+      bhtml += `<button class="btn-primary" onclick="claimBossReward()">🏆 Получить награду!</button>`;
+    } else if (defeated) {
+      bhtml += `<div class="boss-rewards">Награды: ${boss.rewards.xp} XP · ${boss.rewards.coins} 🪙 · Значок</div>`;
+    } else {
+      bhtml += `<p class="empty-note">Выполняй задания, чтобы наносить урон боссу!</p>`;
+    }
+    bhtml += '</div>';
+    bossEl.innerHTML = bhtml;
+  }
+
+  // ── CD4/CD6: Shop panel ───────────────────────────────────
+  const shopEl = document.getElementById('pp-shop');
+  if (shopEl) {
+    const coins = getCoins(studentId);
+    let shhtml = `<div class="shop-balance"><span>🪙</span><strong>${coins} НЕО-коинов</strong></div><div class="shop-grid">`;
+    ECONOMY_SHOP.forEach(item => {
+      const canBuy = coins >= item.cost;
+      shhtml += `<div class="shop-item ${canBuy ? '' : 'locked'}" onclick="${canBuy ? "buyShopItem('" + item.id + "')" : ''}">
+        <span class="shop-icon">${item.icon}</span>
+        <strong>${item.name}</strong>
+        <p>${item.desc}</p>
+        <span class="shop-cost ${canBuy ? '' : 'too-expensive'}">🪙 ${item.cost}</span>
+      </div>`;
+    });
+    shhtml += '</div>';
+    shopEl.innerHTML = shhtml;
+  }
+
+  // ── CD3: Mission branch in shifts tab ──────────────────────
+  const branch = getMissionBranch(studentId);
+  const branchEl = document.getElementById('pp-mission-branch');
+  if (branchEl) {
+    branchEl.innerHTML = `<div class="mission-branch">
+      <h4>🔀 Выбери свой путь</h4>
+      <div class="branch-options">
+        <div class="branch-card" onclick="selectBranch('a')">
+          <span class="branch-icon">${branch.a.icon}</span>
+          <strong>${branch.a.name}</strong>
+          <p>${branch.a.desc}</p>
+        </div>
+        <div class="branch-card" onclick="selectBranch('b')">
+          <span class="branch-icon">${branch.b.icon}</span>
+          <strong>${branch.b.name}</strong>
+          <p>${branch.b.desc}</p>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── CD1/CD3: DISC recommendation in hero ──────────────────
+  const discRec = getDiscRecommendation(studentId);
+  const discRecEl = document.getElementById('pp-disc-rec');
+  if (discRecEl) {
+    discRecEl.innerHTML = `<div class="disc-rec"><span>${discRec.icon}</span><span>${discRec.label}: ${discRec.boost}</span></div>`;
   }
 
   // Reset to skills tab
