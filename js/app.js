@@ -1605,7 +1605,7 @@ function renderDISC(obs, studentId) {
   const discBarsEl = document.getElementById('disc-bars');
   if (discBarsEl) discBarsEl.innerHTML = ['D','I','S','C'].map(t => `
     <div class="disc-row">
-      <div class="disc-type-label" style="color:${labels[t].color}">${t}</div>
+      <div class="disc-type-label" style="color:${labels[t].color}">${t} <span style="font-size:0.75em;opacity:0.85">${labels[t].label}</span></div>
       <div class="disc-bar-wrap">
         <div class="disc-bar-inner" style="width:${disc[t]}%;background:linear-gradient(90deg,${labels[t].color}90,${labels[t].color})">
           <span class="disc-bar-pct">${disc[t]}%</span>
