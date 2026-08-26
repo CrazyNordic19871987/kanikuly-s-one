@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Каникулы с ONE! — Phygital-платформа для детских каникул</title>
+<meta name="description" content="10 тематических вселенных · 7 направлений · Геймификация · Английская среда · Demo Day">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#1B2838;--bg2:#0f1923;--bg3:#243447;
+  --orange:#E8A838;--green:#7CB342;--sky:#64B5F6;--cream:#F0EDE5;
+  --glass:rgba(27,40,56,0.85);--glass2:rgba(255,255,255,0.04);
+  --r:14px;--r2:20px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);overflow-x:hidden;line-height:1.6}
+a{text-decoration:none;color:inherit}
+
+/* ── NAV ────────────────────────────────────── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(15,25,35,0.8);border-bottom:1px solid rgba(255,255,255,0.06);transition:all .3s}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:'Orbitron',monospace;font-weight:800;font-size:1.1rem;color:var(--orange)}
+.nav-logo svg{width:36px;height:36px}
+.nav-links{display:flex;gap:24px;font-size:0.85rem;font-weight:500}
+.nav-links a{color:rgba(240,237,229,0.6);transition:color .2s}
+.nav-links a:hover{color:var(--orange)}
+.nav-cta{background:var(--orange);color:#000;padding:8px 20px;border-radius:8px;font-weight:700;font-size:0.85rem;transition:all .2s}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(232,168,56,0.4)}
+@media(max-width:768px){.nav{padding:12px 16px}.nav-links{display:none}}
+
+/* ── HERO ───────────────────────────────────── */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(232,168,56,0.08) 0%,transparent 70%);pointer-events:none}
+.hero-particles{position:absolute;inset:0;pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border:1px solid rgba(232,168,56,0.3);border-radius:20px;font-size:0.75rem;color:var(--orange);margin-bottom:24px;background:rgba(232,168,56,0.06)}
+.hero h1{font-family:'Orbitron',monospace;font-size:clamp(2.2rem,6vw,4.5rem);font-weight:900;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,var(--cream) 0%,var(--orange) 50%,var(--green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:clamp(1rem,2.5vw,1.3rem);color:rgba(240,237,229,0.7);max-width:600px;margin-bottom:32px}
+.hero-buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.btn-primary{background:var(--orange);color:#000;padding:14px 32px;border-radius:10px;font-weight:700;font-size:1rem;transition:all .2s;border:none;cursor:pointer}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(232,168,56,0.4)}
+.btn-secondary{background:transparent;color:var(--cream);padding:14px 32px;border-radius:10px;font-weight:600;font-size:1rem;border:1px solid rgba(255,255,255,0.15);transition:all .2s;cursor:pointer}
+.btn-secondary:hover{border-color:var(--orange);color:var(--orange)}
+.hero-scroll{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);animation:bounce 2s infinite;font-size:1.5rem;opacity:0.4}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* ── STATS BAR ──────────────────────────────── */
+.stats-bar{display:flex;justify-content:center;gap:32px;padding:40px 24px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06);background:var(--bg2)}
+.stat-item{text-align:center;min-width:100px}
+.stat-num{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:800;color:var(--orange)}
+.stat-label{font-size:0.75rem;color:rgba(240,237,229,0.5);text-transform:uppercase;letter-spacing:0.06em;margin-top:4px}
+
+/* ── SECTIONS ───────────────────────────────── */
+.section{padding:100px 24px;max-width:1200px;margin:0 auto}
+.section-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange);font-weight:700;margin-bottom:12px}
+.section-title{font-family:'Orbitron',monospace;font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:800;margin-bottom:16px}
+.section-desc{font-size:1rem;color:rgba(240,237,229,0.6);max-width:600px;margin-bottom:48px}
+
+/* ── FEATURES (3 columns) ───────────────────── */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.feature-card{padding:32px;background:var(--glass2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--r2);transition:all .3s}
+.feature-card:hover{border-color:rgba(232,168,56,0.3);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.3)}
+.feature-icon{font-size:2.5rem;margin-bottom:16px}
+.feature-card h3{font-size:1.1rem;font-weight:700;margin-bottom:8px}
+.feature-card p{font-size:0.9rem;color:rgba(240,237,229,0.6);line-height:1.6}
+@media(max-width:768px){.features{grid-template-columns:1fr}}
+
+/* ── STEPS ──────────────────────────────────── */
+.steps{display:flex;flex-direction:column;gap:0;position:relative}
+.steps::before{content:'';position:absolute;left:24px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--orange),var(--green),var(--sky))}
+.step{display:flex;gap:24px;padding:32px 0;position:relative}
+.step-num{width:48px;height:48px;border-radius:50%;background:var(--bg);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-weight:800;font-size:1.1rem;color:var(--orange);flex-shrink:0;z-index:1}
+.step-content h3{font-size:1.1rem;font-weight:700;margin-bottom:6px}
+.step-content p{font-size:0.9rem;color:rgba(240,237,229,0.6)}
+
+/* ── SHIFTS CAROUSEL ────────────────────────── */
+.shifts-track{display:flex;gap:16px;overflow-x:auto;padding:20px 0;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.shifts-track::-webkit-scrollbar{display:none}
+.shift-card{min-width:280px;max-width:300px;border-radius:var(--r2);overflow:hidden;background:var(--glass2);border:1px solid rgba(255,255,255,0.06);scroll-snap-align:start;transition:all .3s;cursor:pointer;flex-shrink:0}
+.shift-card:hover{border-color:rgba(232,168,56,0.4);transform:translateY(-4px)}
+.shift-card-img{height:180px;position:relative;overflow:hidden}
+.shift-card-img img{width:100%;height:100%;object-fit:cover}
+.shift-card-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(15,25,35,0.95) 100%);padding:12px 16px;display:flex;flex-direction:column;justify-content:flex-end}
+.shift-card-num{font-size:0.65rem;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:0.06em}
+.shift-card-title{font-size:0.85rem;font-weight:700;margin-top:2px}
+.shift-card-date{font-size:0.7rem;color:var(--orange);background:rgba(232,168,56,0.2);padding:2px 8px;border-radius:4px;margin-top:4px;display:inline-block;width:fit-content}
+.shift-card-tags{display:flex;gap:4px;padding:12px 16px;flex-wrap:wrap}
+.shift-tag{font-size:0.65rem;padding:3px 8px;border-radius:4px;background:rgba(255,255,255,0.06);color:rgba(240,237,229,0.6)}
+
+/* ── PARENTS SECTION ────────────────────────── */
+.parent-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.parent-card{padding:24px;background:var(--glass2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--r);text-align:center;transition:all .3s}
+.parent-card:hover{border-color:rgba(124,179,66,0.3);transform:translateY(-2px)}
+.parent-icon{font-size:2rem;margin-bottom:12px}
+.parent-card h3{font-size:0.9rem;font-weight:700;margin-bottom:6px}
+.parent-card p{font-size:0.8rem;color:rgba(240,237,229,0.5)}
+@media(max-width:768px){.parent-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.parent-grid{grid-template-columns:1fr}}
+
+/* ── CTA ────────────────────────────────────── */
+.cta{text-align:center;padding:100px 24px;background:radial-gradient(ellipse at 50% 50%,rgba(232,168,56,0.06) 0%,transparent 70%)}
+.cta h2{font-family:'Orbitron',monospace;font-size:clamp(1.5rem,3.5vw,2.5rem);font-weight:800;margin-bottom:16px}
+.cta p{color:rgba(240,237,229,0.6);margin-bottom:32px;font-size:1rem}
+
+/* ── FOOTER ─────────────────────────────────── */
+.footer{text-align:center;padding:32px 24px;border-top:1px solid rgba(255,255,255,0.06);font-size:0.75rem;color:rgba(240,237,229,0.3)}
+
+/* ── ANIMATIONS ─────────────────────────────── */
+.fade-up{opacity:0;transform:translateY(30px);transition:all 0.6s cubic-bezier(0.16,1,0.3,1)}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+
+/* ── PARTICLES ──────────────────────────────── */
+.particle{position:absolute;width:2px;height:2px;background:var(--orange);border-radius:50%;opacity:0;animation:float 6s infinite}
+@keyframes float{0%{opacity:0;transform:translateY(0)}20%{opacity:0.6}80%{opacity:0.6}100%{opacity:0;transform:translateY(-200px)}}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────── -->
+<nav class="nav">
+  <a href="#" class="nav-logo">
+    <svg viewBox="0 0 200 48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#E8A838"/><circle cx="24" cy="16" r="6" fill="#FFD93D"/><line x1="24" y1="4" x2="24" y2="1" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="8" x2="34" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="36" y1="16" x2="39" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="8" x2="14" y2="6" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="16" x2="9" y2="16" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/><polygon points="24,22 18,32 30,32" fill="#E8A838" opacity="0.9"/><polygon points="24,22 20,32 24,31" fill="#d66a12" opacity="0.8"/></svg>
+    КАНИКУЛЫ С ONE!
+  </a>
+  <div class="nav-links">
+    <a href="#features">Возможности</a>
+    <a href="#how">Как работает</a>
+    <a href="#shifts">Смены</a>
+    <a href="#parents">Родителям</a>
+  </div>
+  <a href="#cta" class="nav-cta">Записаться</a>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────── -->
+<section class="hero" id="hero">
+  <div class="hero-particles" id="particles"></div>
+  <div class="hero-badge">🚀 Phygital-платформа · IT + Спорт + Английский</div>
+  <h1>КАНИКУЛЫ<br>С ONE!</h1>
+  <p>Не просто каникулы — среда, где ребёнок растёт через геймификацию, реальные проекты и английскую среду</p>
+  <div class="hero-buttons">
+    <a href="#shifts" class="btn-primary">Смотреть смены →</a>
+    <a href="#how" class="btn-secondary">Как это работает</a>
+  </div>
+  <div class="hero-scroll">↓</div>
+</section>
+
+<!-- ── STATS BAR ────────────────────────────── -->
+<div class="stats-bar fade-up">
+  <div class="stat-item"><div class="stat-num">10</div><div class="stat-label">Вселенных</div></div>
+  <div class="stat-item"><div class="stat-num">7</div><div class="stat-label">Направлений</div></div>
+  <div class="stat-item"><div class="stat-num">84</div><div class="stat-label">Бейджа</div></div>
+  <div class="stat-item"><div class="stat-num">50</div><div class="stat-label">Предметов</div></div>
+  <div class="stat-item"><div class="stat-num">10</div><div class="stat-label">Уровней</div></div>
+  <div class="stat-item"><div class="stat-num">2</div><div class="stat-label">Кампуса</div></div>
+</div>
+
+<!-- ── FEATURES ─────────────────────────────── -->
+<section class="section" id="features">
+  <div class="section-label">Что такое ONE!</div>
+  <div class="section-title">Платформа, а не просто каникулы</div>
+  <div class="section-desc">Каждый ребёнок — игрок в自己的 вселенной. Каждый день — новое задание. Каждая победа — рост.</div>
+  <div class="features">
+    <div class="feature-card fade-up">
+      <div class="feature-icon">🎮</div>
+      <h3>10 тематических вселенных</h3>
+      <p>Кибер-Атлеты, Terraforming, Meta-Agency, Future Makers и ещё 6 миров. Каждая смена — уникальный сценарий с легендой, миссиями и боссами.</p>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon">🧬</div>
+      <h3>7 направлений развития</h3>
+      <p>Спорт, IT, Биотех, Медиа, Дипломатия, Предпринимательство, Art & Design. Ребёнок проходит через все за смену.</p>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon">📱</div>
+      <h3>Phygital-подход</h3>
+      <p>Физическая активность + цифровые инструменты. Приложение отслеживает прогресс, выдаёт задания, фиксирует достижения.</p>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon">🏆</div>
+      <h3>Gamification на максимум</h3>
+      <p>XP, уровни, инвентарь, бейджи, DISC-профиль, босс-битвы, тайные сундуки, серия дней. Ребёнок возвращается каждый день.</p>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon">🌍</div>
+      <h3>Английская среда</h3>
+      <p>Не уроки английского — а реальная коммуникация. Питчи, презентации, интервью, переговоры на английском.</p>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon">📊</div>
+      <h3>Аналитика для родителей</h3>
+      <p>Ежедневные отчёты, DISC-профиль, PDF-портфолио, Demo Day. Родитель видит рост, а не просто «был на каникулах».</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ─────────────────────────── -->
+<section class="section" id="how">
+  <div class="section-label">Как работает</div>
+  <div class="section-title">От первого касания до Demo Day</div>
+  <div class="section-desc">4 шага, которые превращают каникулы в траекторию развития.</div>
+  <div class="steps">
+    <div class="step fade-up">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h3>Ребёнок выбирает миссию</h3>
+        <p>10 смен, каждая со своей легендой. Кибер-Атлеты, Колонизаторы, Детективы Времени — ребёнок выбирает мир, в который хочет попасть.</p>
+      </div>
+    </div>
+    <div class="step fade-up">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h3>Выполняет задания</h3>
+        <p>Спорт, IT-проекты, биоэксперименты, медийные ролики, переговоры на английском. Каждый день — 5-7 заданий по разным направлениям.</p>
+      </div>
+    </div>
+    <div class="step fade-up">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h3>Прокачивается</h3>
+        <p>XP за каждое задание. Уровни от «Новичок» до «Легенда». Бейджи за достижения. Предметы в инвентарь. Серия дней. Босс-битвы.</p>
+      </div>
+    </div>
+    <div class="step fade-up">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h3>Получает результат</h3>
+        <p>DISC-профиль, портфолио навыков, PDF-отчёт. На Demo Day ребёнок показывает родителям свой проект и рассказывает, чего достиг.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SHIFTS ───────────────────────────────── -->
+<section class="section" id="shifts">
+  <div class="section-label">Расписание</div>
+  <div class="section-title">10 смен · 2026–2027</div>
+  <div class="section-desc">Выберите вселенную. Каждая смена — уникальный мир.</div>
+  <div class="shifts-track">
+    <div class="shift-card">
+      <div class="shift-card-img"><img src="img/mission1-banner.JPG" alt="Кибер-Атлеты" loading="lazy"><div class="shift-card-overlay"><div class="shift-card-num">Миссия 1</div><div class="shift-card-title">Кибер-Атлеты: Хроники Будущего</div></div></div>
+      <div class="shift-card-date">📅 05.10 – 09.10.2026</div>
+      <div class="shift-card-tags"><span class="shift-tag">🏅 Спорт</span><span class="shift-tag">💻 IT</span><span class="shift-tag">🧬 Биотех</span></div>
+    </div>
+    <div class="shift-card">
+      <div class="shift-card-img"><img src="img/mission2-banner.JPG" alt="Terraforming" loading="lazy"><div class="shift-card-overlay"><div class="shift-card-num">Миссия 2</div><div class="shift-card-title">Terraforming: Колонизаторы Новых Миров</div></div></div>
+      <div class="shift-card-date">📅 16.11 – 20.11.2026</div>
+      <div class="shift-card-tags"><span class="shift-tag">🏅 Спорт</span><span class="shift-tag">🧬 Биотех</span><span class="shift-tag">🤝 Дипломатия</span></div>
+    </div>
+    <div class="shift-card">
+      <div class="shift-card-img"><img src="img/mission3-banner.JPG" alt="Meta-Agency" loading="lazy"><div class="shift-card-overlay"><div class="shift-card-num">Миссия 3</div><div class="shift-card-title">Meta-Agency: Детективы Времени</div></div></div>
+      <div class="shift-card-date">📅 22.02 – 26.02.2027</div>
+      <div class="shift-card-tags"><span class="shift-tag">🎬 Медиа</span><span class="shift-tag">💻 IT</span><span class="shift-tag">🤝 Дипломатия</span></div>
+    </div>
+    <div class="shift-card">
+      <div class="shift-card-img"><img src="img/mission4-banner.JPG" alt="Future Makers" loading="lazy"><div class="shift-card-overlay"><div class="shift-card-num">Миссия 4</div><div class="shift-card-title">Future Makers: Академия Будущего</div></div></div>
+      <div class="shift-card-date">📅 29.03 – 02.04.2027</div>
+      <div class="shift-card-tags"><span class="shift-tag">💻 IT</span><span class="shift-tag">🎨 Art</span><span class="shift-tag">📊 Бизнес</span></div>
+    </div>
+    <div class="shift-card">
+      <div class="shift-card-img"><img src="img/mission5-banner.JPG" alt="Active Tech 2077" loading="lazy"><div class="shift-card-overlay"><div class="shift-card-num">Миссия 5</div><div class="shift-card-title">Active Tech 2077: Био-Тех Спорт</div></div></div>
+      <div class="shift-card-date">📅 20.06 – 29.06.2027</div>
+      <div class="shift-card-tags"><span class="shift-tag">🏅 Спорт</span><span class="shift-tag">🧬 Биотех</span><span class="shift-tag">💻 IT</span></div>
+    </div>
+    <div class="shift-card">
+      <div class="shift-card-img"><img src="img/mission6-banner.JPG" alt="Urban Quest" loading="lazy"><div class="shift-card-overlay"><div class="shift-card-num">Миссия 6</div><div class="shift-card-title">Urban Quest: Агенты Города</div></div></div>
+      <div class="shift-card-date">📅 30.06 – 09.07.2027</div>
+      <div class="shift-card-tags"><span class="shift-tag">💻 IT</span><span class="shift-tag">🎬 Медиа</span><span class="shift-tag">🎨 Art</span></div>
+    </div>
+    <div class="shift-card">
+      <div class="shift-card-img"><img src="img/mission7-banner.JPG" alt="Smart City Lab" loading="lazy"><div class="shift-card-overlay"><div class="shift-card-num">Миссия 7</div><div class="shift-card-title">Smart City Lab: Умный Город</div></div></div>
+      <div class="shift-card-date">📅 09.07 – 19.07.2027</div>
+      <div class="shift-card-tags"><span class="shift-tag">💻 IT</span><span class="shift-tag">🎨 Art</span><span class="shift-tag">🧬 Биотех</span></div>
+    </div>
+    <div class="shift-card">
+      <div class="shift-card-img"><img src="img/mission8-banner.JPG" alt="English Game Studio" loading="lazy"><div class="shift-card-overlay"><div class="shift-card-num">Миссия 8</div><div class="shift-card-title">English Game Studio: Код Доступа</div></div></div>
+      <div class="shift-card-date">📅 20.07 – 29.07.2027</div>
+      <div class="shift-card-tags"><span class="shift-tag">💻 IT</span><span class="shift-tag">🎨 Art</span><span class="shift-tag">🎬 Медиа</span></div>
+    </div>
+    <div class="shift-card">
+      <div class="shift-card-img"><img src="img/mission9-banner.JPG" alt="Champions Academy" loading="lazy"><div class="shift-card-overlay"><div class="shift-card-num">Миссия 9</div><div class="shift-card-title">Champions Academy: Био-Механика</div></div></div>
+      <div class="shift-card-date">📅 30.07 – 08.08.2027</div>
+      <div class="shift-card-tags"><span class="shift-tag">🏅 Спорт</span><span class="shift-tag">🤝 Дипломатия</span><span class="shift-tag">📊 Бизнес</span></div>
+    </div>
+    <div class="shift-card">
+      <div class="shift-card-img"><img src="img/mission10-banner.JPG" alt="Island Survival" loading="lazy"><div class="shift-card-overlay"><div class="shift-card-num">Миссия 10</div><div class="shift-card-title">Island Survival: Eco-Tech</div></div></div>
+      <div class="shift-card-date">📅 09.08 – 18.08.2027</div>
+      <div class="shift-card-tags"><span class="shift-tag">🏅 Спорт</span><span class="shift-tag">🤝 Дипломатия</span><span class="shift-tag">📊 Бизнес</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PARENTS ──────────────────────────────── -->
+<section class="section" id="parents">
+  <div class="section-label">Для родителей</div>
+  <div class="section-title">Что получает ваш ребёнок</div>
+  <div class="section-desc">Не просто «был на каникулах» — а вырос в конкретных компетенциях.</div>
+  <div class="parent-grid">
+    <div class="parent-card fade-up">
+      <div class="parent-icon">📊</div>
+      <h3>Ежедневный отчёт</h3>
+      <p>Прогресс ребёнка в реальном времени. Что делал, чего достиг, какие навыки прокачал.</p>
+    </div>
+    <div class="parent-card fade-up">
+      <div class="parent-icon">🧩</div>
+      <h3>DISC-профиль</h3>
+      <p>Понимание сильных сторон ребёнка. Командир, Звездочет, Хранитель или Мастер?</p>
+    </div>
+    <div class="parent-card fade-up">
+      <div class="parent-icon">🎯</div>
+      <h3>Demo Day</h3>
+      <p>Ребёнок показывает свой проект родителям. Реальный результат, а не просто «мы играли».</p>
+    </div>
+    <div class="parent-card fade-up">
+      <div class="parent-icon">📋</div>
+      <h3>PDF-портфолио</h3>
+      <p>Отчёт с навыками, достижениями, бейджами и рекомендациями по дальнейшему развитию.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ──────────────────────────────────── -->
+<section class="cta" id="cta">
+  <div class="section-label">Готовы?</div>
+  <h2>Готовы к приключениям?</h2>
+  <p>Выберите смену и кампус. Мы свяжемся с вами в течение дня.</p>
+  <a href="https://crazynordic19871987.github.io/kanikuly-s-one/" class="btn-primary" style="font-size:1.1rem;padding:16px 40px">Открыть приложение →</a>
+</section>
+
+<!-- ── FOOTER ───────────────────────────────── -->
+<footer class="footer">
+  <p>© 2026–2027 Каникулы с ONE! · Phygital-платформа для детских каникул</p>
+</footer>
+
+<script>
+// ── Scroll animations ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// ── Particles ──
+const pc = document.getElementById('particles');
+for (let i = 0; i < 30; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.left = Math.random() * 100 + '%';
+  p.style.top = Math.random() * 100 + '%';
+  p.style.animationDelay = Math.random() * 6 + 's';
+  p.style.animationDuration = (4 + Math.random() * 4) + 's';
+  pc.appendChild(p);
+}
+
+// ── Smooth scroll for nav links ──
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
