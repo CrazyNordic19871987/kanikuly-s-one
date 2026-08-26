@@ -2037,10 +2037,15 @@ function openShiftDetail(shiftId) {
 
   let html = `<div class="page-wrap shift-detail">
     <button class="shift-detail-back" onclick="navigateTo('shifts')">← Назад к миссиям</button>
+    <div class="shift-detail-banner">
+      <img src="img/mission${s.id}-banner.JPG" alt="${esc(s.title)}" style="width:100%;height:100%;object-fit:cover">
+      <div class="shift-detail-banner-overlay">
+        <div class="shift-detail-num">Миссия ${s.id}</div>
+        <div class="shift-detail-title">${s.title}</div>
+        <div class="shift-detail-subtitle">${s.subtitle}</div>
+      </div>
+    </div>
     <div class="shift-detail-header">
-      <div class="shift-detail-num">Миссия ${s.id}</div>
-      <div class="shift-detail-title">${s.title}</div>
-      <div class="shift-detail-subtitle">${s.subtitle}</div>
       <div class="shift-detail-legend">${s.legend}</div>
     </div>
     <div class="shift-detail-info">
