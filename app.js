@@ -72,22 +72,37 @@ function initialsOf(st) {
   if (nick) return nick.slice(0, 2).toUpperCase();
   return (st.first_name?.[0] || '') + (st.last_name?.[0] || '');
 }
-
-// ── Image helpers (drop-in ready) ──────────────────────────
-function badgeImg(badgeId, emoji, size) {
-  size = size || 48;
-  const src = 'img/badges/' + badgeId + '.png';
-  return '<img src="' + src + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:12px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="badge-emoji-fallback" style="display:none;font-size:' + (size * 0.6) + 'px">' + emoji + '</span>';
-}
-function itemImg(itemId, emoji, size) {
+// Аватар-кружок: если есть avatar_url — фото, иначе инициалы
+function avatarCircle(st, innerText, size, borderColor) {
+  const url = st && (st.avatar_url || st.avatar);
   size = size || 40;
-  const src = 'img/items/' + itemId + '.png';
-  return '<img src="' + src + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:10px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="item-emoji-fallback" style="display:none;font-size:' + (size * 0.6) + 'px">' + emoji + '</span>';
+  const style = 'width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;border:3px solid ' + (borderColor || 'var(--orange)') + ';display:block';
+  if (url) return '<img src="' + esc(url) + '" alt="" style="' + style + '" onerror="this.remove()">';
+  return '<div class="sc-avatar-inner" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--glass-b);border:3px solid ' + (borderColor || 'var(--orange)') + ';display:flex;align-items:center;justify-content:center;font-size:' + (size * 0.4) + 'px;font-weight:700">' + (innerText || initialsOf(st)) + '</div>';
 }
-function avatarImg(studentId, fallbackInitials, size) {
+
+// ── Image helpers (Supabase URL-first, GitHub fallback) ──
+// Каждая принимает optional URL. Если URL есть — берём её,
+// иначе fallback на img/{folder}/{id}.png, затем на эмодзи/инициалы.
+function badgeImg(badgeId, emoji, size, url) {
+  size = size || 48;
+  const src = url || ('img/badges/' + badgeId + '.png');
+  return '<img src="' + esc(src) + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:12px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="badge-emoji-fallback" style="display:none;font-size:' + (size * 0.6) + 'px">' + emoji + '</span>';
+}
+function itemImg(itemId, emoji, size, url) {
+  size = size || 40;
+  const src = url || ('img/items/' + itemId + '.png');
+  return '<img src="' + esc(src) + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:10px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="item-emoji-fallback" style="display:none;font-size:' + (size * 0.6) + 'px">' + emoji + '</span>';
+}
+function avatarImg(studentId, fallbackInitials, size, url) {
   size = size || 80;
-  const src = 'img/avatars/' + studentId + '.jpg';
-  return '<img src="' + src + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:50%;object-fit:cover;border:3px solid var(--orange)" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="avatar-fallback" style="display:none;width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--glass-b);border:3px solid var(--orange);align-items:center;justify-content:center;font-size:' + (size * 0.4) + 'px;font-weight:700">' + fallbackInitials + '</span>';
+  const src = url || ('img/avatars/' + studentId + '.jpg');
+  return '<img src="' + esc(src) + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:50%;object-fit:cover;border:3px solid var(--orange)" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="avatar-fallback" style="display:none;width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--glass-b);border:3px solid var(--orange);align-items:center;justify-content:center;font-size:' + (size * 0.4) + 'px;font-weight:700">' + fallbackInitials + '</span>';
+}
+// Изображение миссии: Supabase banner_url, иначе img/mission{n}-banner.JPG
+function shiftBannerUrl(s) {
+  if (s && (s.banner_url || s.image_url)) return esc(s.banner_url || s.image_url);
+  return 'img/mission' + (s && s.id) + '-banner.JPG';
 }
 
 // -- XP + Level system ---------------------------
@@ -903,6 +918,7 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
     first_name: v('s-firstname'),
     last_name:  v('s-lastname'),
     nickname:   v('s-nickname'),
+    avatar_url: v('s-avatar') || null,
     age:        parseInt(v('s-age')),
     gender:     v('s-gender'),
     grade:      parseInt(v('s-grade')),
@@ -972,7 +988,7 @@ function renderStudentList() {
     const lv = getLevel(xp);
     return `
       <div class="student-card" data-id="${s.id}" onclick="quickViewStudent('${s.id}')">
-        <div class="sc-avatar">${initials}<div class="sc-level-badge">${lv.level}</div></div>
+        <div class="sc-avatar">${avatarCircle(s, initials, 46)}<div class="sc-level-badge">${lv.level}</div></div>
         <div class="sc-info">
           <div class="sc-name">${displayNameEsc(s)} <span class="sc-level-tag">${lv.name}</span></div>
           <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'Миссия ' + s.shift} · ${s.campus || ''}</div>
@@ -1253,7 +1269,7 @@ async function checkAndAwardBadges(studentId, day, track, obs) {
 function showBadgeNotification(def) {
   const el = document.createElement('div');
   el.className = 'badge-notification rarity-' + def.rarity;
-  el.innerHTML = `<div class="bn-icon">${badgeImg(def.id, def.icon, 56)}</div>
+  el.innerHTML = `<div class="bn-icon">${badgeImg(def.id, def.icon, 56, def.image_url)}</div>
     <div class="bn-text"><strong>Новый значок!</strong><span>${def.name}</span></div>`;
   document.body.appendChild(el);
   setTimeout(() => el.classList.add('show'), 50);
@@ -1327,7 +1343,7 @@ function renderAchievements(studentId) {
         return `
           <div class="badge-card ${isEarned ? 'earned' : 'locked'} rarity-${def.rarity}">
             <div class="badge-glow"></div>
-            <div class="badge-icon-wrap">${isEarned ? badgeImg(def.id, def.icon, 56) : '<div class="badge-emoji" style="font-size:2rem">🔒</div>'}</div>
+            <div class="badge-icon-wrap">${isEarned ? badgeImg(def.id, def.icon, 56, def.image_url) : '<div class="badge-emoji" style="font-size:2rem">🔒</div>'}</div>
             <div class="badge-name">${def.name}</div>
             <div class="badge-desc">${def.desc}</div>
             <div class="badge-rarity">${rarityLabel(def.rarity)}</div>
@@ -1463,7 +1479,7 @@ function renderTalentCard(studentId) {
 
   // Hero card
   setText('pp-name', displayName(student));
-  setEl('pp-avatar', avatarImg(studentId, initials || '?', 80));
+  setEl('pp-avatar', avatarImg(studentId, initials || '?', 80, student.avatar_url));
   setText('pp-level', lv.level);
   setText('pp-meta', student.age + ' лет · ' + student.grade + ' класс · отряд ' + student.squad);
   setText('pp-xp-text', xp + ' / ' + lv.nextXP + ' XP');
@@ -1501,7 +1517,7 @@ function renderTalentCard(studentId) {
         const shiftObj = def ? state.shifts.find(s => s.id == def.shift_id) : null;
         const shiftLabel = shiftObj ? shiftObj.name : '';
         return `<div class="talent-badge-row rarity-${b.rarity}">
-          <span class="tbr-icon">${badgeImg(b.badge_id, b.icon, 36)}</span>
+          <span class="tbr-icon">${badgeImg(b.badge_id, b.icon, 36, def && def.image_url)}</span>
           <div><strong>${b.name}</strong><p>${b.desc || ''}</p>${shiftLabel ? '<p style="font-size:0.6rem;color:var(--orange);margin:2px 0 0">' + shiftLabel + '</p>' : ''}</div>
           <span class="tbr-rarity">${rarityLabel(b.rarity)}</span>
         </div>`;
@@ -2304,7 +2320,7 @@ function renderDashboard() {
 
     return `<div class="db-student-card" onclick="openStudentTalents('${s.id}')">
       <div class="db-sc-top">
-        <div class="db-sc-avatar">${initialsOf(s)}<div class="db-sc-level">${lv.level}</div></div>
+        <div class="db-sc-avatar">${avatarCircle(s, initialsOf(s), 44)}<div class="db-sc-level">${lv.level}</div></div>
         <div class="db-sc-info">
           <strong>${displayNameEsc(s)}</strong> <span class="sc-level-tag">${lv.name}</span>
           <span>отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'Миссия ' + s.shift} · ${s.campus || ''} · ${s.grade} кл</span>
@@ -2366,8 +2382,9 @@ function showToast(msg, type = 'success') {
 }
 
 function getShiftSvg(id) {
+  const s = state.shifts.find(sh => String(sh.id) === String(id));
   const pos = id === 2 ? 'object-position:center 85%' : '';
-  return `<img src="img/mission${id}-banner.JPG" alt="Миссия ${id}" loading="lazy" style="width:100%;height:100%;object-fit:cover;${pos}">`;
+  return `<img src="${shiftBannerUrl(s)}" alt="Миссия ${id}" loading="lazy" style="width:100%;height:100%;object-fit:cover;${pos}">`;
 }
 
 function renderShiftsPage() {
@@ -2537,7 +2554,7 @@ function renderShiftDashboard() {
         const progressPct = pd.completionsCount > 0 ? Math.min(100, Math.round((pd.completionsCount / (shift.directions ? shift.directions.reduce((s,d) => s + d.missions.length, 0) : 10)) * 100)) : 0;
         return `<div class="sd-lb-row card-enter" style="animation-delay:${i * 0.05}s">
           <div class="sd-lb-rank ${rankClass}">${i < 3 ? ['🥇','🥈','🥉'][i] : '#' + (i+1)}</div>
-          <div class="sd-lb-avatar">${initials}</div>
+          <div class="sd-lb-avatar">${avatarCircle(pd.student, initials, 40, 'var(--green)')}</div>
           <div class="sd-lb-info">
             <div class="sd-lb-name">${displayNameEsc(pd.student)}</div>
             <div class="sd-lb-meta">отряд ${pd.student.squad} · ${pd.student.campus || ''} · ${pd.topSkill}</div>
@@ -2600,7 +2617,7 @@ function openShiftDetail(shiftId) {
   let html = `<div class="page-wrap shift-detail">
     <button class="shift-detail-back" onclick="navigateTo('shifts')">← Назад к миссиям</button>
     <div class="shift-detail-banner">
-      <img src="img/mission${s.id}-banner.JPG" alt="${esc(s.title)}" style="width:100%;height:100%;object-fit:cover">
+      <img src="${shiftBannerUrl(s)}" alt="${esc(s.title)}" style="width:100%;height:100%;object-fit:cover">
       <div class="shift-detail-banner-overlay">
         <div class="shift-detail-num">Миссия ${s.id}</div>
         <div class="shift-detail-title">${s.title}</div>
@@ -2996,7 +3013,7 @@ function fillReport(student) {
 
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
 
-  set('rp-avatar', avatarImg(student.id, initialsOf(student), 64));
+  set('rp-avatar', avatarImg(student.id, initialsOf(student), 64, student.avatar_url));
   set('rp-name', displayName(student));
   set('rp-age', student.age != null ? student.age + ' лет' : '—');
   set('rp-grade', student.grade != null ? student.grade + ' класс' : '—');
@@ -3117,7 +3134,7 @@ function fillReport(student) {
     badgesEl.innerHTML = state.badgeDefs.map(def => {
       const is = earnedIds.has(def.id);
       return `<div class="rp-badge ${is ? 'earned' : 'locked'} rarity-${def.rarity}">
-        <span class="rp-badge-ico">${is ? badgeImg(def.id, def.icon, 32) : '🔒'}</span>
+        <span class="rp-badge-ico">${is ? badgeImg(def.id, def.icon, 32, def.image_url) : '🔒'}</span>
         <span class="rp-badge-name">${def.name}</span>
         <span class="rp-badge-rarity">${is ? rarityLabel(def.rarity) : 'закрыт'}</span>
       </div>`;
