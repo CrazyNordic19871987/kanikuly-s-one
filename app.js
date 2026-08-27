@@ -11,6 +11,7 @@ let state = {
   shifts: [],
   competencies: [],
   badgeDefs: [],
+  inventoryItems: [],  // content_inventory_items (fallback to SHIFT_INVENTORY)
   discConfig: { colors: {}, skill_map: {}, combo: {} },
   currentPage: 'shifts',
   currentStudentId: null,
@@ -454,7 +455,10 @@ function computeInventory(studentId) {
   const completions = state.completions.filter(c => c.student_id == studentId);
   const student = state.students.find(s => s.id === studentId);
   const shiftId = student?.shift;
-  const shiftData = SHIFT_INVENTORY[shiftId];
+  // Предметы: из Supabase (content_inventory_items) приоритетно, иначе встроенные
+  const dbItems = state.inventoryItems.filter(it => String(it.shift_id) === String(shiftId));
+  const shiftData = dbItems.length ? { name: (state.shifts.find(sh => String(sh.id) === String(shiftId)) || {}).name || ('Миссия ' + shiftId), items: dbItems }
+                                  : SHIFT_INVENTORY[shiftId];
 
   if (!shiftData) return { items, maxSlots: INVENTORY_SLOTS_BASE };
 
@@ -476,11 +480,11 @@ function computeInventory(studentId) {
   shiftData.items.forEach(item => {
     if (items.find(i => i.id === item.id)) return;
     if (item.rarity === 'legendary' && hasHighScore) {
-      items.push({...item});
+      items.push({ ...item, id: item.id || item.item_id });
     } else if (item.rarity === 'rare' && completedCount >= 2) {
-      items.push({...item});
+      items.push({ ...item, id: item.id || item.item_id });
     } else if (item.rarity === 'common') {
-      items.push({...item});
+      items.push({ ...item, id: item.id || item.item_id });
     }
   });
 
@@ -643,7 +647,7 @@ window.addEventListener('resize', () => {
 async function loadData() {
   const safeGet = async (table) => { try { return await api.getAll(table); } catch(e) { console.warn('Fetch failed:', table, e); return []; } };
 
-  const [students, observations, badges, completions, shifts, competencies, badgeDefs, discRows, missionsRows] = await Promise.all([
+  const [students, observations, badges, completions, shifts, competencies, badgeDefs, discRows, missionsRows, inventoryRows] = await Promise.all([
     safeGet(TABLES.STUDENTS),
     safeGet(TABLES.OBSERVATIONS),
     safeGet(TABLES.BADGES),
@@ -652,7 +656,8 @@ async function loadData() {
     safeGet(TABLES.CONTENT_COMPETENCIES),
     safeGet(TABLES.CONTENT_BADGE_DEFS),
     safeGet(TABLES.CONTENT_DISC_CONFIG),
-    safeGet(TABLES.CONTENT_MISSIONS)
+    safeGet(TABLES.CONTENT_MISSIONS),
+    safeGet(TABLES.CONTENT_INVENTORY)
   ]);
 
   state.students    = Array.isArray(students) ? students : [];
@@ -671,7 +676,7 @@ async function loadData() {
     state.competencies = typeof DEFAULT_COMPETENCIES !== 'undefined' ? DEFAULT_COMPETENCIES : [];
   }
   if (Array.isArray(badgeDefs) && badgeDefs.length > 0) {
-    state.badgeDefs = badgeDefs.map(b => ({ id: b.badge_id, name: b.name, icon: b.icon, shift_id: b.shift_id, direction_name: b.direction_name, mission_name: b.mission_name, condition: b.condition, rarity: b.rarity, desc: b.desc }));
+    state.badgeDefs = badgeDefs.map(b => ({ id: b.badge_id, name: b.name, icon: b.icon, shift_id: b.shift_id, direction_name: b.direction_name, mission_name: b.mission_name, condition: b.condition, rarity: b.rarity, desc: b.desc, image_url: b.image_url }));
   } else {
     state.badgeDefs = [];
   }
@@ -686,6 +691,11 @@ async function loadData() {
     state.missions = missionsRows;
   } else {
     state.missions = [];
+  }
+  if (Array.isArray(inventoryRows) && inventoryRows.length > 0) {
+    state.inventoryItems = inventoryRows;
+  } else {
+    state.inventoryItems = [];
   }
 
   populateShiftSelect();
@@ -1399,10 +1409,12 @@ function buyShopItem(itemId) {
         addCoins(state.currentStudentId, item.cost); // refund
       }
     } else if (itemId === 'shop_rare_chest') {
-      const inv = SHIFT_INVENTORY[state.students.find(s => s.id == state.currentStudentId)?.shift];
+      const student = state.students.find(s => s.id == state.currentStudentId);
+      const dbItems = state.inventoryItems.filter(it => String(it.shift_id) === String(student && student.shift));
+      const inv = dbItems.length ? { items: dbItems } : SHIFT_INVENTORY[student && student.shift];
       if (inv) {
         const rareItem = inv.items.find(i => i.rarity === 'rare') || inv.items[0];
-        showToast('📦 Получен: ' + rareItem.icon + ' ' + rareItem.name, 'success');
+        showToast('📦 Получен: ' + (rareItem.icon || '') + ' ' + rareItem.name, 'success');
       }
     } else if (itemId === 'shop_legendary_key') {
       showToast('🗝️ Ключ Легенды получен! Используйте во время босс-битвы.', 'success');
@@ -1532,7 +1544,7 @@ function renderTalentCard(studentId) {
   if (invEl) {
     let invHtml = `<div class="inv-header"><span>${inv.items.length} / ${inv.maxSlots} слотов</span></div><div class="inv-grid">`;
     inv.items.forEach(item => {
-      invHtml += `<div class="inv-item rarity-${item.rarity}" title="${item.name} — ${item.bonus}"><span class="inv-icon">${itemImg(item.id, item.icon, 48)}</span><span class="inv-name">${item.name}</span></div>`;
+      invHtml += `<div class="inv-item rarity-${item.rarity}" title="${item.name} — ${item.bonus}"><span class="inv-icon">${itemImg(item.id, item.icon, 48, item.image_url)}</span><span class="inv-name">${item.name}</span></div>`;
     });
     for (let i = inv.items.length; i < inv.maxSlots; i++) {
       invHtml += `<div class="inv-item empty"><span class="inv-icon">+</span></div>`;

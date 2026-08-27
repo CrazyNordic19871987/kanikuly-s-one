@@ -16,7 +16,8 @@ const TABLES = {
   CONTENT_COMPETENCIES:  'content_competencies',
   CONTENT_BADGE_DEFS:    'content_badge_definitions',
   CONTENT_DISC_CONFIG:   'content_disc_config',
-  CONTENT_MISSIONS:      'content_missions'
+  CONTENT_MISSIONS:      'content_missions',
+  CONTENT_INVENTORY:     'content_inventory_items'
 };
 
 // ── Fallback данные (если Supabase пуст) ──────────────────
