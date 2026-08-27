@@ -57,6 +57,22 @@ function esc(s) {
   return d.innerHTML;
 }
 
+// ── Display name: nickname (name hidden in app) ──
+function displayName(st) {
+  if (!st) return '';
+  const nick = st.nickname || st.nick_name || '';
+  if (nick) return nick;
+  return (st.first_name || '') + ' ' + (st.last_name || '');
+}
+function displayNameEsc(st) {
+  return esc(displayName(st));
+}
+function initialsOf(st) {
+  const nick = st.nickname || st.nick_name || '';
+  if (nick) return nick.slice(0, 2).toUpperCase();
+  return (st.first_name?.[0] || '') + (st.last_name?.[0] || '');
+}
+
 // ── Image helpers (drop-in ready) ──────────────────────────
 function badgeImg(badgeId, emoji, size) {
   size = size || 48;
@@ -886,6 +902,7 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
   const student = {
     first_name: v('s-firstname'),
     last_name:  v('s-lastname'),
+    nickname:   v('s-nickname'),
     age:        parseInt(v('s-age')),
     gender:     v('s-gender'),
     grade:      parseInt(v('s-grade')),
@@ -929,8 +946,10 @@ function renderStudentList() {
   if (filters.campus) list = list.filter(s => (s.campus || '') === filters.campus);
 
   if (state.searchQuery) {
+    const q = state.searchQuery.toLowerCase();
     list = list.filter(s =>
-      (s.first_name + ' ' + s.last_name).toLowerCase().includes(state.searchQuery)
+      displayName(s).toLowerCase().includes(q) ||
+      (s.first_name + ' ' + s.last_name).toLowerCase().includes(q)
     );
   }
 
@@ -947,7 +966,7 @@ function renderStudentList() {
   el.innerHTML = list.map(s => {
     const obs   = state.observations.filter(o => o.student_id === s.id).length;
     const bdgs  = state.badges.filter(b => b.student_id === s.id && b.earned).length;
-    const initials = (s.first_name?.[0] || '') + (s.last_name?.[0] || '');
+    const initials = initialsOf(s);
     const progress = Math.round((obs / 40) * 100);
     const xp = calcStudentXP(s.id);
     const lv = getLevel(xp);
@@ -955,7 +974,7 @@ function renderStudentList() {
       <div class="student-card" data-id="${s.id}" onclick="quickViewStudent('${s.id}')">
         <div class="sc-avatar">${initials}<div class="sc-level-badge">${lv.level}</div></div>
         <div class="sc-info">
-          <div class="sc-name">${s.first_name} ${s.last_name} <span class="sc-level-tag">${lv.name}</span></div>
+          <div class="sc-name">${displayNameEsc(s)} <span class="sc-level-tag">${lv.name}</span></div>
           <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'Миссия ' + s.shift} · ${s.campus || ''}</div>
           <div class="sc-xp-bar"><div class="sc-xp-fill" style="width:${lv.progress}%"></div></div>
           <div class="sc-progress">
@@ -1010,7 +1029,7 @@ function populateStudentSelect(selectId, onChange) {
   const sel = document.getElementById(selectId);
   sel.innerHTML = '<option value="">— Выбрать участника —</option>' +
     state.students.map(s =>
-      `<option value="${s.id}">${s.first_name} ${s.last_name} · отряд ${s.squad} · ${s.campus || ''}</option>`
+      `<option value="${s.id}">${displayNameEsc(s)} · отряд ${s.squad} · ${s.campus || ''}</option>`
     ).join('');
   sel.onchange = onChange;
 
@@ -1438,12 +1457,12 @@ function renderTalentCard(studentId) {
   const shift = state.shifts.find(s => s.id == student.shift);
   const shiftName = shift ? shift.name : student.shift;
 
-  const initials = ((student.first_name || '')[0] || '') + ((student.last_name || '')[0] || '');
+  const initials = initialsOf(student);
   const setEl = (id, html) => { const e = document.getElementById(id); if (e) e.innerHTML = html; };
   const setText = (id, text) => { const e = document.getElementById(id); if (e) e.textContent = text; };
 
   // Hero card
-  setText('pp-name', student.first_name + ' ' + student.last_name);
+  setText('pp-name', displayName(student));
   setEl('pp-avatar', avatarImg(studentId, initials || '?', 80));
   setText('pp-level', lv.level);
   setText('pp-meta', student.age + ' лет · ' + student.grade + ' класс · отряд ' + student.squad);
@@ -1725,7 +1744,7 @@ function renderTalentCard(studentId) {
       const fl = getLevel(f.xp);
       shtml += `<div class="friend-row ${isMe ? 'is-me' : ''}">
         <span class="friend-rank">#${i + 1}</span>
-        <span class="friend-name">${isMe ? '⭐ ' : ''}${f.student.first_name} ${f.student.last_name}</span>
+        <span class="friend-name">${isMe ? '⭐ ' : ''}${displayNameEsc(f.student)}</span>
         <span class="friend-level">Ур.${fl.level}</span>
         <span class="friend-xp">${f.xp} XP</span>
       </div>`;
@@ -1751,7 +1770,7 @@ function renderTalentCard(studentId) {
       shtml += '<div class="gc"><h3>📡 Последняя активность</h3>';
       recent.forEach(r => {
         shtml += `<div class="activity-row">
-          <span class="act-name">${r.student.first_name}</span>
+          <span class="act-name">${displayNameEsc(r.student)}</span>
           <span class="act-desc">${esc(r.completion.direction_name || 'задание')}</span>
           <span class="act-score">★${r.completion.score || 0}</span>
         </div>`;
@@ -2285,9 +2304,9 @@ function renderDashboard() {
 
     return `<div class="db-student-card" onclick="openStudentTalents('${s.id}')">
       <div class="db-sc-top">
-        <div class="db-sc-avatar">${(s.first_name?.[0]||'')+(s.last_name?.[0]||'')}<div class="db-sc-level">${lv.level}</div></div>
+        <div class="db-sc-avatar">${initialsOf(s)}<div class="db-sc-level">${lv.level}</div></div>
         <div class="db-sc-info">
-          <strong>${s.first_name} ${s.last_name}</strong> <span class="sc-level-tag">${lv.name}</span>
+          <strong>${displayNameEsc(s)}</strong> <span class="sc-level-tag">${lv.name}</span>
           <span>отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'Миссия ' + s.shift} · ${s.campus || ''} · ${s.grade} кл</span>
         </div>
         <div class="db-sc-track">${trackIcon}</div>
@@ -2514,13 +2533,13 @@ function renderShiftDashboard() {
     } else {
       lbEl.innerHTML = participantData.map((pd, i) => {
         const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
-        const initials = (pd.student.first_name?.[0] || '') + (pd.student.last_name?.[0] || '');
+        const initials = initialsOf(pd.student);
         const progressPct = pd.completionsCount > 0 ? Math.min(100, Math.round((pd.completionsCount / (shift.directions ? shift.directions.reduce((s,d) => s + d.missions.length, 0) : 10)) * 100)) : 0;
         return `<div class="sd-lb-row card-enter" style="animation-delay:${i * 0.05}s">
           <div class="sd-lb-rank ${rankClass}">${i < 3 ? ['🥇','🥈','🥉'][i] : '#' + (i+1)}</div>
           <div class="sd-lb-avatar">${initials}</div>
           <div class="sd-lb-info">
-            <div class="sd-lb-name">${pd.student.first_name} ${pd.student.last_name}</div>
+            <div class="sd-lb-name">${displayNameEsc(pd.student)}</div>
             <div class="sd-lb-meta">отряд ${pd.student.squad} · ${pd.student.campus || ''} · ${pd.topSkill}</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
               <div style="flex:1;height:3px;border-radius:2px;background:var(--glass-b);overflow:hidden"><div style="height:100%;border-radius:2px;background:linear-gradient(90deg,var(--orange),#d65a0f);width:${progressPct}%"></div></div>
@@ -2977,8 +2996,8 @@ function fillReport(student) {
 
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
 
-  set('rp-avatar', avatarImg(student.id, (student.first_name?.[0] || '') + (student.last_name?.[0] || ''), 64));
-  set('rp-name', student.first_name + ' ' + student.last_name);
+  set('rp-avatar', avatarImg(student.id, initialsOf(student), 64));
+  set('rp-name', displayName(student));
   set('rp-age', student.age != null ? student.age + ' лет' : '—');
   set('rp-grade', student.grade != null ? student.grade + ' класс' : '—');
   set('rp-squad', 'Отряд ' + student.squad);
@@ -3253,7 +3272,7 @@ function onAssSquadChange() {
   list.forEach(s => {
     const opt = document.createElement('option');
     opt.value = s.id;
-    opt.textContent = s.first_name + ' ' + s.last_name;
+    opt.textContent = displayName(s);
     studentSel.appendChild(opt);
   });
 }
