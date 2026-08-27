@@ -189,12 +189,13 @@ CREATE TABLE public.content_disc_config (
 INSERT INTO public.content_disc_config (config_key, config_value) VALUES
 ('colors', '{"D":"#EF4444","I":"#FBBF24","S":"#22C55E","C":"#3B82F6"}'::jsonb),
 ('skill_map', '{"D":["initiative","persistence","problem_solving"],"I":["communication","creativity","social_position"],"S":["cooperation","adaptability","self_organization"],"C":["critical_thinking","learning_ability","curiosity"]}'::jsonb),
-('combo', '{"DI":{"label":"Харизматичный лидер","color":"#EF4444","desc":"Ориентирован на результат через взаимодействие с людьми"},"IS":{"label":"Дипломат","color":"#FBBF24","desc":"Умеет убеждать, сохраняя дружелюбную атмосферу"},"SC":{"label":"Надёжный исполнитель","color":"#22C55E","desc":"Качественно и методично выполняет задачи"},"CD":{"label":"Точный стратег","color":"#3B82F6","desc":"Анализирует и находит самые эффективные решения"}}'::jsonb);
+('combo', '{"DI":{"label":"Харизматичный лидер","color":"#EF4444","desc":"Ориентирован на результат через взаимодействие с людьми"},"IS":{"label":"Дипломат","color":"#FBBF24","desc":"Умеет убеждать, сохраняя дружелюбную атмосферу"},"SC":{"label":"Надёжный исполнитель","color":"#22C55E","desc":"Качественно и методично выполняет задачи"},"CD":{"label":"Точный стратег","color":"#3B82F6","desc":"Анализирует и находит самые эффективные решения"}}'::jsonb),
+('images', '{"D":"","I":"","S":"","C":""}'::jsonb);
 
 -- ═══════════════════════════════════════════════════════════════════
 -- Готово! Проверка:
 --   SELECT COUNT(*) FROM public.content_shifts;            -- ожидаем 10
 --   SELECT COUNT(*) FROM public.content_competencies;      -- ожидаем 12
 --   SELECT COUNT(*) FROM public.content_badge_definitions; -- ожидаем 84
---   SELECT COUNT(*) FROM public.content_disc_config;       -- ожидаем 3
+--   SELECT COUNT(*) FROM public.content_disc_config;       -- ожидаем 4
 -- ═══════════════════════════════════════════════════════════════════

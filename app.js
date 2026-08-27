@@ -2171,11 +2171,12 @@ function calcDisc(obs, studentId) {
   }
 
   const dc = state.discConfig.colors || {};
+  const discImg = (state.discConfig.images || {});
   const labels = {
-    D:{label:'Командир', color:dc.D || '#EF4444', desc:'Я беру высоту!', slogan:'Сила воли, скорость, преодоление препятствий'},
-    I:{label:'Звездочет', color:dc.I || '#FBBF24', desc:'Я зажигаю свет!', slogan:'Энергия, общение, вдохновение и веселье'},
-    S:{label:'Хранитель', color:dc.S || '#22C55E', desc:'Я держу строй!', slogan:'Забота, дружба, помощь и терпение'},
-    C:{label:'Мастер',    color:dc.C || '#3B82F6', desc:'Я знаю секрет!', slogan:'Точность, знания, логика и порядок'}
+    D:{label:'Командир', color:dc.D || '#EF4444', desc:'Я беру высоту!', slogan:'Сила воли, скорость, преодоление препятствий', img:discImg.D || ''},
+    I:{label:'Звездочет', color:dc.I || '#FBBF24', desc:'Я зажигаю свет!', slogan:'Энергия, общение, вдохновение и веселье', img:discImg.I || ''},
+    S:{label:'Хранитель', color:dc.S || '#22C55E', desc:'Я держу строй!', slogan:'Забота, дружба, помощь и терпение', img:discImg.S || ''},
+    C:{label:'Мастер',    color:dc.C || '#3B82F6', desc:'Я знаю секрет!', slogan:'Точность, знания, логика и порядок', img:discImg.C || ''}
   };
 
   const dominant = Object.entries(disc).sort((a,b) => b[1]-a[1])[0];
@@ -2183,12 +2184,26 @@ function calcDisc(obs, studentId) {
   return { disc, labels, dominant };
 }
 
+// Картинка DISC-профиля: URL из content_disc_config[images], иначе эмодзи-заглушка
+function discTypeImg(type, label) {
+  const size = 42;
+  const img = (label && label.img) || '';
+  const emojiMap = { D:'💪', I:'🌟', S:'🤝', C:'🧠' };
+  const emoji = emojiMap[type] || '🧩';
+  if (img) {
+    return '<img src="' + esc(img) + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:10px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span style="display:none;width:' + size + 'px;height:' + size + 'px;border-radius:10px;background:var(--glass-b);align-items:center;justify-content:center;font-size:22px">' + emoji + '</span>';
+  }
+  return '<span style="display:flex;width:' + size + 'px;height:' + size + 'px;border-radius:10px;background:var(--glass-b);align-items:center;justify-content:center;font-size:22px">' + emoji + '</span>';
+}
+
 function renderDISC(obs, studentId) {
   const { disc, labels, dominant } = calcDisc(obs, studentId);
 
   const discBarsEl = document.getElementById('disc-bars');
   if (discBarsEl) discBarsEl.innerHTML = ['D','I','S','C'].map(t => `
-    <div class="disc-row">
+    <div class="disc-row" style="align-items:center">
+      <div class="disc-type-img">${discTypeImg(t, labels[t])}</div>
+      <div style="flex:1">
       <div class="disc-type-label" style="color:${labels[t].color}">${t} <span style="font-size:0.75em;opacity:0.85">${labels[t].label}</span></div>
       <div class="disc-bar-wrap">
         <div class="disc-bar-inner" style="width:${disc[t]}%;background:linear-gradient(90deg,${labels[t].color}90,${labels[t].color})">
@@ -2196,6 +2211,7 @@ function renderDISC(obs, studentId) {
         </div>
       </div>
       <div class="disc-type-desc">${labels[t].desc}</div>
+      </div>
     </div>`).join('');
 
   const domEl = document.getElementById('disc-dominant');

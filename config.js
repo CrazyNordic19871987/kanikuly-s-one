@@ -39,6 +39,7 @@ const DEFAULT_COMPETENCIES = [
 
 const DEFAULT_DISC_CONFIG = {
   colors: { D:'#EF4444', I:'#FBBF24', S:'#22C55E', C:'#3B82F6' },
+  images: { D:'', I:'', S:'', C:'' },  // URL картинки профиля DISC (Supabase Storage)
   skill_map: {
     D: ['initiative','persistence','problem_solving'],
     I: ['communication','creativity','social_position'],
