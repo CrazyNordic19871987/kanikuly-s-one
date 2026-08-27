@@ -2546,13 +2546,16 @@ function renderShiftDashboard() {
   }).sort((a, b) => b.xp - a.xp);
 
   // Render stats
+  const sdStatsEl = ge('sd-stats');
   const avgAll = totalCounted > 0 ? (totalAllScored / totalCounted).toFixed(1) : '—';
-  ge('sd-stats').innerHTML = `
-    <div class="sd-stat"><div class="sd-stat-num">${participants.length}</div><div class="sd-stat-label">Участников</div></div>
-    <div class="sd-stat"><div class="sd-stat-num">${totalCompletions}</div><div class="sd-stat-label">Оценок</div></div>
-    <div class="sd-stat"><div class="sd-stat-num">${avgAll}</div><div class="sd-stat-label">Средний балл</div></div>
-    <div class="sd-stat"><div class="sd-stat-num">${totalXp}</div><div class="sd-stat-label">Всего XP</div></div>
-  `;
+  if (sdStatsEl) {
+    sdStatsEl.innerHTML = `
+      <div class="sd-stat"><div class="sd-stat-num">${participants.length}</div><div class="sd-stat-label">Участников</div></div>
+      <div class="sd-stat"><div class="sd-stat-num">${totalCompletions}</div><div class="sd-stat-label">Оценок</div></div>
+      <div class="sd-stat"><div class="sd-stat-num">${avgAll}</div><div class="sd-stat-label">Средний балл</div></div>
+      <div class="sd-stat"><div class="sd-stat-num">${totalXp}</div><div class="sd-stat-label">Всего XP</div></div>
+    `;
+  }
 
   // Render leaderboard
   const lbEl = ge('sd-leaderboard');
@@ -3255,10 +3258,13 @@ function populateAssShiftSelect() {
 }
 
 function onAssCampusChange() {
-  const campus = ge('ass-campus').value;
+  const campusEl = ge('ass-campus');
+  if (!campusEl) return;
+  const campus = campusEl.value;
   const shiftSel = ge('ass-shift');
   const squadSel = ge('ass-squad');
   const studentSel = ge('ass-student');
+  if (!squadSel || !studentSel) return;
   // Reset downstream
   squadSel.innerHTML = '<option value="">Выбрать отряд...</option>';
   studentSel.innerHTML = '<option value="">Выбрать участника...</option>';
@@ -3267,10 +3273,13 @@ function onAssCampusChange() {
 }
 
 function onAssShiftChange() {
-  const shiftId = parseInt(ge('ass-shift').value);
-  const campus = ge('ass-campus').value;
+  const shiftSel = ge('ass-shift');
+  const campusEl = ge('ass-campus');
   const squadSel = ge('ass-squad');
   const studentSel = ge('ass-student');
+  if (!shiftSel || !squadSel || !studentSel) return;
+  const shiftId = parseInt(shiftSel.value);
+  const campus = campusEl ? campusEl.value : '';
   squadSel.innerHTML = '<option value="">Выбрать отряд...</option>';
   studentSel.innerHTML = '<option value="">Выбрать участника...</option>';
   ge('ass-missions-area').innerHTML = '';
@@ -3288,10 +3297,14 @@ function onAssShiftChange() {
 }
 
 function onAssSquadChange() {
-  const shiftId = parseInt(ge('ass-shift').value);
-  const squad = parseInt(ge('ass-squad').value);
-  const campus = ge('ass-campus').value;
+  const shiftSel = ge('ass-shift');
+  const squadSel = ge('ass-squad');
   const studentSel = ge('ass-student');
+  if (!shiftSel || !squadSel || !studentSel) return;
+  const shiftId = parseInt(shiftSel.value);
+  const squad = parseInt(squadSel.value);
+  const campusEl = ge('ass-campus');
+  const campus = campusEl ? campusEl.value : '';
   studentSel.innerHTML = '<option value="">Выбрать участника...</option>';
   ge('ass-missions-area').innerHTML = '';
   ge('ass-summary-area').innerHTML = '';
