@@ -111,6 +111,7 @@ create table if not exists public.students (
   id uuid default uuid_generate_v4() primary key,
   first_name text not null,
   last_name text not null,
+  nickname text not null default 'Player',
   age integer check (age >= 7 and age <= 12),
   gender text check (gender in ('Мужской', 'Женский')),
   grade integer check (grade >= 1 and grade <= 11),
@@ -119,6 +120,10 @@ create table if not exists public.students (
   notes text,
   created_at timestamp with time zone default now()
 );
+
+-- Никнейм показывается в приложении, имя/фамилия скрыты
+alter table public.students
+  add constraint nickname_not_empty check (length(btrim(nickname)) > 0);
 
 -- 2. Таблица наблюдений (оценки)
 create table if not exists public.observations (

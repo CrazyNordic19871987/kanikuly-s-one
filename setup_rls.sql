@@ -21,6 +21,7 @@ CREATE TABLE public.students (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   first_name  TEXT NOT NULL,
   last_name   TEXT NOT NULL,
+  nickname    TEXT NOT NULL DEFAULT 'Player',
   age         INT,
   gender      TEXT,
   grade       INT,
@@ -30,6 +31,9 @@ CREATE TABLE public.students (
   notes       TEXT,
   created_at  TIMESTAMPTZ DEFAULT now()
 );
+
+-- Никнейм виден в приложении, имя/фамилия скрыты
+ALTER TABLE public.students ADD CONSTRAINT nickname_not_empty CHECK (length(btrim(nickname)) > 0);
 
 CREATE TABLE IF NOT EXISTS public.observations (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
