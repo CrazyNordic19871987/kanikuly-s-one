@@ -1,9 +1,11 @@
 # 🏕️ Каникулы с ONE!
 
-Веб-приложение для управления летними каникулами для детей 7–12 лет. 10 тематических смен, 7 профессиональных направлений, Anglophone-среда, спорт и защита собственных проектов перед родителями.
+Геймифицированная платформа для управления летними каникулами детей 7–12 лет. 10 тематических смен, 7 профессиональных направлений, Anglophone-среда, спорт, коллекционная система из **84 карточек**, DISC-профилирование и защита проектов перед родителями.
 
-![Version](https://img.shields.io/badge/version-2.0.0-orange)
+![Version](https://img.shields.io/badge/version-3.0.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-blue)
+![Build](https://img.shields.io/badge/deploy-GitHub%20Actions-green)
+![Cards](https://img.shields.io/badge/cards-84-8B5CF6)
 ![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-green)
 
 ## 🌐 Демо
@@ -17,13 +19,43 @@
 **Каникулы с ONE!** — это:
 - 🏕️ **10 тематических смен** — от «Кибер-Атлетов» до «Island Survival»
 - 🗺️ **7 профессиональных направлений** — Спорт, IT, Биотех, Дипломатия, Медиа, Art & Design, Предпринимательство
+- 🃏 **Коллекция из 84 карточек** — инвентарь (50), реликвии (10), баджи (5), боссы (4), магазин (8), таинственные сундуки (7)
+- 💠 **Редкости карточек** — Обычный / Редкий / Эпический / Легендарный со своей светящейся палитрой
+- 📊 **DISC-профилирование** — 4 архетипа (Командир, Звездочёт, Хранитель, Мастер), радар компетенций и персональные рекомендации
+- 🪙 **Экономика** — внутренняя валюта «НЕО-коины», магазин, серийные бонусы (streak)
+- 🐉 **Босс-батлы** — недельные рейдовые битвы
+- 🎁 **Таинственные сундуки** — выпадение XP, монет и предметов
 - 🌍 **Anglophone-среда** — английский как язык общения, а не урок
 - ⚽ **Превентивный спорт** — минимум 1,5–2 часа ежедневно
 - 🧬 **Edutainment** — обучение через игру и практику
 - 📦 **Продуктовый инкубатор** — каждый ребёнок доводит проект до готового продукта
-- 🎮 **Геймификация** — внутренняя валюта, уровни, финальный вызов
-- 📊 DISC-профилирование и персональные рекомендации
-- 🖨️ Генерация PDF-отчётов
+- 🖨️ **Генерация PDF-отчётов**
+
+---
+
+## 🃏 Коллекция карточек (84 шт.)
+
+Одна строка = одна игровая карточка. Разделы:
+
+| Раздел | Кол-во | Описание |
+|--------|:------:|----------|
+| **inventory** | 50 | Предметы-усиления по миссиям (1–10) |
+| **relic** | 10 | Легендарные реликвии «сквозной» смен (1–10) |
+| **badge** | 5 | Специальные значки за условия |
+| **boss** | 4 | Еженедельные боссы с HP и наградами |
+| **shop** | 8 | Товары магазина за НЕО-коины |
+| **mystery** | 7 | Таинственные сундуки с шансом выпадения |
+
+### Палитра редкостей
+
+| Редкость | Цвет границы / свечения | HEX |
+|----------|--------------------------|-----|
+| 🟢 **Обычный** | Серый | `#6b7280` |
+| 🔵 **Редкий** | Синий (акцент) | `#3b82f6` |
+| 🟣 **Эпический** | Фиолетовый | `#8b5cf6` |
+| 🟡 **Легендарный** | Золотой | `#fbbf24` |
+
+Реализовано через CSS-переменные `--rc-border`, `--rc-glow`, `--rc-text` и функцию `cardRarityStyle()`.
 
 ---
 
@@ -31,10 +63,11 @@
 
 | Технология | Назначение |
 |-------------|-------------|
-| **HTML5 / CSS3** | Структура и стили (CSS Grid, Flexbox, Glassmorphism) |
-| **Vanilla JavaScript** | Логика приложения (ES6+) |
-| **Supabase** | База данных (PostgreSQL) + REST API |
-| **GitHub Pages** | Бесплатный хостинг |
+| **HTML5 / CSS3** | Структура и стили (CSS Grid, Flexbox, Glassmorphism, градиенты) |
+| **Vanilla JavaScript** | Логика приложения (ES6+), SPA-роутер |
+| **Supabase** | База данных (PostgreSQL) + REST API + Row Level Security |
+| **GitHub Pages** | Хостинг фронтенда |
+| **GitHub Actions** | Автодеплой при пуше в `master` |
 | **Google Fonts** | Space Grotesk, Orbitron, JetBrains Mono |
 
 ---
@@ -43,48 +76,50 @@
 
 ```
 kanikuly-s-one/
-├── index.html              ← Главный файл (sidebar + страницы)
-├── app.js                  ← Логика приложения
+├── index.html              ← Главный файл (sidebar + все страницы, единый <style>)
+├── js/
+│   ├── config.js           ← Supabase + смены + направления + экономика + реликвии + DISC
+│   ├── api.js              ← API-слой (работа с Supabase REST)
+│   └── app.js              ← Логика приложения (страницы, карточки, DISC, коллекция)
+├── app.js                  ← Синхронная копия js/app.js
+├── migrations/             ← Пошаговые SQL-миграции (001–008)
+├── player/                 ← Прототип профиля игрока + дизайн-доки
+├── .github/workflows/      ← Автодеплой на GitHub Pages
 ├── logo.svg                ← Тематический логотип (солнце + палатка)
 ├── bg.png                  ← Фоновое изображение
-├── README.md               ← Этот файл
 ├── _nojekyll               ← Для корректной работы GitHub Pages
-└── js/
-    ├── config.js           ← Supabase + 10 смен + 7 направлений + компетенции
-    ├── api.js              ← API-слой (работа с Supabase REST)
-    └── app.js              ← Дубль логики приложения
+└── README.md               ← Этот файл
 ```
 
 ---
 
-## 🏕️ Смены
+## 🗃️ SQL-миграции (Supabase)
 
-| # | Название | Направления |
-|---|----------|-------------|
-| 1 | Кибер-Атлеты: Хроники Будущего | Спорт · IT · Биотех · Предпринимательство |
-| 2 | Terraforming: Колонизаторы Новых Миров | Спорт · Биотех · Дипломатия · Предпринимательство |
-| 3 | Meta-Agency: Детективы Времени | Медиа · Спорт · IT · Дипломатия |
-| 4 | Future Makers: Академия Прикладного Будущего | IT · Биотех · Art & Design · Спорт · Предпринимательство |
-| 5 | Active Tech 2077: Академия Био-Тех Спорта | Спорт · Биотех · IT · Предпринимательство |
-| 6 | Urban Quest: Агенты Городского Разума | IT · Медиа · Спорт · Art & Design · Предпринимательство |
-| 7 | Smart City Lab: Архитекторы Умного Города | IT · Art & Design · Биотех · Спорт · Дипломатия |
-| 8 | English Game Studio: Код Доступа | IT · Art & Design · Медиа · Предпринимательство · Спорт |
-| 9 | Champions Academy: Био-Механика Побед | Спорт · Дипломатия · Предпринимательство |
-| 10 | Island Survival: Eco-Tech Экспедиция | Спорт · Дипломатия · Предпринимательство |
+| Миграция | Назначение |
+|----------|------------|
+| `001_security_and_integrity.sql` | Базовые ограничения и целостность |
+| `002_rls_lockdown.sql` | Ужесточение Row Level Security |
+| `003_add_nickname.sql` | Никнеймы участников |
+| `004_image_urls.sql` | URL изображений (смены, баджи) |
+| `005_inventory_table.sql` | Таблица инвентаря |
+| `006_disc_images.sql` | Изображения DISC-архетипов |
+| `007_participations.sql` | Таблица участия (отряды) |
+| `008_cards.sql` | Таблица коллекции из 84 карточек (+ данные) |
 
----
+### Базовая витрина таблиц
 
-## 🗺️ Профессиональные направления
+```sql
+students           -- участники (никнейм, возраст, отряд, смена)
+observations       -- наблюдения и оценки (день, трек, independence, quality)
+badges             -- достижения игроков
+completions        -- выполненные задания (score, xp, coins, skills, professions)
+participations     -- участие по командам (squad 1–10)
+cards              -- коллекция: 84 карточки (num, section, rarity, bonus, ...)
+content_shifts / content_missions / content_competencies
+content_badge_definitions / content_inventory_items / content_disc_config
+```
 
-| Направление | Описание |
-|-------------|----------|
-| 🏅 **Спорт** | Физподготовка, координация, командный дух |
-| 💻 **IT** | Программирование, датчики, Arduino, micro:bit |
-| 🧬 **Биотех** | Биохакинг, экология, сити-фермерство |
-| 🤝 **Дипломатия** | Переговоры, координация, работа с конфликтами |
-| 🎬 **Медиа** | Сторителлинг, съёмка, подкасты, промо-ролики |
-| 🎨 **Art & Design** | Дизайн интерфейсов, концепт-арт, визуальная айдентика |
-| 📊 **Предпринимательство** | Питчинг, юнит-экономика, защита проектов |
+Все таблицы используют `Row Level Security` с политиками публичного доступа (демо-проект).
 
 ---
 
@@ -93,77 +128,11 @@ kanikuly-s-one/
 | Страница | Функционал |
 |----------|-------------|
 | 👥 **Участники** | Регистрация, список, быстрый просмотр |
-| 🏕️ **Смены** | 10 концепций смен, направления и миссии |
-| 🏅 **Достижения** | Автоначисление 13 значков |
-| 🎯 **Таланты** | DISC, радар компетенций, рекомендации |
+| 🏕️ **Смены** | 10 концепций смен, направления, миссии, детальный разбор |
+| 🏅 **Достижения** | Автоначисление значков, коллекция |
+| 🎯 **Таланты** | DISC (4 архетипа + синергия), радар компетенций, инвентарь, магазин, боссы, рекомендации |
 | 📊 **Дашборд** | Статистика по каникулам, фильтры |
-
----
-
-## 🗃️ SQL-схема для Supabase
-
-```sql
--- Включаем UUID
-create extension if not exists "uuid-ossp";
-
--- 1. Таблица участников
-create table if not exists public.students (
-  id uuid default uuid_generate_v4() primary key,
-  first_name text not null,
-  last_name text not null,
-  nickname text not null default 'Player',
-  age integer check (age >= 7 and age <= 12),
-  gender text check (gender in ('Мужской', 'Женский')),
-  grade integer check (grade >= 1 and grade <= 11),
-  squad integer check (squad >= 1 and squad <= 8),
-  shift integer check (shift >= 1 and shift <= 10),
-  notes text,
-  created_at timestamp with time zone default now()
-);
-
--- Никнейм показывается в приложении, имя/фамилия скрыты
-alter table public.students
-  add constraint nickname_not_empty check (length(btrim(nickname)) > 0);
-
--- 2. Таблица наблюдений (оценки)
-create table if not exists public.observations (
-  id uuid default uuid_generate_v4() primary key,
-  student_id uuid references public.students(id) on delete cascade not null,
-  day integer check (day >= 1 and day <= 10) not null,
-  track text check (track in ('bio', 'eng', 'media', 'english')) not null,
-  independence integer check (independence >= 1 and independence <= 5) default 0,
-  quality integer check (quality >= 1 and quality <= 5) default 0,
-  initiative boolean default false,
-  notes text,
-  created_at timestamp with time zone default now()
-);
-
--- 3. Таблица достижений
-create table if not exists public.badges (
-  id uuid default uuid_generate_v4() primary key,
-  student_id uuid references public.students(id) on delete cascade not null,
-  badge_id text not null,
-  name text not null,
-  icon text,
-  earned boolean default false,
-  earned_at timestamp with time zone,
-  created_at timestamp with time zone default now()
-);
-
--- Индексы
-create index if not exists idx_students_squad on public.students(squad);
-create index if not exists idx_obs_student on public.observations(student_id);
-create index if not exists idx_badges_student on public.badges(student_id);
-
--- Row Level Security
-alter table public.students enable row level security;
-alter table public.observations enable row level security;
-alter table public.badges enable row level security;
-
-create policy "Public access" on public.students for all using (true) with check (true);
-create policy "Public access" on public.observations for all using (true) with check (true);
-create policy "Public access" on public.badges for all using (true) with check (true);
-```
+| 📋 **Оценка** | Оценка заданий по направлениям, суммарная статистика |
 
 ---
 
@@ -171,9 +140,10 @@ create policy "Public access" on public.badges for all using (true) with check (
 
 | Цвет | HEX | Назначение |
 |------|-----|-------------|
-| 🟠 Оранжевый | `#E8A838` | Акценты, кнопки, логотип |
-| 🔵 Тёмно-синий | `#132245` | Основной фон |
-| ⚪ Белый | `#ffffff` | Текст, иконки |
+| 🟠 Оранжевый (акцент) | `#F97316` | Кнопки, акценты |
+| 🟣 Фиолетовый | `#8B5CF6` | Эпические элементы |
+| 🔵 Синий | `#3B82F6` | Редкие элементы |
+| 🟡 Золотой | `#FBBF24` | Легендарные элементы |
 
 ---
 
@@ -188,6 +158,12 @@ create policy "Public access" on public.badges for all using (true) with check (
 5. **Навыки будущего** — критическое мышление, коммуникация, креативность
 6. **Профессии будущего** — IT, дизайн, инженерия, медицина, экология
 7. **Продуктовый инкубатор** — от идеи до защиты перед родителями
+
+---
+
+## 🚀 Деплой
+
+Пуш в ветку `master` автоматически запускает GitHub Actions (`deploy.yml`), который публикует проект на GitHub Pages. Кэш-банстинг скриптов выполняется инкрементальной версией параметра `?v=N`.
 
 ---
 
