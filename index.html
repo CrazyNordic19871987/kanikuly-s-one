@@ -1335,6 +1335,18 @@ section.card-block{margin-top:56px}
 .disc-arch-formula div{min-width:0}
 .formula-val{word-break:break-word}
 
+/* ── DISC standalone page (hero + synergy) ── */
+.disc-hero{text-align:center;padding:30px 10px 10px;margin-bottom:8px}
+.disc-hero .eyebrow{font-family:'Orbitron',sans-serif;letter-spacing:0.35em;font-size:11px;color:var(--green);text-transform:uppercase;margin-bottom:14px}
+.disc-hero h1{font-family:'Orbitron',sans-serif;font-weight:800;font-size:clamp(22px,3.6vw,34px);margin:0 0 10px;background:linear-gradient(90deg,#fff,var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+.disc-hero p{color:#9ca3af;font-size:13.5px;max-width:660px;margin:0 auto;line-height:1.6}
+.disc-synergy{margin-top:38px;border-radius:14px;padding:22px 24px;background:linear-gradient(160deg,rgba(19,34,69,0.6),rgba(27,40,56,0.75));border:1px solid rgba(255,255,255,0.08)}
+.disc-synergy h3{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--green);margin:0 0 14px;text-align:center;letter-spacing:0.02em}
+.disc-synergy-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;text-align:center}
+.disc-synergy-grid .col span.q{display:block;font-family:'Orbitron',sans-serif;font-size:10px;color:#6b7280;margin-bottom:6px;letter-spacing:0.05em}
+.disc-synergy-grid .col span.a{font-size:13px;color:#e5e7eb;font-weight:600}
+@media (max-width:640px){.disc-synergy-grid{grid-template-columns:repeat(2,1fr);gap:18px}}
+
 </style>
 </head>
 <body>
@@ -1608,7 +1620,14 @@ section.card-block{margin-top:56px}
         <!-- PANEL: DISC -->
         <div class="pp-panel" data-panel="disc">
           <div class="gc">
-            <h3>🧩 DISC-профиль</h3>
+            <div class="disc-hero">
+              <div class="eyebrow">Каникулы с ONE! · Таланты</div>
+              <h1>🎭 DISC-профили участников</h1>
+              <p>4 архетипа команды — унисекс, вне возраста. Каждый закрывает свои 10% задачи, вместе — 100% результата.</p>
+            </div>
+            <div class="disc-arch" id="disc-page-cards"></div>
+            <div class="disc-synergy" id="disc-page-synergy"></div>
+            <h3 style="margin-top:26px">🧩 Ваш DISC-профиль</h3>
             <div class="disc-bars" id="disc-bars"></div>
             <div class="disc-combo" id="disc-combo"></div>
           </div>
@@ -1929,7 +1948,7 @@ window.onerror = function(msg, url, line, col, error) {
   document.body.appendChild(el);
 };
 </script>
-<script src="js/app.js?v=17"></script>
+<script src="js/app.js?v=18"></script>
 
 <!-- Mobile menu script -->
 <script>
