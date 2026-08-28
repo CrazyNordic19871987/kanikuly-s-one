@@ -1347,6 +1347,15 @@ section.card-block{margin-top:56px}
 .disc-synergy-grid .col span.a{font-size:13px;color:#e5e7eb;font-weight:600}
 @media (max-width:640px){.disc-synergy-grid{grid-template-columns:repeat(2,1fr);gap:18px}}
 
+/* ── Unified glassy containers (match reference card look) ── */
+.gc,.form-card,.quick-view,.pp-hero,.pp-stat,.student-card,.db-student-card,
+.stat-block,.shift-card,.shift-detail-header,.shift-direction,.shift-info-card,
+.assess-summary-card,.assess-summary-stat,.assess-summary-mission,
+.sd-stat,.sd-lb-row,.sd-squad-bar,.recommendation-card{
+  background:linear-gradient(160deg,rgba(19,34,69,0.75),rgba(27,40,56,0.85));
+  backdrop-filter:blur(6px);
+}
+
 </style>
 </head>
 <body>
@@ -1948,7 +1957,7 @@ window.onerror = function(msg, url, line, col, error) {
   document.body.appendChild(el);
 };
 </script>
-<script src="js/app.js?v=18"></script>
+<script src="js/app.js?v=19"></script>
 
 <!-- Mobile menu script -->
 <script>
