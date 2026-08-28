@@ -1316,7 +1316,6 @@ section.card-block{margin-top:56px}
     <button class="nav-item" data-page="talents"  title="Таланты">🎯<span>Таланты</span></button>
     <button class="nav-item" data-page="dashboard" title="Дашборд">📊<span>Стат</span></button>
     <button class="nav-item" data-page="assessments" title="Оценка">📋<span>Оценка</span></button>
-    <button class="nav-item" data-page="cards" title="Карточки">🎴<span>Карточки</span></button>
     <div class="nav-spacer"></div>
   </aside>
 
@@ -1462,35 +1461,15 @@ section.card-block{margin-top:56px}
       </div>
     </div>
 
-    <!-- PAGE 3: ДОСТИЖЕНИЯ -->
+    <!-- PAGE 3: ДОСТИЖЕНИЯ (КОЛЛЕКЦИЯ КАРТОЧЕК) -->
     <div class="page" id="page-achievements">
       <div class="page-wrap">
         <div class="page-header">
-          <h1>🏅 ДОСТИЖЕНИЯ</h1>
-          <p>Автоматическое начисление баджей</p>
+          <h1>🎴 КАРТОЧКИ — КОЛЛЕКЦИЯ</h1>
+          <p>Инвентарь смен, реликвии, значки, боссы, магазин и тайный сундук (84 шт.)</p>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-          <button class="btn-primary" onclick="printStudentReport(state.currentStudentId)">🎮 Скачать репорт участника</button>
-          <button class="btn-print" style="margin-bottom:0" onclick="window.print()">🖨️ Печать страницы</button>
-        </div>
-
-        <div style="margin-bottom:12px">
-          <label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block">Участник</label>
-          <select class="student-selector" id="ach-student-select">
-            <option value="">— Выбрать участника —</option>
-          </select>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-          <select class="form-input" id="ach-filter-shift" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все миссии</option></select>
-          <select class="form-input" id="ach-filter-campus" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все кампусы</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select>
-          <select class="form-input" id="ach-filter-squad" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все команды</option></select>
-        </div>
-
-        <div class="ach-summary" id="ach-summary">
-          <div><strong id="ach-count">0</strong> <span>из <span id="ach-total">13</span> значков получено</span></div>
-        </div>
-
-        <div class="badge-grid" id="badge-grid"></div>
+        <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
+        <div id="cards-content"></div>
       </div>
     </div>
 
@@ -1737,18 +1716,6 @@ section.card-block{margin-top:56px}
       </div>
     </div>
 
-    <!-- PAGE 7: КАРТОЧКИ (КОЛЛЕКЦИЯ) -->
-    <div class="page" id="page-cards">
-      <div class="page-wrap">
-        <div class="page-header">
-          <h1>🎴 КАРТОЧКИ — КОЛЛЕКЦИЯ</h1>
-          <p>Инвентарь смен, реликвии, значки, боссы, магазин и тайный сундук (84 шт.)</p>
-        </div>
-        <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
-        <div id="cards-content"></div>
-      </div>
-    </div>
-
   </main>
 
   <!-- ── MOBILE BOTTOM TAB BAR ── -->
@@ -1759,7 +1726,6 @@ section.card-block{margin-top:56px}
     <button class="btab" data-page="talents"><span class="btab-icon">🎯</span><span class="btab-label">Таланты</span></button>
     <button class="btab" data-page="dashboard"><span class="btab-icon">📊</span><span class="btab-label">Стат</span></button>
     <button class="btab" data-page="assessments"><span class="btab-icon">📋</span><span class="btab-label">Оценка</span></button>
-    <button class="btab" data-page="cards"><span class="btab-icon">🎴</span><span class="btab-label">Карты</span></button>
   </nav>
 </div>
 
@@ -1925,7 +1891,7 @@ window.onerror = function(msg, url, line, col, error) {
   document.body.appendChild(el);
 };
 </script>
-<script src="js/app.js?v=12"></script>
+<script src="js/app.js?v=13"></script>
 
 <!-- Mobile menu script -->
 <script>

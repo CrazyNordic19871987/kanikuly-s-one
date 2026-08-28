@@ -713,7 +713,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   showLoader(false);
 
   const hash = location.hash.replace('#', '');
-  const validPages = ['students', 'shifts', 'dashboard', 'achievements', 'talents', 'cards'];
+  const validPages = ['students', 'shifts', 'dashboard', 'achievements', 'talents'];
   const startPage = validPages.includes(hash) ? hash : 'shifts';
   navigateTo(startPage, true);
   history.replaceState({ page: startPage }, '', '#' + startPage);
@@ -758,12 +758,11 @@ window.addEventListener('popstate', (e) => {
 
     if (typeof syncBottomBar === 'function') syncBottomBar(page);
 
-    if (page === 'achievements') { populateStudentSelect('ach-student-select', onAchStudentChange); populateAchFilters(); }
+    if (page === 'achievements') { renderCardsPage(); }
     if (page === 'talents')      populateStudentSelect('talent-student-select', onTalentStudentChange);
     if (page === 'dashboard')    renderDashboard();
     if (page === 'shifts')       renderShiftsPage();
     if (page === 'students')     renderStudentList();
-    if (page === 'cards')        renderCardsPage();
   }
 });
 
@@ -933,17 +932,11 @@ function rebuildMainContent() {
   </div>
   <div class="page" id="page-achievements">
     <div class="page-wrap">
-      <div class="page-header"><h1>🏆 БАДЖИ</h1><p>Коллекция достижений участников</p></div>
+      <div class="page-header"><h1>🎴 КАРТОЧКИ — КОЛЛЕКЦИЯ</h1><p>Инвентарь смен, реликвии, значки, боссы, магазин и тайный сундук (84 шт.)</p></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        <div style="flex:1;min-width:200px"><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Участник</label><select class="form-input" id="ach-student-select"><option value="">— Выбрать участника —</option></select></div>
+        <button class="btn-print" style="margin-bottom:0" onclick="window.print()">🖨️ Печать страницы</button>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        <select class="form-input" id="ach-filter-shift" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все миссии</option></select>
-        <select class="form-input" id="ach-filter-campus" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все кампусы</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select>
-        <select class="form-input" id="ach-filter-squad" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все команды</option></select>
-      </div>
-      <div class="ach-summary" id="ach-summary"></div>
-      <div class="badge-grid" id="badge-grid"></div>
+      <div id="cards-content"></div>
     </div>
   </div>
   <div class="page" id="page-talents">
@@ -996,7 +989,6 @@ function rebuildMainContent() {
   populateStudentFilters();
   populateAssShiftSelect();
   populateDbFilters();
-  populateStudentSelect('ach-student-select', onAchStudentChange);
   populateStudentSelect('talent-student-select', onTalentStudentChange);
   rebindSearch();
 }
@@ -1038,12 +1030,11 @@ function navigateTo(page, skipHistory) {
 
   if (typeof syncBottomBar === 'function') syncBottomBar(page);
 
-  if (page === 'achievements') { populateStudentSelect('ach-student-select', onAchStudentChange); populateAchFilters(); }
+  if (page === 'achievements') { renderCardsPage(); }
   if (page === 'talents')      populateStudentSelect('talent-student-select', onTalentStudentChange);
   if (page === 'dashboard')    renderDashboard();
   if (page === 'shifts')       renderShiftsPage();
   if (page === 'students')     renderStudentList();
-  if (page === 'cards')        renderCardsPage();
   if (page === 'shift-dashboard') {
     if (typeof syncBottomBar === 'function') syncBottomBar('shifts');
   }
