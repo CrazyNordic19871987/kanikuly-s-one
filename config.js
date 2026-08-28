@@ -17,7 +17,8 @@ const TABLES = {
   CONTENT_BADGE_DEFS:    'content_badge_definitions',
   CONTENT_DISC_CONFIG:   'content_disc_config',
   CONTENT_MISSIONS:      'content_missions',
-  CONTENT_INVENTORY:     'content_inventory_items'
+  CONTENT_INVENTORY:     'content_inventory_items',
+  PARTICIPATIONS:        'participations'
 };
 
 // ── Fallback данные (если Supabase пуст) ──────────────────

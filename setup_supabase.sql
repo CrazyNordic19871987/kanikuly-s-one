@@ -193,6 +193,31 @@ INSERT INTO public.content_disc_config (config_key, config_value) VALUES
 ('images', '{"D":"","I":"","S":"","C":""}'::jsonb);
 
 -- ═══════════════════════════════════════════════════════════════════
+-- 5. Таблица participations — участие в миссиях (студент + миссия + команда 1..10)
+--    Один участник может быть в нескольких миссиях; не все участвуют во всех.
+-- ═══════════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS public.participations (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id  UUID REFERENCES public.students(id) ON DELETE CASCADE,
+  shift_id    INT  NOT NULL,
+  squad       INT  NOT NULL CHECK (squad BETWEEN 1 AND 10),
+  created_at  TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (student_id, shift_id)
+);
+ALTER TABLE public.participations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "anon_all_participations"
+  ON public.participations FOR ALL USING (true);
+CREATE POLICY "anon_read_participations"
+  ON public.participations FOR SELECT USING (true);
+
+INSERT INTO public.participations (student_id, shift_id, squad)
+SELECT id, shift, squad FROM public.students s
+WHERE s.shift IS NOT NULL AND s.squad IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM public.participations p
+                  WHERE p.student_id = s.id AND p.shift_id = s.shift)
+ON CONFLICT (student_id, shift_id) DO NOTHING;
+
+-- ═══════════════════════════════════════════════════════════════════
 -- Готово! Проверка:
 --   SELECT COUNT(*) FROM public.content_shifts;            -- ожидаем 10
 --   SELECT COUNT(*) FROM public.content_competencies;      -- ожидаем 12

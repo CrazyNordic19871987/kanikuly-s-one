@@ -1302,13 +1302,14 @@ textarea:focus{border-color:var(--orange)}
                 </select>
               </div>
               <div class="form-group"><label>Класс</label><input class="form-input" id="s-grade" type="number" min="1" max="11" required placeholder="Класс"></div>
-              <div class="form-group"><label>Отряд</label>
+              <div class="form-group"><label>Команда</label>
                 <select class="form-input" id="s-squad" required>
                   <option value="">Выбрать...</option>
-                  <option value="1">Отряд 1</option><option value="2">Отряд 2</option>
-                  <option value="3">Отряд 3</option><option value="4">Отряд 4</option>
-                  <option value="5">Отряд 5</option><option value="6">Отряд 6</option>
-                  <option value="7">Отряд 7</option><option value="8">Отряд 8</option>
+                  <option value="1">Команда 1</option><option value="2">Команда 2</option>
+                  <option value="3">Команда 3</option><option value="4">Команда 4</option>
+                  <option value="5">Команда 5</option><option value="6">Команда 6</option>
+                  <option value="7">Команда 7</option><option value="8">Команда 8</option>
+                  <option value="9">Команда 9</option><option value="10">Команда 10</option>
                 </select>
               </div>
               <div class="form-group"><label>Кампус</label>
@@ -1332,6 +1333,16 @@ textarea:focus{border-color:var(--orange)}
           </form>
         </div>
 
+        <div class="form-card" style="margin-top:14px">
+          <h3 style="font-size:0.85rem;margin-bottom:12px">➕ Добавить участника в ещё одну миссию</h3>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="form-group"><label>Участник</label><select class="form-input" id="ap-student"><option value="">Выбрать...</option></select></div>
+            <div class="form-group"><label>Миссия</label><select class="form-input" id="ap-shift"><option value="">Выбрать...</option></select></div>
+            <div class="form-group"><label>Команда</label><select class="form-input" id="ap-squad"><option value="">Выбрать...</option></select></div>
+          </div>
+          <button class="btn-primary" type="button" onclick="onAddParticipation()" style="margin-top:8px">➕ Добавить участие</button>
+        </div>
+
         <div class="students-layout">
           <div>
             <div class="student-filters" id="student-filters">
@@ -1339,7 +1350,7 @@ textarea:focus{border-color:var(--orange)}
                 <option value="">Все миссии</option>
               </select>
               <select class="form-input st-filter-select" id="st-filter-squad" onchange="onStFilterChange()">
-                <option value="">Все отряды</option>
+                <option value="">Все команды</option>
               </select>
               <select class="form-input st-filter-select" id="st-filter-campus" onchange="onStFilterChange()">
                 <option value="">Все кампусы</option>
@@ -1407,7 +1418,7 @@ textarea:focus{border-color:var(--orange)}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <select class="form-input" id="ach-filter-shift" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все миссии</option></select>
           <select class="form-input" id="ach-filter-campus" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все кампусы</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select>
-          <select class="form-input" id="ach-filter-squad" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все отряды</option></select>
+          <select class="form-input" id="ach-filter-squad" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все команды</option></select>
         </div>
 
         <div class="ach-summary" id="ach-summary">
@@ -1560,16 +1571,18 @@ textarea:focus{border-color:var(--orange)}
             <button class="filter-pill" data-filter="campus" data-val="ШСТ" onclick="setFilter('campus','ШСТ')">ШСТ</button>
           </div>
           <div class="filter-row">
-            <span class="filter-label">Отряд:</span>
+            <span class="filter-label">Команда:</span>
             <button class="filter-pill active" data-filter="squad" data-val="" onclick="setFilter('squad','')">Все</button>
-            <button class="filter-pill" data-filter="squad" data-val="1" onclick="setFilter('squad','1')">Отряд 1</button>
-            <button class="filter-pill" data-filter="squad" data-val="2" onclick="setFilter('squad','2')">Отряд 2</button>
-            <button class="filter-pill" data-filter="squad" data-val="3" onclick="setFilter('squad','3')">Отряд 3</button>
-            <button class="filter-pill" data-filter="squad" data-val="4" onclick="setFilter('squad','4')">Отряд 4</button>
-            <button class="filter-pill" data-filter="squad" data-val="5" onclick="setFilter('squad','5')">Отряд 5</button>
-            <button class="filter-pill" data-filter="squad" data-val="6" onclick="setFilter('squad','6')">Отряд 6</button>
-            <button class="filter-pill" data-filter="squad" data-val="7" onclick="setFilter('squad','7')">Отряд 7</button>
-            <button class="filter-pill" data-filter="squad" data-val="8" onclick="setFilter('squad','8')">Отряд 8</button>
+            <button class="filter-pill" data-filter="squad" data-val="1" onclick="setFilter('squad','1')">Команда 1</button>
+            <button class="filter-pill" data-filter="squad" data-val="2" onclick="setFilter('squad','2')">Команда 2</button>
+            <button class="filter-pill" data-filter="squad" data-val="3" onclick="setFilter('squad','3')">Команда 3</button>
+            <button class="filter-pill" data-filter="squad" data-val="4" onclick="setFilter('squad','4')">Команда 4</button>
+            <button class="filter-pill" data-filter="squad" data-val="5" onclick="setFilter('squad','5')">Команда 5</button>
+            <button class="filter-pill" data-filter="squad" data-val="6" onclick="setFilter('squad','6')">Команда 6</button>
+            <button class="filter-pill" data-filter="squad" data-val="7" onclick="setFilter('squad','7')">Команда 7</button>
+            <button class="filter-pill" data-filter="squad" data-val="8" onclick="setFilter('squad','8')">Команда 8</button>
+            <button class="filter-pill" data-filter="squad" data-val="9" onclick="setFilter('squad','9')">Команда 9</button>
+            <button class="filter-pill" data-filter="squad" data-val="10" onclick="setFilter('squad','10')">Команда 10</button>
           </div>
           <div class="filter-row">
             <span class="filter-label">Миссия:</span>
@@ -1606,13 +1619,13 @@ textarea:focus{border-color:var(--orange)}
           <button class="filter-pill" data-filter="sd-campus" data-val="ШСТ" onclick="setSdFilter('campus','ШСТ')">ШСТ</button>
         </div>
         <div class="filter-row">
-          <span class="filter-label">Отряд:</span>
+          <span class="filter-label">Команда:</span>
           <button class="filter-pill active" data-filter="sd-squad" data-val="" onclick="setSdFilter('squad','')">Все</button>
         </div>
         <div class="sd-stats" id="sd-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px"></div>
         <h3 style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">🏆 Рейтинг участников</h3>
         <div id="sd-leaderboard"></div>
-        <h3 style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin:20px 0 12px">📈 Распределение по отрядам</h3>
+        <h3 style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin:20px 0 12px">📈 Распределение по командам</h3>
         <div id="sd-squads"></div>
       </div>
     </div>
@@ -1641,9 +1654,9 @@ textarea:focus{border-color:var(--orange)}
             </select>
           </div>
           <div class="form-group">
-            <label>Отряд</label>
+            <label>Команда</label>
             <select class="form-input" id="ass-squad" onchange="onAssSquadChange()">
-              <option value="">Выбрать отряд...</option>
+              <option value="">Выбрать команду...</option>
             </select>
           </div>
           <div class="form-group">
@@ -1821,7 +1834,7 @@ textarea:focus{border-color:var(--orange)}
 <div id="toast-container"></div>
 
 <!-- SCRIPTS -->
-<script src="js/config.js?v=5"></script>
+<script src="js/config.js?v=6"></script>
 <script src="js/api.js?v=4"></script>
 <script>
 window.onerror = function(msg, url, line, col, error) {
@@ -1834,7 +1847,7 @@ window.onerror = function(msg, url, line, col, error) {
   document.body.appendChild(el);
 };
 </script>
-<script src="js/app.js?v=10"></script>
+<script src="js/app.js?v=11"></script>
 
 <!-- Mobile menu script -->
 <script>

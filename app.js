@@ -5,6 +5,7 @@
 // -- Состояние приложения ----------------------
 let state = {
   students: [],
+  participations: [],  // старое имя: participation rows (student_id, shift_id, squad)
   observations: [],
   badges: [],
   completions: [],
@@ -73,6 +74,105 @@ function initialsOf(st) {
   if (nick) return nick.slice(0, 2).toUpperCase();
   return (st.first_name?.[0] || '') + (st.last_name?.[0] || '');
 }
+
+// ── Участие в миссиях (participations) ──
+// Одна строка = студент в миссии X, команда N (1..10).
+// Студент может участвовать в нескольких миссиях; в каждой — команда своя.
+
+// Команда студента в конкретной миссии (или null)
+function studentSquadIn(studentId, shiftId) {
+  const p = (state.participations || []).find(r => String(r.student_id) === String(studentId) && String(r.shift_id) === String(shiftId));
+  return p ? p.squad : null;
+}
+// Студенты, участвующие в миссии (с позицией их команды)
+function shiftParticipants(shiftId) {
+  const parts = {};
+  (state.participations || []).forEach(r => {
+    if (String(r.shift_id) === String(shiftId)) parts[String(r.student_id)] = r.squad;
+  });
+  // Fallback для студентов со старым полем shift/squad без строки участия
+  state.students.forEach(s => {
+    if (String(s.shift) === String(shiftId) && !(String(s.id) in parts) && s.squad != null) {
+      parts[String(s.id)] = s.squad;
+    }
+  });
+  return state.students.filter(s => String(s.id) in parts);
+}
+// Команда студента в миссии (приоритет participations, иначе старое поле squad)
+function squadOfIn(studentId, shiftId) {
+  const t = studentSquadIn(studentId, shiftId);
+  if (t != null) return t;
+  const s = state.students.find(x => String(x.id) === String(studentId));
+  return (s && String(s.shift) === String(shiftId) && s.squad != null) ? s.squad : null;
+}
+// «Основная» миссия студента (для карточки/профиля): первая participation, иначе старое поле shift
+function studentPrimaryShift(studentId) {
+  const s = state.students.find(x => String(x.id) === String(studentId));
+  const parts = (state.participations || []).filter(r => String(r.student_id) === String(studentId));
+  if (parts.length) return parts[0].shift_id;
+  return s ? s.shift : null;
+}
+function studentPrimarySquad(studentId) {
+  const s = state.students.find(x => String(x.id) === String(studentId));
+  const parts = (state.participations || []).filter(r => String(r.student_id) === String(studentId));
+  if (parts.length) return parts[0].squad;
+  return s ? s.squad : null;
+}
+
+// Все миссии, в которых участвует студент (номера миссий)
+function studentShifts(studentId) {
+  const parts = (state.participations || []).filter(r => String(r.student_id) === String(studentId)).map(r => r.shift_id);
+  if (parts.length) return parts;
+  const s = state.students.find(x => String(x.id) === String(studentId));
+  return s && s.shift != null ? [s.shift] : [];
+}
+
+// Перечитать участия из Supabase
+async function reloadParticipations() {
+  try {
+    const rows = await safeGet(TABLES.PARTICIPATIONS);
+    state.participations = Array.isArray(rows) ? rows : [];
+    return state.participations;
+  } catch (e) {
+    return state.participations || [];
+  }
+}
+
+// Добавить студента в миссию (команда 1..10). Возвращает true/false.
+async function addParticipation(studentId, shiftId, squad) {
+  try {
+    await api.insert(TABLES.PARTICIPATIONS, {
+      student_id: studentId,
+      shift_id:   parseInt(shiftId),
+      squad:      parseInt(squad),
+      created_at: new Date().toISOString()
+    });
+    await reloadParticipations();
+    return true;
+  } catch (e) {
+    console.error('addParticipation error:', e);
+    return false;
+  }
+}
+
+// Команда студента (для фильтра) — команда в любой его миссии
+function studentInAnySquad(studentId) {
+  const s = state.students.find(x => String(x.id) === String(studentId));
+  const parts = (state.participations || []).filter(r => String(r.student_id) === String(studentId));
+  if (parts.length) return String(parts[0].squad);
+  return s && s.squad != null ? String(s.squad) : null;
+}
+
+// Краткое описание участий: "М1 · Команда 2, М3 · Команда 5"
+function studentParticipationLabel(s) {
+  const parts = (state.participations || []).filter(r => String(r.student_id) === String(s.id));
+  if (parts.length) {
+    return parts.map(r => 'М' + r.shift_id + ' · Команда ' + r.squad).join(', ');
+  }
+  if (s.shift != null) return 'М' + s.shift + (s.squad != null ? ' · Команда ' + s.squad : '');
+  return '—';
+}
+
 // Аватар-кружок: если есть avatar_url — фото, иначе инициалы
 function avatarCircle(st, innerText, size, borderColor) {
   const url = st && (st.avatar_url || st.avatar);
@@ -235,11 +335,12 @@ function checkLimitedBadges(studentId) {
   const today = new Date().toISOString().slice(0, 10);
   const todayComps = state.completions.filter(c => c.student_id == studentId && c.created_at && c.created_at.slice(0, 10) === today);
   const student = state.students.find(s => s.id == studentId);
-  const shiftId = student ? parseInt(student.shift) : 0;
+  const shiftId = student ? parseInt(studentPrimaryShift(student.id) || student.shift) : 0;
+  const myShifts = student ? studentShifts(student.id).map(String) : [];
   const newlyEarned = [];
   for (const lb of LIMITED_BADGES) {
     if (earned.includes(lb.id)) continue;
-    if (lb.shift_ids.length && !lb.shift_ids.includes(shiftId)) continue;
+    if (lb.shift_ids.length && !myShifts.some(sh => lb.shift_ids.map(String).includes(sh))) continue;
     let met = false;
     if (lb.condition === '3 completions in 1 day') met = todayComps.length >= 3;
     else if (lb.condition === '5/5 in 5 in a row') {
@@ -356,7 +457,7 @@ function getMissionBranch(studentId) {
 function getSquadScores() {
   const squads = {};
   state.students.forEach(s => {
-    const sq = s.squad || 'Без отряда';
+    const sq = studentInAnySquad(s.id) || 'Без команды';
     if (!squads[sq]) squads[sq] = { name: sq, totalXP: 0, members: 0, badges: 0 };
     squads[sq].totalXP += calcStudentXP(s.id);
     squads[sq].members++;
@@ -454,7 +555,7 @@ function computeInventory(studentId) {
   const items = [];
   const completions = state.completions.filter(c => c.student_id == studentId);
   const student = state.students.find(s => s.id === studentId);
-  const shiftId = student?.shift;
+  const shiftId = student ? studentPrimaryShift(student.id) || student.shift : null;
   // Предметы: из Supabase (content_inventory_items) приоритетно, иначе встроенные
   const dbItems = state.inventoryItems.filter(it => String(it.shift_id) === String(shiftId));
   const shiftData = dbItems.length ? { name: (state.shifts.find(sh => String(sh.id) === String(shiftId)) || {}).name || ('Миссия ' + shiftId), items: dbItems }
@@ -514,12 +615,55 @@ function populateStudentFilters() {
     opt.textContent = s.name || 'Смена ' + s.id;
     shiftSel.appendChild(opt);
   });
-  for (let i = 1; i <= 8; i++) {
+  for (let i = 1; i <= 10; i++) {
     const opt = document.createElement('option');
     opt.value = i;
-    opt.textContent = 'Отряд ' + i;
+    opt.textContent = 'Команда ' + i;
     squadSel.appendChild(opt);
   }
+  populateAddParticipationForm();
+}
+
+// Заполнение селектов «Добавить участника в миссию»
+function populateAddParticipationForm() {
+  const apStudent = ge('ap-student');
+  const apShift = ge('ap-shift');
+  const apSquad = ge('ap-squad');
+  if (!apStudent || !apShift || !apSquad) return;
+  if (apStudent.options.length <= 1) {
+    state.students.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = displayName(s);
+      apStudent.appendChild(opt);
+    });
+  }
+  if (apShift.options.length <= 1) {
+    (state.shifts || []).forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name || 'Миссия ' + s.id;
+      apShift.appendChild(opt);
+    });
+  }
+  if (apSquad.options.length <= 1) {
+    for (let i = 1; i <= 10; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = 'Команда ' + i;
+      apSquad.appendChild(opt);
+    }
+  }
+}
+
+async function onAddParticipation() {
+  const studentId = ge('ap-student')?.value;
+  const shiftId = ge('ap-shift')?.value;
+  const squad = ge('ap-squad')?.value;
+  if (!studentId || !shiftId || !squad) { showToast('⚠️ Выберите участника, миссию и команду', 'warn'); return; }
+  const ok = await addParticipation(studentId, shiftId, squad);
+  if (ok) { showToast('✓ Участник добавлен в миссию ' + shiftId + ', команда ' + squad); renderStudentList(); }
+  else showToast('⚠️ Не удалось добавить (возможно, уже участвует)', 'warn');
 }
 
 function onStFilterChange() {
@@ -546,10 +690,10 @@ function populateDbFilters() {
     });
   }
   if (squadSel && squadSel.options.length <= 1) {
-    for (let i = 1; i <= 8; i++) {
+    for (let i = 1; i <= 10; i++) {
       const opt = document.createElement('option');
       opt.value = i;
-      opt.textContent = 'Отряд ' + i;
+      opt.textContent = 'Команда ' + i;
       squadSel.appendChild(opt);
     }
   }
@@ -647,7 +791,7 @@ window.addEventListener('resize', () => {
 async function loadData() {
   const safeGet = async (table) => { try { return await api.getAll(table); } catch(e) { console.warn('Fetch failed:', table, e); return []; } };
 
-  const [students, observations, badges, completions, shifts, competencies, badgeDefs, discRows, missionsRows, inventoryRows] = await Promise.all([
+  const [students, observations, badges, completions, shifts, competencies, badgeDefs, discRows, missionsRows, inventoryRows, participationRows] = await Promise.all([
     safeGet(TABLES.STUDENTS),
     safeGet(TABLES.OBSERVATIONS),
     safeGet(TABLES.BADGES),
@@ -657,10 +801,12 @@ async function loadData() {
     safeGet(TABLES.CONTENT_BADGE_DEFS),
     safeGet(TABLES.CONTENT_DISC_CONFIG),
     safeGet(TABLES.CONTENT_MISSIONS),
-    safeGet(TABLES.CONTENT_INVENTORY)
+    safeGet(TABLES.CONTENT_INVENTORY),
+    safeGet(TABLES.PARTICIPATIONS)
   ]);
 
   state.students    = Array.isArray(students) ? students : [];
+  state.participations = Array.isArray(participationRows) ? participationRows : [];
   state.observations = Array.isArray(observations) ? observations : [];
   state.badges      = Array.isArray(badges) ? badges : [];
   state.completions = Array.isArray(completions) ? completions : [];
@@ -744,17 +890,25 @@ function rebuildMainContent() {
           <div class="form-group"><label>Возраст</label><input class="form-input" id="s-age" type="number" min="7" max="12" required placeholder="7-12"></div>
           <div class="form-group"><label>Пол</label><select class="form-input" id="s-gender" required><option value="">Выбрать...</option><option value="Мужской">Мужской</option><option value="Женский">Женский</option></select></div>
           <div class="form-group"><label>Класс</label><input class="form-input" id="s-grade" type="number" min="1" max="11" required placeholder="Класс"></div>
-          <div class="form-group"><label>Отряд</label><select class="form-input" id="s-squad" required><option value="">Выбрать...</option><option value="1">Отряд 1</option><option value="2">Отряд 2</option><option value="3">Отряд 3</option><option value="4">Отряд 4</option><option value="5">Отряд 5</option><option value="6">Отряд 6</option><option value="7">Отряд 7</option><option value="8">Отряд 8</option></select></div>
+          <div class="form-group"><label>Команда</label><select class="form-input" id="s-squad" required><option value="">Выбрать...</option><option value="1">Команда 1</option><option value="2">Команда 2</option><option value="3">Команда 3</option><option value="4">Команда 4</option><option value="5">Команда 5</option><option value="6">Команда 6</option><option value="7">Команда 7</option><option value="8">Команда 8</option><option value="9">Команда 9</option><option value="10">Команда 10</option></select></div>
           <div class="form-group"><label>Кампус</label><select class="form-input" id="s-campus" required><option value="">Выбрать...</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select></div>
           <div class="form-group"><label>Миссия</label><select class="form-input" id="s-shift" required><option value="">Выбрать...</option></select></div>
         </div>
         <div class="form-group" style="margin-top:8px"><label>Заметки</label><textarea class="form-input" id="s-notes" rows="2" placeholder="Дополнительная информация..."></textarea></div>
         <button class="btn-primary" type="submit">✅ Добавить участника</button></form>
+        <div class="form-card" style="margin-top:14px"><h3 style="font-size:0.85rem;margin-bottom:12px">➕ Добавить участника в ещё одну миссию</h3>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="form-group"><label>Участник</label><select class="form-input" id="ap-student"><option value="">Выбрать...</option></select></div>
+            <div class="form-group"><label>Миссия</label><select class="form-input" id="ap-shift"><option value="">Выбрать...</option></select></div>
+            <div class="form-group"><label>Команда</label><select class="form-input" id="ap-squad"><option value="">Выбрать...</option></select></div>
+          </div>
+          <button class="btn-primary" type="button" onclick="onAddParticipation()" style="margin-top:8px">➕ Добавить участие</button>
+        </div>
       </div>
       <div class="students-layout"><div>
         <div class="student-filters" id="student-filters">
           <select class="form-input st-filter-select" id="st-filter-shift" onchange="onStFilterChange()"><option value="">Все миссии</option></select>
-          <select class="form-input st-filter-select" id="st-filter-squad" onchange="onStFilterChange()"><option value="">Все отряды</option></select>
+          <select class="form-input st-filter-select" id="st-filter-squad" onchange="onStFilterChange()"><option value="">Все команды</option></select>
           <select class="form-input st-filter-select" id="st-filter-campus" onchange="onStFilterChange()"><option value="">Все кампусы</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select>
         </div>
         <h3 style="font-size:0.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Список · <span id="student-count">0</span></h3>
@@ -778,7 +932,7 @@ function rebuildMainContent() {
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
         <select class="form-input" id="ach-filter-shift" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все миссии</option></select>
         <select class="form-input" id="ach-filter-campus" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все кампусы</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select>
-        <select class="form-input" id="ach-filter-squad" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все отряды</option></select>
+        <select class="form-input" id="ach-filter-squad" onchange="renderAchBadges()" style="width:auto;min-width:120px"><option value="">Все команды</option></select>
       </div>
       <div class="ach-summary" id="ach-summary"></div>
       <div class="badge-grid" id="badge-grid"></div>
@@ -813,7 +967,7 @@ function rebuildMainContent() {
       <div class="page-header"><h1>📊 ДАШБОРД</h1><p>Общая статистика</p></div>
       <div class="filter-row"><span class="filter-label">Кампус:</span><button class="filter-pill active" data-filter="db-campus" data-val="" onclick="setDbFilter('campus','')">Все</button><button class="filter-pill" data-filter="db-campus" data-val="ШОП" onclick="setDbFilter('campus','ШОП')">ШОП</button><button class="filter-pill" data-filter="db-campus" data-val="ШСТ" onclick="setDbFilter('campus','ШСТ')">ШСТ</button></div>
       <div class="filter-row"><span class="filter-label">Миссия:</span><select class="form-input" id="db-shift-select" onchange="onDbShiftFilter()" style="width:auto;display:inline-block"><option value="">Все миссии</option></select></div>
-      <div class="filter-row"><span class="filter-label">Отряд:</span><select class="form-input" id="db-squad-select" onchange="onDbSquadFilter()" style="width:auto;display:inline-block"><option value="">Все отряды</option></select></div>
+      <div class="filter-row"><span class="filter-label">Команда:</span><select class="form-input" id="db-squad-select" onchange="onDbSquadFilter()" style="width:auto;display:inline-block"><option value="">Все команды</option></select></div>
       <div class="stats-row" id="db-stats"></div>
       <div class="db-student-grid" id="db-student-grid"></div>
     </div>
@@ -944,6 +1098,17 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
     const result = await api.insert(TABLES.STUDENTS, student);
     if (!result || !result[0]) { showToast('⚠️ Ошибка сохранения', 'warn'); btn.textContent = '+ Добавить участника'; btn.disabled = false; return; }
     saved = result[0];
+    // Записываем участие в миссии (студент + миссия + команда)
+    if (student.shift && student.squad) {
+      try {
+        await api.insert(TABLES.PARTICIPATIONS, {
+          student_id: saved.id,
+          shift_id:   student.shift,
+          squad:      student.squad,
+          created_at: new Date().toISOString()
+        });
+      } catch (_e) { /* участие опционально */ }
+    }
   } catch(err) {
     console.error('Insert student error:', err);
     showToast('⚠️ Ошибка сервера: ' + err.message, 'warn');
@@ -952,6 +1117,7 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
   }
 
   state.students.unshift(saved);
+  await reloadParticipations();
   renderStudentList();
 
   e.target.reset();
@@ -967,8 +1133,8 @@ function renderStudentList() {
   let list = state.students;
 
   const filters = getStudentFilters();
-  if (filters.shift) list = list.filter(s => String(s.shift) === String(filters.shift));
-  if (filters.squad) list = list.filter(s => String(s.squad) === String(filters.squad));
+  if (filters.shift) list = list.filter(s => studentShifts(s.id).map(String).includes(String(filters.shift)));
+  if (filters.squad) list = list.filter(s => studentInAnySquad(s.id) === String(filters.squad));
   if (filters.campus) list = list.filter(s => (s.campus || '') === filters.campus);
 
   if (state.searchQuery) {
@@ -1001,7 +1167,7 @@ function renderStudentList() {
         <div class="sc-avatar">${avatarCircle(s, initials, 46)}<div class="sc-level-badge">${lv.level}</div></div>
         <div class="sc-info">
           <div class="sc-name">${displayNameEsc(s)} <span class="sc-level-tag">${lv.name}</span></div>
-          <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'Миссия ' + s.shift} · ${s.campus || ''}</div>
+          <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · ${studentParticipationLabel(s)} · ${s.campus || ''}</div>
           <div class="sc-xp-bar"><div class="sc-xp-fill" style="width:${lv.progress}%"></div></div>
           <div class="sc-progress">
             <div class="sc-progress-bar"><div class="sc-progress-fill" style="width:${progress}%"></div></div>
@@ -1055,7 +1221,7 @@ function populateStudentSelect(selectId, onChange) {
   const sel = document.getElementById(selectId);
   sel.innerHTML = '<option value="">— Выбрать участника —</option>' +
     state.students.map(s =>
-      `<option value="${s.id}">${displayNameEsc(s)} · отряд ${s.squad} · ${s.campus || ''}</option>`
+      `<option value="${s.id}">${displayNameEsc(s)} · ${studentParticipationLabel(s)} · ${s.campus || ''}</option>`
     ).join('');
   sel.onchange = onChange;
 
@@ -1108,7 +1274,8 @@ function renderCurrentTask() {
   const student = state.students.find(s => s.id === studentId);
   if (!student) { container.innerHTML = '<p class="empty-note">Участник не найден</p>'; return; }
 
-  const shift = state.shifts.find(s => s.id == student.shift);
+  const primShift = studentPrimaryShift(student.id) || student.shift;
+  const shift = state.shifts.find(s => s.id == primShift);
   if (!shift || !shift.directions) { container.innerHTML = '<p class="empty-note">Нет данных по миссии</p>'; return; }
 
   const trackDir = shift.directions.find(d => {
@@ -1118,7 +1285,7 @@ function renderCurrentTask() {
   });
 
   if (!trackDir || !trackDir.missions || !trackDir.missions.length) {
-    const shiftDefName = state.shifts.find(sh => sh.id == student.shift)?.name || 'Миссии ' + student.shift;
+    const shiftDefName = state.shifts.find(sh => sh.id == primShift)?.name || 'Миссии ' + primShift;
     container.innerHTML = '<p class="empty-note">Нет заданий для этого направления в ' + shiftDefName + '</p>';
     return;
   }
@@ -1305,10 +1472,10 @@ function populateAchFilters() {
     });
   }
   if (squadSel && squadSel.options.length <= 1) {
-    for (let i = 1; i <= 8; i++) {
+    for (let i = 1; i <= 10; i++) {
       const opt = document.createElement('option');
       opt.value = i;
-      opt.textContent = 'Отряд ' + i;
+      opt.textContent = 'Команда ' + i;
       squadSel.appendChild(opt);
     }
   }
@@ -1330,8 +1497,14 @@ function renderAchievements(studentId) {
   let filteredDefs = state.badgeDefs;
   if (filterShift) filteredDefs = filteredDefs.filter(d => String(d.shift_id) === String(filterShift));
   if (filterCampus || filterSquad) {
+    const shiftFilter = filterShift;
     const matchingStudentIds = state.students
-      .filter(s => (!filterCampus || s.campus === filterCampus) && (!filterSquad || String(s.squad) === String(filterSquad)))
+      .filter(s =>
+        (!filterCampus || s.campus === filterCampus) &&
+        (!filterSquad ||
+          (shiftFilter
+            ? String(squadOfIn(s.id, shiftFilter)) === String(filterSquad)
+            : String(studentInAnySquad(s.id)) === String(filterSquad))))
       .map(s => s.id);
     const matchingBadges = new Set(
       state.badges.filter(b => matchingStudentIds.includes(b.student_id) && b.earned).map(b => b.badge_id)
@@ -1410,8 +1583,9 @@ function buyShopItem(itemId) {
       }
     } else if (itemId === 'shop_rare_chest') {
       const student = state.students.find(s => s.id == state.currentStudentId);
-      const dbItems = state.inventoryItems.filter(it => String(it.shift_id) === String(student && student.shift));
-      const inv = dbItems.length ? { items: dbItems } : SHIFT_INVENTORY[student && student.shift];
+      const ps = student ? (studentPrimaryShift(student.id) || student.shift) : null;
+      const dbItems = state.inventoryItems.filter(it => String(it.shift_id) === String(ps));
+      const inv = dbItems.length ? { items: dbItems } : SHIFT_INVENTORY[ps];
       if (inv) {
         const rareItem = inv.items.find(i => i.rarity === 'rare') || inv.items[0];
         showToast('📦 Получен: ' + (rareItem.icon || '') + ' ' + rareItem.name, 'success');
@@ -1482,8 +1656,9 @@ function renderTalentCard(studentId) {
   const earnedBadges = state.badges.filter(b => b.student_id === studentId && b.earned);
   const xp = calcStudentXP(studentId);
   const lv = getLevel(xp);
-  const shift = state.shifts.find(s => s.id == student.shift);
-  const shiftName = shift ? shift.name : student.shift;
+  const primShift = studentPrimaryShift(studentId) || student.shift;
+  const shift = state.shifts.find(s => s.id == primShift);
+  const shiftName = shift ? shift.name : primShift;
 
   const initials = initialsOf(student);
   const setEl = (id, html) => { const e = document.getElementById(id); if (e) e.innerHTML = html; };
@@ -1493,7 +1668,7 @@ function renderTalentCard(studentId) {
   setText('pp-name', displayName(student));
   setEl('pp-avatar', avatarImg(studentId, initials || '?', 80, student.avatar_url));
   setText('pp-level', lv.level);
-  setText('pp-meta', student.age + ' лет · ' + student.grade + ' класс · отряд ' + student.squad);
+  setText('pp-meta', student.age + ' лет · ' + student.grade + ' класс · ' + studentParticipationLabel(student));
   setText('pp-xp-text', xp + ' / ' + lv.nextXP + ' XP');
   setText('pp-shift-tag', shiftName);
   const pct = lv.nextXP > 0 ? Math.min(100, Math.round((xp / lv.nextXP) * 100)) : 0;
@@ -1577,7 +1752,8 @@ function renderTalentCard(studentId) {
   const ppShiftsEl = document.getElementById('pp-shifts-list');
   if (ppShiftsEl) {
     const studentCompletions = state.completions.filter(c => c.student_id === studentId);
-    const shiftIds = [...new Set(studentCompletions.map(c => c.shift_id))];
+    const partShifts = studentShifts(studentId);
+    const shiftIds = [...new Set([...studentCompletions.map(c => c.shift_id), ...partShifts])];
     if (shiftIds.length === 0) {
       ppShiftsEl.innerHTML = '<p class="empty-note">Участник пока не записан ни на одну миссию</p>';
     } else {
@@ -1781,7 +1957,7 @@ function renderTalentCard(studentId) {
     // Squad scoreboard
     const squads = getSquadScores();
     if (squads.length > 1) {
-      shtml += '<div class="gc"><h3>⚔️ Отряды</h3>';
+      shtml += '<div class="gc"><h3>⚔️ Команды</h3>';
       squads.forEach((sq, i) => {
         const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
         shtml += `<div class="squad-row">
@@ -2298,8 +2474,8 @@ function renderDashboard() {
   const shift = state.filterShift;
   const campus = state.filterCampus;
   let list = state.students;
-  if (squad) list = list.filter(s => s.squad == squad);
-  if (shift) list = list.filter(s => s.shift == shift);
+  if (squad) list = list.filter(s => studentInAnySquad(s.id) == squad);
+  if (shift) list = list.filter(s => studentShifts(s.id).map(String).includes(String(shift)));
   if (campus) list = list.filter(s => s.campus === campus);
 
   const totalObs   = state.observations.filter(o => list.find(s => s.id === o.student_id)).length;
@@ -2351,7 +2527,7 @@ function renderDashboard() {
         <div class="db-sc-avatar">${avatarCircle(s, initialsOf(s), 44)}<div class="db-sc-level">${lv.level}</div></div>
         <div class="db-sc-info">
           <strong>${displayNameEsc(s)}</strong> <span class="sc-level-tag">${lv.name}</span>
-          <span>отряд ${s.squad} · ${state.shifts.find(sh => sh.id == s.shift)?.name || 'Миссия ' + s.shift} · ${s.campus || ''} · ${s.grade} кл</span>
+          <span>${studentParticipationLabel(s)} · ${s.campus || ''} · ${s.grade} кл</span>
         </div>
         <div class="db-sc-track">${trackIcon}</div>
       </div>
@@ -2454,7 +2630,7 @@ function renderShiftsPage() {
         </div>
         <div style="margin-top:10px;padding:8px 12px;background:var(--glass-b);border-radius:8px;display:flex;align-items:center;gap:8px">
           <span style="font-size:0.72rem;color:var(--muted)">👥 Участников:</span>
-          <span style="font-size:0.78rem;font-weight:700;color:var(--orange)">${state.students.filter(st => st.shift === s.id).length}</span>
+          <span style="font-size:0.78rem;font-weight:700;color:var(--orange)">${shiftParticipants(s.id).length}</span>
           <button class="btn-sm" style="margin-left:auto;padding:4px 10px;font-size:0.65rem" onclick="openShiftDashboard(${s.id}, event)">📊 Дашборд</button>
         </div>
       </div>
@@ -2497,11 +2673,11 @@ function renderShiftDashboard() {
   if (sdSubtitle) sdSubtitle.textContent = shift.title + ' · ' + (shift.currency || '');
 
   // Filter participants
-  let participants = state.students.filter(s => s.shift == shiftId);
+  let participants = shiftParticipants(shiftId);
   if (state.filterSdCampus) participants = participants.filter(s => s.campus === state.filterSdCampus);
 
-  // Dynamic squad pills
-  const allSquads = [...new Set(state.students.filter(s => s.shift == shiftId).map(s => s.squad))].sort((a,b) => a-b);
+  // Dynamic team pills (1..10)
+  const allSquads = [...new Set(participants.map(s => squadOfIn(s.id, shiftId)).filter(t => t != null).sort((a,b) => a-b))];
   const squadRow = document.querySelectorAll('.filter-pill[data-filter="sd-squad"]');
   const firstSquadPill = squadRow[0];
   if (firstSquadPill) {
@@ -2513,7 +2689,7 @@ function renderShiftDashboard() {
       pill.dataset.filter = 'sd-squad';
       pill.dataset.val = sq;
       pill.setAttribute('onclick', "setSdFilter('squad','" + sq + "')");
-      pill.textContent = 'Отряд ' + sq;
+      pill.textContent = 'Команда ' + sq;
       parent.appendChild(pill);
     });
     // Re-activate if needed
@@ -2522,7 +2698,7 @@ function renderShiftDashboard() {
     }
   }
 
-  if (state.filterSdSquad) participants = participants.filter(s => s.squad == state.filterSdSquad);
+  if (state.filterSdSquad) participants = participants.filter(s => String(squadOfIn(s.id, shiftId)) === String(state.filterSdSquad));
 
   // Calculate stats
   let totalXp = 0, totalCurrency = 0, totalAllScored = 0, totalCounted = 0, totalCompletions = 0;
@@ -2588,7 +2764,7 @@ function renderShiftDashboard() {
           <div class="sd-lb-avatar">${avatarCircle(pd.student, initials, 40, 'var(--green)')}</div>
           <div class="sd-lb-info">
             <div class="sd-lb-name">${displayNameEsc(pd.student)}</div>
-            <div class="sd-lb-meta">отряд ${pd.student.squad} · ${pd.student.campus || ''} · ${pd.topSkill}</div>
+            <div class="sd-lb-meta">команда ${squadOfIn(pd.student.id, shiftId) || '—'} · ${pd.student.campus || ''} · ${pd.topSkill}</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
               <div style="flex:1;height:3px;border-radius:2px;background:var(--glass-b);overflow:hidden"><div style="height:100%;border-radius:2px;background:linear-gradient(90deg,var(--orange),#d65a0f);width:${progressPct}%"></div></div>
               <span style="font-size:0.55rem;color:var(--muted)">${progressPct}%</span>
@@ -2609,7 +2785,8 @@ function renderShiftDashboard() {
   if (squadsEl) {
     const squadCounts = {};
     participantData.forEach(pd => {
-      const sq = pd.student.squad;
+      const sq = squadOfIn(pd.student.id, shiftId);
+      if (sq == null) return;
       if (!squadCounts[sq]) squadCounts[sq] = { count: 0, totalXp: 0, totalScore: 0, scoreCount: 0 };
       squadCounts[sq].count++;
       squadCounts[sq].totalXp += pd.xp;
@@ -2621,7 +2798,7 @@ function renderShiftDashboard() {
       const pct = Math.round((data.count / maxCount) * 100);
       const avgSq = data.scoreCount > 0 ? (data.totalScore / data.scoreCount).toFixed(1) : '—';
       return `<div class="sd-squad-bar">
-        <div class="sd-squad-bar-label">Отряд ${sq}</div>
+        <div class="sd-squad-bar-label">Команда ${sq}</div>
         <div class="sd-squad-bar-track"><div class="sd-squad-bar-fill" style="width:${pct}%"></div></div>
         <div class="sd-squad-bar-val">${data.count} чел. · ${avgSq}★ · ${data.totalXp} XP</div>
       </div>`;
@@ -3048,9 +3225,11 @@ function fillReport(student) {
   set('rp-name', displayName(student));
   set('rp-age', student.age != null ? student.age + ' лет' : '—');
   set('rp-grade', student.grade != null ? student.grade + ' класс' : '—');
-  set('rp-squad', 'Отряд ' + student.squad);
-  const shiftDef = state.shifts.find(sh => sh.id == student.shift);
-  set('rp-shift', shiftDef ? shiftDef.name : 'Миссия ' + student.shift);
+  const rpPrimShift = studentPrimaryShift(student.id) || student.shift;
+  const rpPrimSquad = studentPrimarySquad(student.id) || student.squad;
+  set('rp-squad', rpPrimSquad != null ? 'Команда ' + rpPrimSquad : '—');
+  const shiftDef = state.shifts.find(sh => sh.id == rpPrimShift);
+  set('rp-shift', shiftDef ? shiftDef.name : 'Миссия ' + rpPrimShift);
   const rpCampusEl = document.getElementById('rp-campus');
   if (rpCampusEl) rpCampusEl.textContent = student.campus || '';
   set('rp-progress', level.progress + '%');
@@ -3282,7 +3461,7 @@ function onAssCampusChange() {
   const studentSel = ge('ass-student');
   if (!squadSel || !studentSel) return;
   // Reset downstream
-  squadSel.innerHTML = '<option value="">Выбрать отряд...</option>';
+  squadSel.innerHTML = '<option value="">Выбрать команду...</option>';
   studentSel.innerHTML = '<option value="">Выбрать участника...</option>';
   ge('ass-missions-area').innerHTML = '';
   ge('ass-summary-area').innerHTML = '';
@@ -3296,18 +3475,18 @@ function onAssShiftChange() {
   if (!shiftSel || !squadSel || !studentSel) return;
   const shiftId = parseInt(shiftSel.value);
   const campus = campusEl ? campusEl.value : '';
-  squadSel.innerHTML = '<option value="">Выбрать отряд...</option>';
+  squadSel.innerHTML = '<option value="">Выбрать команду...</option>';
   studentSel.innerHTML = '<option value="">Выбрать участника...</option>';
   ge('ass-missions-area').innerHTML = '';
   ge('ass-summary-area').innerHTML = '';
   if (!shiftId) return;
-  let filtered = state.students.filter(s => s.shift === shiftId);
+  let filtered = shiftParticipants(shiftId);
   if (campus) filtered = filtered.filter(s => s.campus === campus);
-  const squads = [...new Set(filtered.map(s => s.squad))].sort((a,b) => a-b);
+  const squads = [...new Set(filtered.map(s => squadOfIn(s.id, shiftId)).filter(t => t != null))].sort((a,b) => a-b);
   squads.forEach(sq => {
     const opt = document.createElement('option');
     opt.value = sq;
-    opt.textContent = 'Отряд ' + sq;
+    opt.textContent = 'Команда ' + sq;
     squadSel.appendChild(opt);
   });
 }
@@ -3325,7 +3504,7 @@ function onAssSquadChange() {
   ge('ass-missions-area').innerHTML = '';
   ge('ass-summary-area').innerHTML = '';
   if (!shiftId || !squad) return;
-  let list = state.students.filter(s => s.shift === shiftId && s.squad === squad);
+  let list = shiftParticipants(shiftId).filter(s => String(squadOfIn(s.id, shiftId)) === String(squad));
   if (campus) list = list.filter(s => s.campus === campus);
   list.forEach(s => {
     const opt = document.createElement('option');
