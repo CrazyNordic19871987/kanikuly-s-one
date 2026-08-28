@@ -2379,58 +2379,70 @@ function discTypeImg(type, label) {
   return '<span style="display:flex;width:' + size + 'px;height:' + size + 'px;border-radius:10px;background:var(--glass-b);align-items:center;justify-content:center;font-size:22px">' + emoji + '</span>';
 }
 
-// DISC-архетипы: карточки в стиле коллекции 84 карточек
+// DISC-архетипы: карточки по дизайну disc_cards.html
 const DISC_ARCHETYPES = [
   { t:'D', archetype:'«Завоеватель» / «Штурмовой генерал»', motto:'«Я беру высоту!» 🚩',
+    anchor:'«Короче. Делаем так.»',
     desc:'10% чистой прорывной энергии. Не просит разрешения — предъявляет результат. Запускает систему одним толчком.',
     superpower:'Скорость решений в кризисе', shadow:'Тирания в мелочах, выгорание без подчинения',
     gives:'темп', through:'волю', question:'«Что дальше?»' },
   { t:'I', archetype:'«Трубадур» / «Уличный маг»', motto:'«Я зажигаю свет!» 🤝',
+    anchor:'«А представьте, если бы...»',
     desc:'10% вдохновения и харизмы. Работает не с фактами, а с верой людей в идею. Превращает трудности в приключение.',
     superpower:'Эмоциональная связь и вовлечённость', shadow:'Забывает дедлайны, обещает больше, чем реально',
     gives:'смысл', through:'слово', question:'«Кто с нами?»' },
   { t:'S', archetype:'«Щитоносец» / «Старейшина клана»', motto:'«Я держу строй!» ⛩️',
+    anchor:'«Давайте сначала проверим...»',
     desc:'10% стабильности и лояльности. Каркас конструкции — держит строй, пока остальные бегут к цели.',
     superpower:'Надёжность в любых условиях', shadow:'Консерватизм, сопротивление изменениям',
     gives:'порядок', through:'заботу', question:'«Как сохранить?»' },
   { t:'C', archetype:'«Архитектор реальности» / «Хранитель Гримуаров»', motto:'«Я знаю секрет!» 🔮',
+    anchor:'«Согласно данным...»',
     desc:'10% чистого знания и холодного расчёта. Интеллектуальный капитал, без которого всё рассыплется.',
     superpower:'Глубина анализа, точность прогнозов', shadow:'Паралич анализа, эмоциональная сдержанность',
     gives:'качество', through:'мысль', question:'«Почему это работает?»' }
 ];
 const DISC_ARCH_ICONS = { D:'⚡', I:'✨', S:'🛡️', C:'🧠' };
 
-function discArchStyle(hex) {
-  const n = hex.replace('#','').trim();
-  const r = parseInt(n.slice(0,2),16), g = parseInt(n.slice(2,4),16), b = parseInt(n.slice(4,6),16);
-  if ([r,g,b].some(v => isNaN(v))) return '--rc-border:' + hex + ';--rc-glow:rgba(255,255,255,0.12);--rc-text:' + hex + ';';
-  return '--rc-border:' + hex + ';--rc-glow:rgba(' + r + ',' + g + ',' + b + ',0.18);--rc-text:' + hex + ';';
+// Палитра из disc_cards.html (точное соответствие приложенному файлу)
+const DISC_ARCH_STYLE = {
+  D: '--rc-border:#dc2626;--rc-glow:rgba(220,38,38,0.18);--rc-text:#f87171;',
+  I: '--rc-border:#f5b83d;--rc-glow:rgba(245,184,61,0.20);--rc-text:#fbbf6a;',
+  S: '--rc-border:#84956b;--rc-glow:rgba(132,149,107,0.18);--rc-text:#a8b894;',
+  C: '--rc-border:#3b82f6;--rc-glow:rgba(59,130,246,0.16);--rc-text:#93c5fd;'
+};
+
+function discArchStyle(t) {
+  return DISC_ARCH_STYLE[t] || '--rc-border:#3b82f6;--rc-glow:rgba(59,130,246,0.16);--rc-text:#93c5fd;';
 }
 
-function renderDiscArchetypes(labels, dominantType) {
+function renderDiscArchetypes(nameOf, dominantType) {
   const el = document.getElementById('disc-arch');
   if (!el) return;
   const cards = DISC_ARCHETYPES.map(a => {
-    const color = (labels[a.t] && labels[a.t].color) || '#3B82F6';
-    const name = (labels[a.t] && labels[a.t].label) || a.t;
     const isDom = a.t === dominantType;
-    return '<div class="disc-arch-card' + (isDom ? ' dominant' : '') + '" style="' + discArchStyle(color) + '">' +
+    const name = (nameOf[a.t] && nameOf[a.t].label) || a.t;
+    return '<div class="disc-arch-card' + (isDom ? ' dominant' : '') + '" style="' + discArchStyle(a.t) + '">' +
       '<div class="rarity-stripe"></div>' +
       '<div class="disc-arch-head">' +
         '<span class="disc-arch-letter">' + a.t + ' · 10%</span>' +
-        '<span class="disc-arch-dominant-tag">Доминанта</span>' +
+        '<span class="disc-arch-share">' + (isDom ? 'Доминанта' : 'DISC') + '</span>' +
       '</div>' +
       '<div class="disc-arch-icon">' + (DISC_ARCH_ICONS[a.t] || '🧩') + '</div>' +
       '<div class="disc-arch-name">' + esc(name) + '</div>' +
       '<div class="disc-arch-archetype">' + esc(a.archetype) + '</div>' +
       '<div class="disc-arch-motto">' + esc(a.motto) + '</div>' +
+      '<div class="disc-arch-label">Суть</div>' +
       '<div class="disc-arch-desc">' + esc(a.desc) + '</div>' +
+      '<div class="disc-arch-label">Фраза-якорь</div>' +
+      '<div class="disc-arch-anchor">' + esc(a.anchor) + '</div>' +
+      '<div class="disc-arch-label" style="margin-top:12px;">Суперсила / Тень</div>' +
       '<div class="disc-arch-pair"><b>+</b><span>' + esc(a.superpower) + '</span></div>' +
-      '<div class="disc-arch-pair"><b>–</b><span>' + esc(a.shadow) + '</span></div>' +
+      '<div class="disc-arch-pair shadow-row"><b>–</b><span>' + esc(a.shadow) + '</span></div>' +
       '<div class="disc-arch-formula">' +
-        '<div><b>Задаёт</b>' + esc(a.gives) + '</div>' +
-        '<div><b>Через</b>' + esc(a.through) + '</div>' +
-        '<div><b>Вопрос</b>' + esc(a.question) + '</div>' +
+        '<div><b>Задаёт</b><span class="formula-val">' + esc(a.gives) + '</span></div>' +
+        '<div><b>Действует через</b><span class="formula-val">' + esc(a.through) + '</span></div>' +
+        '<div><b>Вопрос</b><span class="formula-val">' + esc(a.question) + '</span></div>' +
       '</div>' +
     '</div>';
   }).join('');
