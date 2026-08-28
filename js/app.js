@@ -1699,16 +1699,16 @@ function renderTalentCard(studentId) {
   // Badges tab
   const badgesListEl = document.getElementById('talent-badges-list');
   if (badgesListEl) badgesListEl.innerHTML = earnedBadges.length
-    ? earnedBadges.map(b => {
+    ? '<div class="card-app"><div class="grid badges">' + earnedBadges.map(b => {
         const def = state.badgeDefs.find(d => d.id === b.badge_id);
-        const shiftObj = def ? state.shifts.find(s => s.id == def.shift_id) : null;
-        const shiftLabel = shiftObj ? shiftObj.name : '';
-        return `<div class="talent-badge-row rarity-${b.rarity}">
-          <span class="tbr-icon">${badgeImg(b.badge_id, b.icon, 36, def && def.image_url)}</span>
-          <div><strong>${b.name}</strong><p>${b.desc || ''}</p>${shiftLabel ? '<p style="font-size:0.6rem;color:var(--orange);margin:2px 0 0">' + shiftLabel + '</p>' : ''}</div>
-          <span class="tbr-rarity">${rarityLabel(b.rarity)}</span>
-        </div>`;
-      }).join('')
+        const rr = rarityLabel(b.rarity);
+        return `<div class="badge-card" data-rarity="${esc(rr)}" style="${cardRarityStyle(rr)}">` +
+          `<div class="icon">${badgeImg(b.badge_id, b.icon, 34, def && def.image_url)}</div>` +
+          `<div class="name">${esc(b.name)}</div>` +
+          `<div class="cond">${esc(b.desc || '')}</div>` +
+          `<div class="rarity-pill">${esc(rr)}</div>` +
+        `</div>`;
+      }).join('') + '</div></div>'
     : '<p class="empty-note">Значков пока нет</p>';
   const badgeCount = document.getElementById('pp-badge-count');
   if (badgeCount) badgeCount.textContent = earnedBadges.length > 0 ? `(${earnedBadges.length})` : '';
@@ -1717,15 +1717,22 @@ function renderTalentCard(studentId) {
   const inv = computeInventory(studentId);
   const invEl = document.getElementById('talent-inventory');
   if (invEl) {
-    let invHtml = `<div class="inv-header"><span>${inv.items.length} / ${inv.maxSlots} слотов</span></div><div class="inv-grid">`;
+    let invCards = '';
     inv.items.forEach(item => {
-      invHtml += `<div class="inv-item rarity-${item.rarity}" title="${item.name} — ${item.bonus}"><span class="inv-icon">${itemImg(item.id, item.icon, 48, item.image_url)}</span><span class="inv-name">${item.name}</span></div>`;
+      const rr = rarityLabel(item.rarity);
+      invCards += `<div class="card" data-rarity="${esc(rr)}" style="${cardRarityStyle(rr)}">` +
+        `<div class="rarity-stripe"></div>` +
+        `<div class="icon">${itemImg(item.id, item.icon, 44, item.image_url)}</div>` +
+        `<div class="name">${esc(item.name)}</div>` +
+        `<div class="rarity-pill">${esc(rr)}</div>` +
+        `<div class="bonus">${esc(item.bonus)}</div>` +
+      `</div>`;
     });
     for (let i = inv.items.length; i < inv.maxSlots; i++) {
-      invHtml += `<div class="inv-item empty"><span class="inv-icon">+</span></div>`;
+      invCards += `<div class="card" style="border-style:dashed;background:transparent;opacity:0.45;box-shadow:none"><div class="icon" style="font-size:30px;color:var(--muted);margin:auto 0">+</div></div>`;
     }
-    invHtml += '</div>';
-    invEl.innerHTML = invHtml;
+    const invHeader = `<div class="inv-header"><span>${inv.items.length} / ${inv.maxSlots} слотов</span></div>`;
+    invEl.innerHTML = invHeader + '<div class="card-app"><div class="grid">' + invCards + '</div></div>';
   }
 
   // History tab
