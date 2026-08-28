@@ -955,7 +955,7 @@ function rebuildMainContent() {
       <div class="pp-panel" data-panel="inventory"><div class="gc"><h3>🎒 Инвентарь</h3><div id="talent-inventory"></div></div></div>
       <div class="pp-panel" data-panel="shifts"><div class="gc"><h3>🏕️ Миссии участника</h3><div id="pp-shifts-list"></div></div></div>
       <div class="pp-panel" data-panel="history"><div class="gc"><h3>📜 История наблюдений</h3><div class="obs-list" id="talent-obs-list"></div></div></div>
-      <div class="pp-panel" data-panel="disc"><div class="gc"><h3>🧩 DISC-профиль</h3><div class="disc-bars" id="disc-bars"></div><div class="disc-combo" id="disc-combo"></div></div></div>
+      <div class="pp-panel" data-panel="disc"><div class="gc"><h3>🧩 DISC-профиль</h3><div class="disc-arch" id="disc-arch"></div><div class="disc-bars" id="disc-bars"></div><div class="disc-combo" id="disc-combo"></div></div></div>
       <div class="pp-panel" data-panel="recommend"><div class="gc"><h3>🔮 Рекомендации</h3><div id="pp-recommendations"></div></div></div>
       <div class="pp-panel" data-panel="social"><div class="gc"><h3>👥 Социальное</h3><div id="pp-social"></div></div></div>
       <div class="pp-panel" data-panel="legacy"><div class="gc"><h3>🏛️ Реликвии прошлых смен</h3><div id="pp-legacy"></div></div></div>
@@ -2379,8 +2379,68 @@ function discTypeImg(type, label) {
   return '<span style="display:flex;width:' + size + 'px;height:' + size + 'px;border-radius:10px;background:var(--glass-b);align-items:center;justify-content:center;font-size:22px">' + emoji + '</span>';
 }
 
+// DISC-архетипы: карточки в стиле коллекции 84 карточек
+const DISC_ARCHETYPES = [
+  { t:'D', archetype:'«Завоеватель» / «Штурмовой генерал»', motto:'«Я беру высоту!» 🚩',
+    desc:'10% чистой прорывной энергии. Не просит разрешения — предъявляет результат. Запускает систему одним толчком.',
+    superpower:'Скорость решений в кризисе', shadow:'Тирания в мелочах, выгорание без подчинения',
+    gives:'темп', through:'волю', question:'«Что дальше?»' },
+  { t:'I', archetype:'«Трубадур» / «Уличный маг»', motto:'«Я зажигаю свет!» 🤝',
+    desc:'10% вдохновения и харизмы. Работает не с фактами, а с верой людей в идею. Превращает трудности в приключение.',
+    superpower:'Эмоциональная связь и вовлечённость', shadow:'Забывает дедлайны, обещает больше, чем реально',
+    gives:'смысл', through:'слово', question:'«Кто с нами?»' },
+  { t:'S', archetype:'«Щитоносец» / «Старейшина клана»', motto:'«Я держу строй!» ⛩️',
+    desc:'10% стабильности и лояльности. Каркас конструкции — держит строй, пока остальные бегут к цели.',
+    superpower:'Надёжность в любых условиях', shadow:'Консерватизм, сопротивление изменениям',
+    gives:'порядок', through:'заботу', question:'«Как сохранить?»' },
+  { t:'C', archetype:'«Архитектор реальности» / «Хранитель Гримуаров»', motto:'«Я знаю секрет!» 🔮',
+    desc:'10% чистого знания и холодного расчёта. Интеллектуальный капитал, без которого всё рассыплется.',
+    superpower:'Глубина анализа, точность прогнозов', shadow:'Паралич анализа, эмоциональная сдержанность',
+    gives:'качество', through:'мысль', question:'«Почему это работает?»' }
+];
+const DISC_ARCH_ICONS = { D:'⚡', I:'✨', S:'🛡️', C:'🧠' };
+
+function discArchStyle(hex) {
+  const n = hex.replace('#','').trim();
+  const r = parseInt(n.slice(0,2),16), g = parseInt(n.slice(2,4),16), b = parseInt(n.slice(4,6),16);
+  if ([r,g,b].some(v => isNaN(v))) return '--rc-border:' + hex + ';--rc-glow:rgba(255,255,255,0.12);--rc-text:' + hex + ';';
+  return '--rc-border:' + hex + ';--rc-glow:rgba(' + r + ',' + g + ',' + b + ',0.18);--rc-text:' + hex + ';';
+}
+
+function renderDiscArchetypes(labels, dominantType) {
+  const el = document.getElementById('disc-arch');
+  if (!el) return;
+  const cards = DISC_ARCHETYPES.map(a => {
+    const color = (labels[a.t] && labels[a.t].color) || '#3B82F6';
+    const name = (labels[a.t] && labels[a.t].label) || a.t;
+    const isDom = a.t === dominantType;
+    return '<div class="disc-arch-card' + (isDom ? ' dominant' : '') + '" style="' + discArchStyle(color) + '">' +
+      '<div class="rarity-stripe"></div>' +
+      '<div class="disc-arch-head">' +
+        '<span class="disc-arch-letter">' + a.t + ' · 10%</span>' +
+        '<span class="disc-arch-dominant-tag">Доминанта</span>' +
+      '</div>' +
+      '<div class="disc-arch-icon">' + (DISC_ARCH_ICONS[a.t] || '🧩') + '</div>' +
+      '<div class="disc-arch-name">' + esc(name) + '</div>' +
+      '<div class="disc-arch-archetype">' + esc(a.archetype) + '</div>' +
+      '<div class="disc-arch-motto">' + esc(a.motto) + '</div>' +
+      '<div class="disc-arch-desc">' + esc(a.desc) + '</div>' +
+      '<div class="disc-arch-pair"><b>+</b><span>' + esc(a.superpower) + '</span></div>' +
+      '<div class="disc-arch-pair"><b>–</b><span>' + esc(a.shadow) + '</span></div>' +
+      '<div class="disc-arch-formula">' +
+        '<div><b>Задаёт</b>' + esc(a.gives) + '</div>' +
+        '<div><b>Через</b>' + esc(a.through) + '</div>' +
+        '<div><b>Вопрос</b>' + esc(a.question) + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  el.innerHTML = cards;
+}
+
 function renderDISC(obs, studentId) {
   const { disc, labels, dominant } = calcDisc(obs, studentId);
+
+  renderDiscArchetypes(labels, dominant[0]);
 
   const discBarsEl = document.getElementById('disc-bars');
   if (discBarsEl) discBarsEl.innerHTML = ['D','I','S','C'].map(t => `

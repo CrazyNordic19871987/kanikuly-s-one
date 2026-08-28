@@ -1300,6 +1300,35 @@ section.card-block{margin-top:56px}
 .card-app .shop-card .type-pill{align-self:center;font-size:9.5px;color:#9ca3af;border:1px solid rgba(255,255,255,0.12);padding:2px 9px;border-radius:999px;margin-bottom:8px}
 .card-app .mystery-card .chance{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:800;text-align:center;color:var(--rc-text);margin:6px 0 4px}
 
+/* ── DISC Archetype cards (styled like the 84-card collection) ── */
+.disc-arch{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:20px}
+.disc-arch-card{
+  position:relative;border-radius:12px;padding:18px 16px 16px;
+  background:linear-gradient(160deg,rgba(19,34,69,0.75),rgba(27,40,56,0.85));
+  backdrop-filter:blur(6px);
+  border:1px solid var(--rc-border);
+  box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset,0 8px 24px -12px rgba(0,0,0,0.6),0 0 26px -6px var(--rc-glow);
+  overflow:hidden;display:flex;flex-direction:column;gap:6px;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.disc-arch-card:hover{transform:translateY(-3px)}
+.disc-arch-card .rarity-stripe{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rc-border);box-shadow:0 0 12px var(--rc-border)}
+.disc-arch-card.dominant{box-shadow:0 0 0 2px var(--rc-border),0 0 0 1px rgba(255,255,255,0.03) inset,0 0 34px -6px var(--rc-glow)}
+.disc-arch-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.disc-arch-letter{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--rc-text);background:var(--rc-glow);border:1px solid var(--rc-border);padding:2px 9px;border-radius:999px}
+.disc-arch-dominant-tag{display:none;font-size:8.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#0b1424;background:var(--rc-text);padding:2px 8px;border-radius:999px}
+.disc-arch-card.dominant .disc-arch-dominant-tag{display:inline-block}
+.disc-arch-icon{font-size:40px;text-align:center;filter:drop-shadow(0 0 14px var(--rc-glow))}
+.disc-arch-name{font-weight:700;font-size:15px;text-align:center;color:#f3f4f6}
+.disc-arch-archetype{text-align:center;font-size:10.5px;color:var(--rc-text);font-style:italic}
+.disc-arch-motto{font-size:11px;font-weight:600;text-align:center;color:#fff;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 8px;margin-top:2px}
+.disc-arch-desc{font-size:11px;color:#9ca3af;line-height:1.5;text-align:center}
+.disc-arch-pair{font-size:11px;line-height:1.45;display:flex;gap:6px;text-align:left}
+.disc-arch-pair b{color:#e5e7eb;font-weight:600;white-space:nowrap}
+.disc-arch-pair span{color:var(--rc-text)}
+.disc-arch-formula{margin-top:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;font-size:10px;color:#8b93a7}
+.disc-arch-formula b{display:block;color:var(--rc-text);font-family:'Orbitron',sans-serif;font-size:8.5px;letter-spacing:0.04em;margin-bottom:2px}
+
 </style>
 </head>
 <body>
@@ -1894,7 +1923,7 @@ window.onerror = function(msg, url, line, col, error) {
   document.body.appendChild(el);
 };
 </script>
-<script src="js/app.js?v=15"></script>
+<script src="js/app.js?v=16"></script>
 
 <!-- Mobile menu script -->
 <script>
