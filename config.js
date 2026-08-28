@@ -18,7 +18,8 @@ const TABLES = {
   CONTENT_DISC_CONFIG:   'content_disc_config',
   CONTENT_MISSIONS:      'content_missions',
   CONTENT_INVENTORY:     'content_inventory_items',
-  PARTICIPATIONS:        'participations'
+  PARTICIPATIONS:        'participations',
+  CARDS:                 'cards'
 };
 
 // ── Fallback данные (если Supabase пуст) ──────────────────

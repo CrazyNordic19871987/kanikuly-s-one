@@ -1233,6 +1233,70 @@ textarea:focus{border-color:var(--orange)}
   .btab-label{font-size:0.55rem}
 }
 
+/* ══════════ КОЛЛЕКЦИЯ КАРТОЧЕК (84 шт.) ══════════ */
+.card-legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:6px 0 18px}
+.card-legend span{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:0.08em;padding:6px 13px;border-radius:999px;border:1px solid;text-transform:uppercase}
+.card-legend .l-common{border-color:#6b7280;color:#9ca3af;background:rgba(107,114,128,0.10)}
+.card-legend .l-rare{border-color:#3b82f6;color:#60a5fa;background:rgba(59,130,246,0.15)}
+.card-legend .l-epic{border-color:#8b5cf6;color:#a78bfa;background:rgba(139,92,246,0.15)}
+.card-legend .l-legendary{border-color:#fbbf24;color:#fbbf24;background:rgba(251,191,36,0.25)}
+
+.card-filter-bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:14px 12px;background:rgba(11,20,36,0.85);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-bottom:20px}
+.card-view-toggle{display:flex;gap:6px;border-right:1px solid rgba(255,255,255,0.1);padding-right:12px;margin-right:6px}
+.card-filter-bar .filter-btn{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;padding:8px 15px;border-radius:999px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.03);color:#9ca3af;cursor:pointer;transition:all .15s ease;display:flex;align-items:center;gap:6px}
+.card-filter-bar .filter-btn:hover{background:rgba(255,255,255,0.08);color:#e5e7eb}
+.card-filter-bar .filter-btn .cnt{font-size:10px;background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:999px}
+.card-filter-bar .filter-btn[data-active="true"]{color:#0b1424;background:#9ca3af;border-color:#9ca3af}
+.card-filter-bar .filter-btn[data-r="Редкий"][data-active="true"]{background:#3b82f6;border-color:#3b82f6;color:#fff}
+.card-filter-bar .filter-btn[data-r="Эпический"][data-active="true"]{background:#8b5cf6;border-color:#8b5cf6;color:#fff}
+.card-filter-bar .filter-btn[data-r="Легендарный"][data-active="true"]{background:#fbbf24;border-color:#fbbf24;color:#0b1424}
+.card-filter-bar .filter-btn[data-r="all"][data-active="true"]{background:#E8A838;border-color:#E8A838;color:#0b1424}
+
+.card-app .card[data-hidden="true"],.card-app .badge-card[data-hidden="true"]{display:none}
+.card-app .mission-title[data-hidden="true"]{display:none}
+.card-app section.card-block[data-hidden="true"]{display:none}
+.card-app{max-width:1280px;margin:0 auto}
+section.card-block{margin-top:56px}
+.card-block-head{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+.card-block-head h2{font-family:'Orbitron',sans-serif;font-size:clamp(16px,2.4vw,24px);margin:0;color:#fff;letter-spacing:0.01em}
+.card-block-head .count{font-size:12px;color:#6b7280;border:1px solid rgba(255,255,255,0.1);padding:3px 10px;border-radius:999px}
+.card-app .mission-title{font-weight:600;font-size:14px;color:#E8A838;margin:26px 0 14px;padding-left:2px;display:flex;align-items:center;gap:8px}
+.card-app .mission-title::before{content:"";width:6px;height:6px;border-radius:50%;background:#E8A838;display:inline-block}
+.card-app .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px}
+.card-app .grid.landscape{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.card-app .grid.badges{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));justify-items:center}
+
+.card-app .card{position:relative;border-radius:12px;padding:18px 14px 16px;background:linear-gradient(160deg,rgba(19,34,69,0.75),rgba(27,40,56,0.85));backdrop-filter:blur(6px);border:1px solid var(--rc-border);box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset,0 8px 24px -12px rgba(0,0,0,0.6),0 0 26px -6px var(--rc-glow);display:flex;flex-direction:column;min-height:230px;transition:transform .18s ease,box-shadow .18s ease;overflow:hidden}
+.card-app .card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,var(--rc-glow),transparent 65%);pointer-events:none}
+.card-app .card:hover{transform:translateY(-4px);box-shadow:0 0 0 1px rgba(255,255,255,0.04) inset,0 14px 30px -12px rgba(0,0,0,0.7),0 0 34px -4px var(--rc-glow)}
+.card-app .card .num{position:absolute;top:10px;left:12px;font-family:'Orbitron',sans-serif;font-size:10px;color:#4b5563;letter-spacing:0.05em}
+.card-app .card .mission-badge{position:absolute;top:8px;right:10px;font-family:'Orbitron',sans-serif;font-size:10px;color:var(--rc-text);background:var(--rc-glow);border:1px solid var(--rc-border);padding:2px 7px;border-radius:999px}
+.card-app .card .icon{font-size:44px;text-align:center;margin:20px 0 10px;filter:drop-shadow(0 0 14px var(--rc-glow))}
+.card-app .card .name{font-weight:700;font-size:14.5px;text-align:center;color:#f3f4f6;line-height:1.3;margin-bottom:8px}
+.card-app .card .rarity-pill{align-self:center;font-family:'Orbitron',sans-serif;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--rc-text);background:var(--rc-glow);border:1px solid var(--rc-border);padding:3px 10px;border-radius:999px;margin-bottom:10px}
+.card-app .card .desc{font-size:12px;color:#9ca3af;text-align:center;line-height:1.45;margin-top:auto}
+.card-app .card .bonus{font-weight:600;font-size:13px;color:var(--rc-text);text-align:center}
+.card-app .card .rarity-stripe{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rc-border);box-shadow:0 0 12px var(--rc-border)}
+
+.card-app .badge-card{width:130px;height:130px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,rgba(19,34,69,0.9),rgba(11,20,36,0.95));border:2px solid var(--rc-border);box-shadow:0 0 0 1px rgba(255,255,255,0.03) inset,0 0 30px -6px var(--rc-glow),0 10px 22px -10px rgba(0,0,0,0.7);text-align:center;padding:10px;position:relative}
+.card-app .badge-card .icon{font-size:32px;margin:0 0 6px}
+.card-app .badge-card .name{font-size:11.5px;margin-bottom:4px}
+.card-app .badge-card .cond{font-size:9px;color:#8b93a7;line-height:1.3;padding:0 4px}
+.card-app .badge-card .rarity-pill{position:absolute;bottom:-10px;font-size:8px;padding:2px 8px}
+
+.card-app .boss-card{min-height:170px;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:16px;text-align:left}
+.card-app .boss-card .icon{font-size:52px;margin:0}
+.card-app .boss-card .name{text-align:left;font-size:16px;margin-bottom:6px}
+.card-app .boss-card .hp-bar-wrap{width:100%;height:8px;border-radius:99px;background:rgba(255,255,255,0.06);overflow:hidden;margin:6px 0 8px}
+.card-app .boss-card .hp-bar{height:100%;background:linear-gradient(90deg,var(--rc-border),#E8A838)}
+.card-app .boss-card .meta-row{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:#9ca3af}
+.card-app .boss-card .meta-row b{color:#e5e7eb}
+.card-app .boss-card .desc{text-align:left;margin-top:6px}
+
+.card-app .shop-card .price{font-family:'Orbitron',sans-serif;font-size:13px;color:#E8A838;text-align:center;margin-bottom:4px;font-weight:700}
+.card-app .shop-card .type-pill{align-self:center;font-size:9.5px;color:#9ca3af;border:1px solid rgba(255,255,255,0.12);padding:2px 9px;border-radius:999px;margin-bottom:8px}
+.card-app .mystery-card .chance{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:800;text-align:center;color:var(--rc-text);margin:6px 0 4px}
+
 </style>
 </head>
 <body>
@@ -1252,6 +1316,7 @@ textarea:focus{border-color:var(--orange)}
     <button class="nav-item" data-page="talents"  title="Таланты">🎯<span>Таланты</span></button>
     <button class="nav-item" data-page="dashboard" title="Дашборд">📊<span>Стат</span></button>
     <button class="nav-item" data-page="assessments" title="Оценка">📋<span>Оценка</span></button>
+    <button class="nav-item" data-page="cards" title="Карточки">🎴<span>Карточки</span></button>
     <div class="nav-spacer"></div>
   </aside>
 
@@ -1672,6 +1737,18 @@ textarea:focus{border-color:var(--orange)}
       </div>
     </div>
 
+    <!-- PAGE 7: КАРТОЧКИ (КОЛЛЕКЦИЯ) -->
+    <div class="page" id="page-cards">
+      <div class="page-wrap">
+        <div class="page-header">
+          <h1>🎴 КАРТОЧКИ — КОЛЛЕКЦИЯ</h1>
+          <p>Инвентарь смен, реликвии, значки, боссы, магазин и тайный сундук (84 шт.)</p>
+        </div>
+        <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
+        <div id="cards-content"></div>
+      </div>
+    </div>
+
   </main>
 
   <!-- ── MOBILE BOTTOM TAB BAR ── -->
@@ -1682,6 +1759,7 @@ textarea:focus{border-color:var(--orange)}
     <button class="btab" data-page="talents"><span class="btab-icon">🎯</span><span class="btab-label">Таланты</span></button>
     <button class="btab" data-page="dashboard"><span class="btab-icon">📊</span><span class="btab-label">Стат</span></button>
     <button class="btab" data-page="assessments"><span class="btab-icon">📋</span><span class="btab-label">Оценка</span></button>
+    <button class="btab" data-page="cards"><span class="btab-icon">🎴</span><span class="btab-label">Карты</span></button>
   </nav>
 </div>
 
@@ -1834,7 +1912,7 @@ textarea:focus{border-color:var(--orange)}
 <div id="toast-container"></div>
 
 <!-- SCRIPTS -->
-<script src="js/config.js?v=6"></script>
+<script src="js/config.js?v=7"></script>
 <script src="js/api.js?v=4"></script>
 <script>
 window.onerror = function(msg, url, line, col, error) {
@@ -1847,7 +1925,7 @@ window.onerror = function(msg, url, line, col, error) {
   document.body.appendChild(el);
 };
 </script>
-<script src="js/app.js?v=11"></script>
+<script src="js/app.js?v=12"></script>
 
 <!-- Mobile menu script -->
 <script>
