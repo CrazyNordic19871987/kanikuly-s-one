@@ -1677,61 +1677,75 @@ function renderTalentCard(studentId) {
   renderCareer(obs, earnedBadges);
   renderRecommendations(obs, earnedBadges, compScores);
 
-  // Badges tab
+  // Badges tab — round medallions (earned vs locked), DISC-card language
   const badgesListEl = document.getElementById('talent-badges-list');
-  if (badgesListEl) badgesListEl.innerHTML = earnedBadges.length
-    ? '<div class="card-app"><div class="grid badges">' + earnedBadges.map(b => {
-        const def = state.badgeDefs.find(d => d.id === b.badge_id);
-        const rr = rarityLabel(b.rarity);
-        return `<div class="badge-card" data-rarity="${esc(rr)}" style="${cardRarityStyle(rr)}">` +
-          `<div class="icon">${badgeImg(b.badge_id, b.icon, 34, def && def.image_url)}</div>` +
-          `<div class="name">${esc(b.name)}</div>` +
-          `<div class="cond">${esc(b.desc || '')}</div>` +
-          `<div class="rarity-pill">${esc(rr)}</div>` +
-        `</div>`;
-      }).join('') + '</div></div>'
-    : '<p class="empty-note">Значков пока нет</p>';
+  if (badgesListEl) {
+    const earnedIds = new Set(earnedBadges.map(b => b.badge_id));
+    const allDefs = Array.isArray(state.badgeDefs) ? state.badgeDefs : [];
+    badgesListEl.innerHTML = allDefs.length
+      ? '<div class="pp-badges">' + allDefs.map(def => {
+          const earned = earnedIds.has(def.id);
+          const rrk = rarityKey(def.rarity || 'common');
+          const rr = rarityLabel(rrk);
+          return `<div class="badge-tile ${earned ? '' : 'locked'}" data-rarity="${esc(rr)}" style="${cardRarityStyle(rrk)}" title="${esc(def.desc || '')}">
+            <span class="bt-icon">${badgeImg(def.id, def.icon, 30, def.image_url)}</span>
+            <span class="bt-name">${esc(def.name)}</span>
+            <span class="bt-rr">${esc(rr)}${earned ? '' : ' · закрыт'}</span>
+          </div>`;
+        }).join('') + '</div>'
+      : '<p class="empty-note">Значков пока нет</p>';
+  }
   const badgeCount = document.getElementById('pp-badge-count');
   if (badgeCount) badgeCount.textContent = earnedBadges.length > 0 ? `(${earnedBadges.length})` : '';
 
-  // Inventory tab
+  // Inventory tab — square tiles in DISC-card language
   const inv = computeInventory(studentId);
   const invEl = document.getElementById('talent-inventory');
   if (invEl) {
     let invCards = '';
     inv.items.forEach(item => {
-      const rr = rarityLabel(item.rarity);
-      invCards += `<div class="card" data-rarity="${esc(rr)}" style="${cardRarityStyle(rr)}">` +
-        `<div class="rarity-stripe"></div>` +
-        `<div class="icon">${itemImg(item.id, item.icon, 44, item.image_url)}</div>` +
-        `<div class="name">${esc(item.name)}</div>` +
-        `<div class="rarity-pill">${esc(rr)}</div>` +
-        `<div class="bonus">${esc(item.bonus)}</div>` +
+      const rrk = rarityKey(item.rarity || 'common');
+      const rr = rarityLabel(rrk);
+      invCards += `<div class="pp-tile inv-tile" data-rarity="${esc(rr)}" style="${cardRarityStyle(rrk)}">` +
+        `<span class="inv-ic">${itemImg(item.id, item.icon, 40, item.image_url)}</span>` +
+        `<span class="inv-nm">${esc(item.name)}</span>` +
+        `<span class="inv-rr">${esc(rr)}</span>` +
       `</div>`;
     });
     for (let i = inv.items.length; i < inv.maxSlots; i++) {
-      invCards += `<div class="card" style="border-style:dashed;background:transparent;opacity:0.45;box-shadow:none"><div class="icon" style="font-size:30px;color:var(--muted);margin:auto 0">+</div></div>`;
+      invCards += `<div class="pp-tile inv-tile empty"><span class="inv-empty-plus">+</span></div>`;
     }
-    const invHeader = `<div class="inv-header"><span>${inv.items.length} / ${inv.maxSlots} слотов</span></div>`;
-    invEl.innerHTML = invHeader + '<div class="card-app"><div class="grid">' + invCards + '</div></div>';
+    const invHeader = `<div class="inv-grid-hdr">${inv.items.length} / ${inv.maxSlots} слотов</div>`;
+    invEl.innerHTML = invHeader + '<div class="pp-inv">' + invCards + '</div>';
   }
 
-  // History tab
+  // History tab — timeline tiles in DISC archetype language
   const obsListEl = document.getElementById('talent-obs-list');
-  if (obsListEl) obsListEl.innerHTML = obs.length
-    ? obs.map(o => {
-        const trackIcon = {bio:'🧬', eng:'⚙️', media:'🎥', english:'🌍'}[o.track] || '📋';
-        return `<div class="obs-row">
-          <span class="obs-icon">${trackIcon}</span>
-          <div class="obs-info"><strong>${o.track} · день ${o.day}</strong></div>
-          <div class="obs-scores">
-            <span>💪 ${o.independence}/5</span>
-            <span>★ ${o.quality}/5</span>
-            ${o.initiative ? '<span class="init-chip">🚀 инициатива</span>' : ''}
-          </div>
-        </div>`;
-      }).join('')
-    : '<p class="empty-note">Наблюдений пока нет</p>';
+  if (obsListEl) {
+    const trackCfg = {
+      bio:   { icon:'🧬', tc:'tc-bio' },
+      eng:   { icon:'⚙️', tc:'tc-eng' },
+      media: { icon:'🎥', tc:'tc-media' },
+      english:{icon:'🌍', tc:'tc-english' }
+    };
+    obsListEl.innerHTML = obs.length
+      ? '<div class="pp-hist">' + obs.map(o => {
+          const tr = trackCfg[o.track] || { icon:'📋', tc:'tc-misc' };
+          const trackName = String(o.track || '').replace(/^./, c => c.toUpperCase()) || 'Наблюдение';
+          return `<div class="hist-tile ${tr.tc}">
+            <div class="hist-dot">${tr.icon}</div>
+            <div class="hist-body">
+              <div class="hist-title">${esc(trackName)} <span style="opacity:.6">· день ${esc(o.day)}</span></div>
+              <div class="hist-scores">
+                <span class="hist-score">💪 ${esc(o.independence)}/5</span>
+                <span class="hist-score">★ ${esc(o.quality)}/5</span>
+                ${o.initiative ? '<span class="hist-chip">🚀 инициатива</span>' : ''}
+              </div>
+            </div>
+          </div>`;
+        }).join('') + '</div>'
+      : '<p class="empty-note">Наблюдений пока нет</p>';
+  }
 
   // DISC tab
   renderDISC(obs, studentId);
@@ -1745,7 +1759,7 @@ function renderTalentCard(studentId) {
     if (shiftIds.length === 0) {
       ppShiftsEl.innerHTML = '<p class="empty-note">Участник пока не записан ни на одну миссию</p>';
     } else {
-      ppShiftsEl.innerHTML = shiftIds.map(sid => {
+      ppShiftsEl.innerHTML = '<div class="pp-miss">' + shiftIds.map(sid => {
         const shiftObj = state.shifts.find(s => s.id == sid);
         const shiftName = shiftObj ? shiftObj.name : 'Миссия ' + sid;
         const shiftComps = studentCompletions.filter(c => c.shift_id == sid);
@@ -1756,19 +1770,21 @@ function renderTalentCard(studentId) {
           return def && def.shift_id == sid;
         }).length;
         const pct = Math.round(avgScore * 20);
-        const barColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--orange)' : 'var(--sky)';
-        return `<div class="obs-row" style="flex-direction:column;align-items:stretch;gap:8px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="obs-icon">🏕️</span>
-            <div class="obs-info"><strong>${esc(shiftName)}</strong></div>
-            <span style="font-size:0.65rem;color:var(--muted)">${shiftComps.length} заданий · ${badgeCount} баджей</span>
+        const tc = pct >= 80 ? 'tc-done' : pct >= 50 ? 'tc-prog' : 'tc-media';
+        const status = pct >= 80 ? 'Пройдена' : pct >= 50 ? 'В процессе' : 'На старте';
+        return `<div class="miss-card ${tc}">
+          <div class="rarity-stripe"></div>
+          <div class="miss-head">
+            <span class="miss-idx">🏕️ Миссия ${esc(sid)}</span>
+            <span class="miss-meta">${shiftComps.length} заданий · ${badgeCount} баджей · ${esc(status)}</span>
           </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            ${directions.map(d => `<span style="font-size:0.6rem;padding:2px 6px;border-radius:4px;background:var(--glass-b);color:var(--muted)">${esc(d)}</span>`).join('')}
+          <div class="miss-name">${esc(shiftName)}</div>
+          <div class="miss-dirs">
+            ${directions.map(d => `<span class="miss-dir">${esc(d)}</span>`).join('') || '<span class="miss-dir">без направлений</span>'}
           </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="flex:1;height:6px;background:var(--glass-b);border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px"></div></div>
-            <span style="font-size:0.65rem;font-weight:700;color:${barColor};min-width:32px;text-align:right">${pct}%</span>
+          <div class="miss-score-row">
+            <div class="miss-track"><div class="miss-fill" style="width:${pct}%"></div></div>
+            <span class="miss-pct">${pct}%</span>
           </div>
         </div>`;
       }).join('');
@@ -1820,20 +1836,22 @@ function renderTalentCard(studentId) {
 
     let html = '';
 
-    // Top strengths
+    // Top strengths — competency tiles in DISC-card language
     if (topComps.length > 0) {
-      html += '<h4 style="font-size:0.8rem;margin-bottom:10px;color:var(--green)">💪 Сильные стороны</h4>';
+      html += `<div class="pp-tile rec-section" style="--rc-border:#34d399;--rc-glow:rgba(52,211,153,0.16);--rc-text:#6ee7b7">
+        <div class="rec-section-title"><span class="dot"></span>💪 Сильные стороны</div>`;
       topComps.forEach(([id, val]) => {
         const comp = state.competencies.find(c => c.id === id);
         if (!comp) return;
-        const barColor = val >= 70 ? 'var(--green)' : val >= 40 ? 'var(--orange)' : 'var(--sky)';
-        html += `<div class="rec-comment" style="margin-bottom:6px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
-            <span>${comp.icon} ${comp.name}</span><span style="font-size:0.65rem;font-weight:700;color:${barColor}">${val}%</span>
-          </div>
-          <div style="height:4px;background:var(--glass-b);border-radius:2px;overflow:hidden"><div style="height:100%;width:${val}%;background:${barColor};border-radius:2px"></div></div>
+        const col = comp.color || '#3B82F6';
+        html += `<div class="rec-str" style="--rc-border:${col};--rc-glow:${col}33;--rc-text:${col}">
+          <span class="rec-str-ic">${comp.icon}</span>
+          <span class="rec-str-name">${comp.name}</span>
+          <div class="comp-track" style="flex:1;max-width:none"><div class="comp-fill" style="width:${val}%"></div></div>
+          <span class="rec-str-pct">${val}%</span>
         </div>`;
       });
+      html += '</div>';
     }
 
     // Profession recommendations
@@ -1842,11 +1860,13 @@ function renderTalentCard(studentId) {
       if (professionMap[id]) professionMap[id].forEach(p => profRecs.push(p));
     });
     if (profRecs.length > 0) {
-      html += '<h4 style="font-size:0.8rem;margin:16px 0 10px;color:var(--orange)">🔮 Профессии будущего</h4>';
       const unique = [...new Set(profRecs)].slice(0, 6);
-      html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${unique.map(p =>
-        `<span style="padding:4px 10px;border-radius:8px;background:var(--orange-dim);color:var(--orange);font-size:0.7rem;font-weight:600">${esc(p)}</span>`
-      ).join('')}</div>`;
+      html += `<div class="pp-tile rec-section" style="--rc-border:#f5b83d;--rc-glow:rgba(245,184,61,0.16);--rc-text:#fbbf6a">
+        <div class="rec-section-title"><span class="dot"></span>🔮 Профессии будущего</div>
+        <div class="rec-chips">${unique.map(p =>
+          `<span class="rec-chip orange"><span class="tag">проф</span>${esc(p)}</span>`
+        ).join('')}</div>
+      </div>`;
     }
 
     // Extracurricular recommendations
@@ -1855,35 +1875,35 @@ function renderTalentCard(studentId) {
       if (extraMap[id]) extraMap[id].forEach(e => extraRecs.push(e));
     });
     if (extraRecs.length > 0) {
-      html += '<h4 style="font-size:0.8rem;margin:16px 0 10px;color:var(--sky)">🌟 Рекомендации по кружкам и секциям</h4>';
       const unique = [...new Set(extraRecs)].slice(0, 8);
-      html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${unique.map(e =>
-        `<span style="padding:4px 10px;border-radius:8px;background:rgba(100,181,246,0.12);color:var(--sky);font-size:0.7rem;font-weight:600">${esc(e)}</span>`
-      ).join('')}</div>`;
+      html += `<div class="pp-tile rec-section" style="--rc-border:#3b82f6;--rc-glow:rgba(59,130,246,0.16);--rc-text:#93c5fd">
+        <div class="rec-section-title"><span class="dot"></span>🌟 Кружки и секции</div>
+        <div class="rec-chips">${unique.map(e =>
+          `<span class="rec-chip sky"><span class="tag">кружок</span>${esc(e)}</span>`
+        ).join('')}</div>
+      </div>`;
     }
 
     // Areas to develop
     if (weakComps.length > 0) {
-      html += '<h4 style="font-size:0.8rem;margin:16px 0 10px;color:var(--muted)">📚 Рекомендуется развить</h4>';
-      weakComps.forEach(([id, val]) => {
-        const comp = state.competencies.find(c => c.id === id);
-        if (!comp) return;
-        html += `<div class="rec-comment" style="margin-bottom:6px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span>${comp.icon} ${comp.name}</span><span style="font-size:0.65rem;color:var(--muted)">${val}%</span>
-          </div>
-        </div>`;
-      });
+      html += `<div class="pp-tile rec-section" style="--rc-border:#6b7280;--rc-glow:rgba(107,114,128,0.16);--rc-text:#9ca3af">
+        <div class="rec-section-title"><span class="dot"></span>📚 Рекомендуется развить</div>
+        <div class="rec-develop">${weakComps.map(([id, val]) => {
+          const comp = state.competencies.find(c => c.id === id);
+          if (!comp) return '';
+          return `<span class="rec-chip gray"><span class="tag">${esc(comp.icon)}</span>${esc(comp.name)} ${esc(val)}%</span>`;
+        }).join('')}</div>
+      </div>`;
     }
 
     // Summary
     const totalObs = obs.length;
     const totalBadges = earnedBadges.length;
     const avgObs = totalObs > 0 ? Math.round(obs.reduce((s, o) => s + (o.quality || 0), 0) / totalObs * 20) : 0;
-    html += `<div class="disc-combo" style="margin-top:16px">
-      <strong>📊 Итоговый профиль</strong>
-      <p>Уровень ${lv.level} · ${xp} XP · ${totalObs} наблюдений · ${totalBadges} значков · средний балл ${avgObs}%</p>
-      <p style="margin-top:4px">Основной профиль: <strong style="color:var(--orange)">${topComps.length > 0 ? (state.competencies.find(c => c.id === topComps[0][0])?.name || '--') : 'Пока нет данных'}</strong></p>
+    html += `<div class="pp-tile rec-section" style="--rc-border:#3b82f6;--rc-glow:rgba(59,130,246,0.16);--rc-text:#93c5fd;margin-top:4px">
+      <div class="rec-section-title"><span class="dot"></span>📊 Итоговый профиль</div>
+      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:6px">Уровень ${lv.level} · ${xp} XP · ${totalObs} наблюдений · ${totalBadges} значков · средний балл ${avgObs}%</p>
+      <p style="font-size:0.72rem;color:var(--muted)">Основной профиль: <strong style="color:var(--rc-text,#93c5fd)">${topComps.length > 0 ? (state.competencies.find(c => c.id === topComps[0][0])?.name || '--') : 'Пока нет данных'}</strong></p>
     </div>`;
 
     if (!html) html = '<p class="empty-note">Недостаточно данных для анализа. Начните выставлять оценки!</p>';
@@ -2294,15 +2314,16 @@ function renderRadarChart(scores) {
 function renderCompBars(scores) {
   const el = document.getElementById('comp-bars');
   if (!el) return;
-  el.innerHTML = state.competencies.map(c => `
-    <div class="comp-bar-row">
-      <span class="comp-bar-icon">${c.icon}</span>
-      <span class="comp-bar-name">${c.name}</span>
-      <div class="comp-bar-track">
-        <div class="comp-bar-fill" style="width:${scores[c.id]}%;background:${c.color}80;border-right:2px solid ${c.color}"></div>
-      </div>
-      <span class="comp-bar-val">${scores[c.id]}%</span>
-    </div>`).join('');
+  el.innerHTML = '<div class="pp-comp">' + state.competencies.map(c => {
+    const col = c.color || '#3B82F6';
+    const pct = Math.max(0, Math.min(100, scores[c.id] || 0));
+    return `<div class="pp-tile comp-tile" style="--rc-border:${col};--rc-glow:${col}33;--rc-text:${col}">
+      <span class="comp-ic">${c.icon}</span>
+      <span class="comp-nm">${c.name}</span>
+      <div class="comp-track"><div class="comp-fill" style="width:${pct}%"></div></div>
+      <span class="comp-vl">${pct}%</span>
+    </div>`;
+  }).join('') + '</div>';
 }
 
 function calcDisc(obs, studentId) {
@@ -2867,10 +2888,10 @@ function renderShiftDashboard() {
         <div class="sd-squad-bar-label">Команда ${sq}</div>
         <div class="sd-squad-bar-track"><div class="sd-squad-bar-fill" style="width:${pct}%"></div></div>
         <div class="sd-squad-bar-val">${data.count} чел. · ${avgSq}★ · ${data.totalXp} XP</div>
-      </div>`;
-    }).join('');
+        </div>`;
+      }).join('') + '</div>';
+    }
   }
-}
 
 function goBack() {
   history.back();
