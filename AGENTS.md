@@ -12,11 +12,17 @@ Summer camp management web app for kids 7-12. Static SPA (no build step) hosted 
 ## Architecture
 
 - `index.html` — single HTML file, all CSS inline (~1000 lines)
-- `app.js` (root) and `js/app.js` — **MUST be kept in sync** (both contain the same JS)
-- `js/config.js` — Supabase URL/key + TABLES constants + DEFAULT_* fallbacks
+- `js/app.js` — main application JS (single source of truth; the former root `app.js` duplicate was removed)
+- `js/config.js` — Supabase URL/key + TABLES constants + DEFAULT_* fallbacks (single source of truth; the former root `config.js` duplicate was removed)
 - `js/api.js` — Supabase REST wrapper with pagination
 - `migrations/` — SQL for indexes, RLS
 - `програма/` — pedagogical program files for missions 1-6 (.md)
+- `player/` — player-facing components/views
+- `gen-og.js` / `gen-og.ps1` — OpenGraph image generators (Node + PS wrapper)
+- `scripts/` — helper scripts
+- `kanikuly_cards_collection.md`, `Миссии_для_педагогов.md`, `gamma_presentation_prompt.md` — content/presentation docs
+- `presentation_kanikuly_s_one.html` — standalone presentation page (not part of the SPA)
+- `*.pptx` — marketing deck sources (MS PowerPoint), not build inputs
 - No build step, no npm, no framework. Vanilla JS + CSS.
 
 ## Color Palette
@@ -68,7 +74,7 @@ git add . && git commit -m "description" && git push origin master
 
 ## Rules for Agents
 
-1. **Always edit `js/app.js`** as the primary source, then sync to root `app.js`
+1. **Edit files in `js/` only** — `js/app.js`, `js/config.js`, `js/api.js`. There are no root-level JS duplicates anymore; don't recreate them.
 2. **Never remove existing features** — only add or fix
 3. **Use existing CSS variables** — don't hardcode colors
 4. **Test with `webfetch`** on live site after pushing
