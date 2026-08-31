@@ -81,7 +81,6 @@ kanikuly-s-one/
 │   ├── config.js           ← Supabase + смены + направления + экономика + реликвии + DISC
 │   ├── api.js              ← API-слой (работа с Supabase REST)
 │   └── app.js              ← Логика приложения (страницы, карточки, DISC, коллекция)
-├── app.js                  ← Синхронная копия js/app.js
 ├── migrations/             ← Пошаговые SQL-миграции (001–008)
 ├── player/                 ← Прототип профиля игрока + дизайн-доки
 ├── .github/workflows/      ← Автодеплой на GitHub Pages
