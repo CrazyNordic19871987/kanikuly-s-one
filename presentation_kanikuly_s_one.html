@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Каникулы с ONE! — Фиджитал-платформа для детских каникул</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/black.css" id="theme">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@500;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B2838;
+    --bg2:#132245;
+    --accent:#E8A838;
+    --green:#7CB342;
+    --blue:#64B5F6;
+    --cream:#F0EDE5;
+  }
+  html,body{margin:0;padding:0;}
+  .reveal, .reveal .slides{
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--cream);
+    font-size:30px;
+  }
+  .reveal .slides section{
+    text-align:left;
+    padding:0.4em;
+    box-sizing:border-box;
+    overflow:hidden;
+  }
+  .reveal h1{
+    font-family:'Orbitron', sans-serif;
+    text-transform:uppercase;
+    color:#fff;
+    letter-spacing:.04em;
+  }
+  .reveal h2{
+    font-family:'Orbitron', sans-serif;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-size:1.35em;
+    letter-spacing:.03em;
+    margin-bottom:.5em;
+    line-height:1.15;
+  }
+  .reveal h3{color:#fff;font-size:1em;}
+  .reveal p,.reveal li{font-size:.6em;line-height:1.45;}
+  .reveal li{margin:.22em 0;}
+  .lead{font-size:.7em;line-height:1.5;}
+  .dim{color:#b9c2d0;font-size:.55em;}
+  .accent{color:var(--accent);font-weight:600;}
+  .blue{color:var(--blue);}
+  .green{color:var(--green);}
+  .center{text-align:center;}
+  .reveal a{color:var(--blue);text-decoration:none;border-bottom:1px solid rgba(100,181,246,.4);}
+  .reveal a:hover{color:var(--accent);border-bottom-color:var(--accent);}
+  .kicker{
+    font-family:'JetBrains Mono',monospace;
+    font-size:.5em;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--blue);
+    margin-bottom:.4em;
+  }
+  /* ---------- grids ---------- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.7em;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:.6em;}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:.6em;}
+  .grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.6em;}
+  .map-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.45em;}
+  .card{
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.12);
+    border-left:4px solid var(--accent);
+    border-radius:8px;
+    padding:.6em .8em;
+  }
+  .card h4{
+    color:var(--accent);
+    font-family:'Orbitron',sans-serif;
+    font-size:.6em;
+    margin:0 0 .3em;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+  }
+  .card p{font-size:.55em;margin:0;}
+  .phase{border-left-color:var(--green);}
+  .big-num{font-family:'Orbitron',sans-serif;font-size:2.4em;color:var(--accent);line-height:1;}
+  .stat{text-align:center;}
+  .stat p{font-size:.55em;margin-top:.3em;color:#d5dce5;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.2em;}
+  .tag-line{display:flex;justify-content:center;gap:1.4em;flex-wrap:wrap;margin-top:.9em;}
+  .tag-line span{font-family:'Orbitron',sans-serif;font-size:.45em;color:#fff;letter-spacing:.08em;text-transform:uppercase;}
+
+  /* ---------- chips ---------- */
+  .chip{
+    display:inline-block;
+    background:rgba(100,181,246,.15);
+    color:var(--blue);
+    border:1px solid rgba(100,181,246,.4);
+    border-radius:20px;
+    padding:.1em .55em;
+    font-size:.45em;
+    margin:.15em .15em 0 0;
+    font-weight:600;
+  }
+  .glow{color:var(--accent);}
+
+  /* ---------- shift showcase ---------- */
+  .shift-slide{display:flex;flex-direction:column;justify-content:center;align-items:stretch;height:100%;}
+  .shift-top{display:grid;grid-template-columns:1.1fr 1fr;gap:.9em;align-items:center;height:100%;}
+  .shift-banner{position:relative;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.15);box-shadow:0 10px 30px rgba(0,0,0,.4);height:100%;max-height:460px;align-self:stretch;}
+  .shift-banner img{display:block;width:100%;height:100%;object-fit:cover;min-height:0;}
+  .shift-banner .num{
+    position:absolute;top:.4em;left:.5em;font-family:'Orbitron',sans-serif;
+    color:#fff;font-size:.8em;background:rgba(27,40,56,.75);padding:.1em .5em;border-radius:6px;
+  }
+  .shift-info h3{font-family:'Orbitron',sans-serif;text-transform:uppercase;color:#fff;font-size:1em;line-height:1.2;margin:0 0 .15em;}
+  .shift-info .subtitle{color:var(--accent);font-size:.5em;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.35em;}
+  .shift-info .legend{font-size:.55em;line-height:1.4;color:#e6eaf0;}
+  .shift-info .chips{margin-top:.4em;}
+  .shift-footer{margin-top:.45em;font-size:.5em;color:#8a94a5;}
+
+  /* ---------- tiny overview cards for the map slide ---------- */
+  .map-card{
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:6px;
+    padding:.25em .5em;display:flex;gap:.5em;align-items:center;
+  }
+  .map-card img{width:44px;height:44px;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,.2);flex:none;}
+  .map-card h5{font-size:.46em;margin:0;color:#fff;font-family:'Orbitron',sans-serif;text-transform:uppercase;letter-spacing:.02em;line-height:1.15;}
+  .map-card p{font-size:.4em;margin:.05em 0 0;color:#c9d2de;line-height:1.2;}
+
+  /* compact spacing so all 10 shift cards fit on one screen */
+  .map-overview{font-size:26px;padding:.3em .5em .05em;}
+  .map-overview .map-grid{gap:.35em;}
+  .map-overview .map-card{padding:.15em .45em;gap:.4em;}
+  .map-overview .map-card img{width:34px;height:34px;}
+  .map-overview h2{margin-bottom:.3em;}
+  .map-overview .dim{margin-bottom:.2em;}
+  .map-overview .kicker{margin-bottom:.25em;}
+
+  /* ---------- link bar ---------- */
+  .urlbar{
+    display:inline-block;background:rgba(100,181,246,.12);border:1px solid rgba(100,181,246,.4);
+    padding:.25em .8em;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:.5em;color:var(--blue);
+    word-break:break-all;
+  }
+  .urlbar a{color:var(--blue);border:none;}
+  .urlbar a:hover{color:var(--accent);}
+
+  .reveal .slide-footer{
+    position:fixed;right:1em;bottom:.6em;font-size:.4em;color:#8a94a5;
+    font-family:'JetBrains Mono',monospace;
+  }
+
+  /* ================= RESPONSIVE ================= */
+  @media (max-width:1100px){
+    .reveal{font-size:30px;}
+    .grid4{grid-template-columns:repeat(2,1fr);}
+    .grid3{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:760px){
+    .reveal{font-size:22px;}
+    .reveal .slides section{padding:.3em;}
+    .grid4,.grid3,.grid-auto{grid-template-columns:1fr;}
+    .two-col,.grid2,.shift-top{grid-template-columns:1fr;}
+    .map-grid{grid-template-columns:repeat(2,1fr);gap:.4em;}
+    .shift-banner img{min-height:0;max-height:230px;}
+    .reveal .slides{width:100% !important;}
+    .reveal .slides section{top:0 !important;margin:0 !important;}
+    .reveal .slide-footer{display:none;}
+    .shift-slide{height:auto !important;}
+    .reveal .slides section{overflow:auto;}
+  @media (max-width:480px){
+    .reveal{font-size:18px;}
+    .reveal ul{font-size:.9em;}
+  }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============ SLIDE 1 : ТИТУЛ ============ -->
+<section data-background-color="#1B2838">
+  <p class="kicker">ONE! · Фиджитал-платформа · 2026–2027</p>
+  <h1 style="font-size:2.2em;">Каникулы<br>с ONE!</h1>
+  <p class="lead">Phygital-платформа для организации детских каникул.<br>
+  <span class="accent">10 тематических смен</span> · <span class="blue">7 направлений</span> · <span class="green">геймификация</span></p>
+  <div class="tag-line">
+    <span>IT</span><span>Спорт</span><span>Английский</span><span>Арт и Дизайн</span><span>Предпринимательство</span><span>Биотех</span><span>Дипломатия</span><span>Инженерия</span>
+  </div>
+  <p style="margin-top:1em;" class="center"><span class="urlbar">&#9654; <a href="https://crazynordic19871987.github.io/kanikuly-s-one/" target="_blank">crazynordic19871987.github.io/kanikuly-s-one</a></span></p>
+  <p class="dim" style="margin-top:.8em;">Доклад для управляющей компании · 2026–2027</p>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE 2 : ЧТО ТАКОЕ ============ -->
+<section data-background-color="#1B2838">
+  <p class="kicker">01 · О проекте</p>
+  <h2>Мы создаём <span class="green">среду</span>, а не «присмотр»</h2>
+  <p class="lead">«Каникулы с ONE!» — единая фиджитал-платформа (physical + digital), объединяющая все школьные каникулы года в систему развития ребёнка через игру и реальные проекты.</p>
+  <div class="grid3">
+    <div class="card"><h4>👥 Аудитория</h4><p>Дети <b>7–12 лет</b>. Два кампуса: <span class="blue">ШОП</span> и <span class="blue">ШСТ</span>.</p></div>
+    <div class="card"><h4>🏕️ 10 смен</h4><p>Каждая — <b>уникальная тематическая вселенная</b> со своим сценарием и миссиями.</p></div>
+    <div class="card"><h4>🧩 Phygital</h4><p>Физическая активность + цифровые инструменты как одна система.</p></div>
+    <div class="card"><h4>🌍 Англо-среда</h4><p>Английский как <b>язык общения</b>, а не отдельный урок.</p></div>
+    <div class="card"><h4>🎮 Геймификация</h4><p>XP, уровни, инвентарь, бейджи, DISC-профиль каждого ребёнка.</p></div>
+    <div class="card"><h4>📈 Развитие</h4><p>Вожатый формирует <b>личную траекторию развития</b> ребёнка.</p></div>
+  </div>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE 3 : 7 КОМПОНЕНТОВ ============ -->
+<section data-background-color="#1B2838">
+  <p class="kicker">02 · Продукт</p>
+  <h2>7 равных компонентов</h2>
+  <p class="dim">Каждый компонент — часть единой системы, а не отдельное развлечение.</p>
+  <div class="grid-auto">
+    <div class="card"><h4>🏅 Спорт</h4><p>Blazepod, лазертаг, Archery Tag, паркур. <b>1,5–2 ч ежедневно</b> — полноценное измеряемое направление.</p></div>
+    <div class="card"><h4>🗣 English</h4><p>Питчи, интервью, дневники, переговоры. Английский через <b>реальные ситуации</b>.</p></div>
+    <div class="card"><h4>🧭 Педагогика</h4><p>DISC-профиль, персональный learning path, ежедневные рефлексии и коучинг.</p></div>
+    <div class="card"><h4>💻 IT</h4><p>micro:bit, Arduino, Scratch, Roblox, Python. Реальные устройства, которые дети собирают сами.</p></div>
+    <div class="card"><h4>📦 Продуктовый инкубатор</h4><p>Идея → прототип → питч → <b>Demo Day</b>. Юнит-экономика и защита перед «инвесткомитетом».</p></div>
+    <div class="card"><h4>🏆 Чемпионаты</h4><p>Ежедневные соревнования, биометрия, трекинг, рейтинги. Мотивация через соревнование.</p></div>
+    <div class="card"><h4>🧠 Квизы</h4><p>Ежедневные интеллектуальные игры по теме смены: вопрос → обсуждение → ответ → очки.</p></div>
+  </div>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ СМЕНЫ: обзор + 10 смен (вертикальные слайды) ============ -->
+<section>
+  <section class="map-overview" data-background-color="#132245">
+  <p class="kicker">03 · Контент</p>
+  <h2>10 смен — 10 миров</h2>
+  <p class="dim">Сквозная нить всех смен — фиджитал-платформа и геймификация. <span class="blue">Листайте вниз ↓</span> — детали каждой смены.</p>
+  <div class="map-grid">
+    <div class="map-card"><img src="img/mission1-banner.JPG" alt=""><div><h5>1 · Кибер-Атлеты</h5><p>Phygital & Sci-Fi · Спорт + IT + Биотех</p></div></div>
+    <div class="map-card"><img src="img/mission2-banner.JPG" alt=""><div><h5>2 · Terraforming</h5><p>Adventure & Eco-Tech · Колонизация</p></div></div>
+    <div class="map-card"><img src="img/mission3-banner.JPG" alt=""><div><h5>3 · Meta-Agency</h5><p>Media & Soft Skills · Детективы времени</p></div></div>
+    <div class="map-card"><img src="img/mission4-banner.JPG" alt=""><div><h5>4 · Future Makers</h5><p>STEM & Design Thinking · Стартапы</p></div></div>
+    <div class="map-card"><img src="img/mission5-banner.JPG" alt=""><div><h5>5 · Active Tech 2077</h5><p>Sports Tech · Био-тех спорт</p></div></div>
+    <div class="map-card"><img src="img/mission6-banner.JPG" alt=""><div><h5>6 · Urban Quest</h5><p>City Adventure & AR · Агенты города</p></div></div>
+    <div class="map-card"><img src="img/mission7-banner.JPG" alt=""><div><h5>7 · Smart City Lab</h5><p>Urban Tech · Умный город</p></div></div>
+    <div class="map-card"><img src="img/mission8-banner.JPG" alt=""><div><h5>8 · Game Studio</h5><p>Gamedev · Код Доступа</p></div></div>
+    <div class="map-card"><img src="img/mission9-banner.JPG" alt=""><div><h5>9 · Champions Academy</h5><p>Data Analytics · Биомеханика</p></div></div>
+    <div class="map-card"><img src="img/mission10-banner.JPG" alt=""><div><h5>10 · Island Survival</h5><p>Eco-Tech · Выживание на острове</p></div></div>
+  </div>
+  <div class="slide-footer">ONE! · Каникулы с ONE! · смены</div>
+</section>
+
+<!-- ============ SHIFT DETAILS (вертикальные слайды) ============ -->
+
+<!-- Смена 1 -->
+  <section data-background-color="#1B2838">
+    <div class="shift-slide">
+      <p class="kicker">Смена 01</p>
+      <div class="shift-top">
+        <div class="shift-banner"><span class="num">01</span><img src="img/mission1-banner.JPG" alt="Кибер-Атлеты"></div>
+        <div class="shift-info">
+          <h3>Кибер-Атлеты<br>Хроники Будущего</h3>
+          <div class="subtitle">PHYGITAL &amp; SCI-FI</div>
+          <p class="legend">Участники — «Агенты Будущего» в секретной академии. Их задача — спасти цифровую вселенную, развивая физические и интеллектуальные способности. Каждый день — новая миссия, каждая победа — очки опыта.</p>
+          <div class="chips"><span class="chip">Спорт</span><span class="chip">IT</span><span class="chip">Биотех</span><span class="chip">Предпринимательство</span></div>
+        </div>
+      </div>
+      <p class="shift-footer">&#8600; Вниз — следующая смена · &#8594; Вправо — далее по докладу</p>
+      <div class="slide-footer">ONE! · Каникулы с ONE! · Смена 1</div>
+    </div>
+  </section>
+
+  <!-- Смена 2 -->
+  <section data-background-color="#1B2838">
+    <div class="shift-slide">
+      <p class="kicker">Смена 02</p>
+      <div class="shift-top">
+        <div class="shift-banner"><span class="num">02</span><img src="img/mission2-banner.JPG" alt="Terraforming"></div>
+        <div class="shift-info">
+          <h3>Terraforming<br>Колонизаторы Новых Миров</h3>
+          <div class="subtitle">ADVENTURE &amp; ECO-TECH</div>
+          <p class="legend">Дети — участники международной экспедиции на планете «Тера-2». Их задача — построить жизнеспособную колонию: найти энергию, вырастить еду, обустроить спорт-арену и защитить базу от угроз.</p>
+          <div class="chips"><span class="chip">Спорт</span><span class="chip">Биотех</span><span class="chip">Дипломатия</span><span class="chip">Предпринимательство</span></div>
+        </div>
+      </div>
+      <p class="shift-footer">&#8600; Вниз — следующая смена · &#8594; Вправо — далее по докладу</p>
+      <div class="slide-footer">ONE! · Каникулы с ONE! · Смена 2</div>
+    </div>
+  </section>
+
+  <!-- Смена 3 -->
+  <section data-background-color="#1B2838">
+    <div class="shift-slide">
+      <p class="kicker">Смена 03</p>
+      <div class="shift-top">
+        <div class="shift-banner"><span class="num">03</span><img src="img/mission3-banner.JPG" alt="Meta-Agency"></div>
+        <div class="shift-info">
+          <h3>Meta-Agency<br>Детективы Времени</h3>
+          <div class="subtitle">MEDIA &amp; SOFT SKILLS</div>
+          <p class="legend">Временной континуум нарушен, и только дети-агенты «Meta-Agency» могут его восстановить. Каждый день — новое детективное дело: расшифровать код, опросить свидетелей, собрать доказательства и сделать вывод.</p>
+          <div class="chips"><span class="chip">Медиа</span><span class="chip">Спорт</span><span class="chip">IT</span><span class="chip">Дипломатия</span></div>
+        </div>
+      </div>
+      <p class="shift-footer">&#8600; Вниз — следующая смена · &#8594; Вправо — далее по докладу</p>
+      <div class="slide-footer">ONE! · Каникулы с ONE! · Смена 3</div>
+    </div>
+  </section>
+
+  <!-- Смена 4 -->
+  <section data-background-color="#1B2838">
+    <div class="shift-slide">
+      <p class="kicker">Смена 04</p>
+      <div class="shift-top">
+        <div class="shift-banner"><span class="num">04</span><img src="img/mission4-banner.JPG" alt="Future Makers"></div>
+        <div class="shift-info">
+          <h3>Future Makers<br>Академия Прикладного Будущего</h3>
+          <div class="subtitle">STEM &amp; DESIGN THINKING</div>
+          <p class="legend">Дети — стажёры «Института Прикладного Будущего». Каждый день — новая лаборатория: робототехника, программирование, экотехнологии, дизайн или медицина. В финале объединяются в команды и запускают собственный стартап.</p>
+          <div class="chips"><span class="chip">IT</span><span class="chip">Биотех</span><span class="chip">Art &amp; Design</span><span class="chip">Спорт</span><span class="chip">Предпринимательство</span></div>
+        </div>
+      </div>
+      <p class="shift-footer">&#8600; Вниз — следующая смена · &#8594; Вправо — далее по докладу</p>
+      <div class="slide-footer">ONE! · Каникулы с ONE! · Смена 4</div>
+    </div>
+  </section>
+
+  <!-- Смена 5 -->
+  <section data-background-color="#1B2838">
+    <div class="shift-slide">
+      <p class="kicker">Смена 05</p>
+      <div class="shift-top">
+        <div class="shift-banner"><span class="num">05</span><img src="img/mission5-banner.JPG" alt="Active Tech 2077"></div>
+        <div class="shift-info">
+          <h3>Active Tech 2077<br>Академия Био-Тех Спорта</h3>
+          <div class="subtitle">SPORTS TECH &amp; BIOHACKING</div>
+          <p class="legend">Спортивная академия 2077 года. Каждый ребёнок — «атлет-биоапгрейдер», который прокачивает Силу, Скорость, Выносливость и Технику и готовится к «Цифровым Олимпийским Играм».</p>
+          <div class="chips"><span class="chip">Спорт</span><span class="chip">Биотех</span><span class="chip">IT</span><span class="chip">Предпринимательство</span></div>
+        </div>
+      </div>
+      <p class="shift-footer">&#8600; Вниз — следующая смена · &#8594; Вправо — далее по докладу</p>
+      <div class="slide-footer">ONE! · Каникулы с ONE! · Смена 5</div>
+    </div>
+  </section>
+
+  <!-- Смена 6 -->
+  <section data-background-color="#1B2838">
+    <div class="shift-slide">
+      <p class="kicker">Смена 06</p>
+      <div class="shift-top">
+        <div class="shift-banner"><span class="num">06</span><img src="img/mission6-banner.JPG" alt="Urban Quest"></div>
+        <div class="shift-info">
+          <h3>Urban Quest<br>Агенты Городского Разума</h3>
+          <div class="subtitle">CITY ADVENTURE &amp; AR</div>
+          <p class="legend">Городской ИИ вышел из-под контроля, и только дети-агенты «Городского Разума» могут его остановить. Каждый день — новая зона города, новая миссия и новые улики.</p>
+          <div class="chips"><span class="chip">IT</span><span class="chip">Медиа</span><span class="chip">Спорт</span><span class="chip">Art &amp; Design</span><span class="chip">Предпринимательство</span></div>
+        </div>
+      </div>
+      <p class="shift-footer">&#8600; Вниз — следующая смена · &#8594; Вправо — далее по докладу</p>
+      <div class="slide-footer">ONE! · Каникулы с ONE! · Смена 6</div>
+    </div>
+  </section>
+
+  <!-- Смена 7 -->
+  <section data-background-color="#1B2838">
+    <div class="shift-slide">
+      <p class="kicker">Смена 07</p>
+      <div class="shift-top">
+        <div class="shift-banner"><span class="num">07</span><img src="img/mission7-banner.JPG" alt="Smart City Lab"></div>
+        <div class="shift-info">
+          <h3>Smart City Lab<br>Архитекторы Умного Города</h3>
+          <div class="subtitle">URBAN TECH &amp; LOGISTICS</div>
+          <p class="legend">Мегаполис будущего перешёл на ручное управление из-за сбоя в центральном ИИ. Дети — элитный отряд «Сити-архитекторов». Их задача — за 5 дней пересобрать инфраструктуру одного квартала.</p>
+          <div class="chips"><span class="chip">IT</span><span class="chip">Art &amp; Design</span><span class="chip">Биотех</span><span class="chip">Спорт</span><span class="chip">Дипломатия</span></div>
+        </div>
+      </div>
+      <p class="shift-footer">&#8600; Вниз — следующая смена · &#8594; Вправо — далее по докладу</p>
+      <div class="slide-footer">ONE! · Каникулы с ONE! · Смена 7</div>
+    </div>
+  </section>
+
+  <!-- Смена 8 -->
+  <section data-background-color="#1B2838">
+    <div class="shift-slide">
+      <p class="kicker">Смена 08</p>
+      <div class="shift-top">
+        <div class="shift-banner"><span class="num">08</span><img src="img/mission8-banner.JPG" alt="English Game Studio"></div>
+        <div class="shift-info">
+          <h3>English Game Studio<br>Код Доступа</h3>
+          <div class="subtitle">GAMEDEV &amp; DIGITAL PRODUCT</div>
+          <p class="legend">Дети — сотрудники инди-студии «Pixel Forge». Им поступил заказ от международного издателя: за неделю создать играбельный прототип 3D-игры, пройти фокус-группы и подготовить релиз.</p>
+          <div class="chips"><span class="chip">IT</span><span class="chip">Art &amp; Design</span><span class="chip">Медиа</span><span class="chip">Предпринимательство</span><span class="chip">Спорт</span></div>
+        </div>
+      </div>
+      <p class="shift-footer">&#8600; Вниз — следующая смена · &#8594; Вправо — далее по докладу</p>
+      <div class="slide-footer">ONE! · Каникулы с ONE! · Смена 8</div>
+    </div>
+  </section>
+
+  <!-- Смена 9 -->
+  <section data-background-color="#1B2838">
+    <div class="shift-slide">
+      <p class="kicker">Смена 09</p>
+      <div class="shift-top">
+        <div class="shift-banner"><span class="num">09</span><img src="img/mission9-banner.JPG" alt="Champions Academy"></div>
+        <div class="shift-info">
+          <h3>Champions Academy<br>Био-Механика Побед</h3>
+          <div class="subtitle">SPORTS TECH &amp; DATA ANALYTICS</div>
+          <p class="legend">Это не просто спорт — это лаборатория человеческих возможностей. Дети — «атлеты-исследователи»: оцифровывают показатели, ищут слабые места в биомеханике и с помощью технологий выходят на новый уровень.</p>
+          <div class="chips"><span class="chip">Спорт</span><span class="chip">Дипломатия</span><span class="chip">Предпринимательство</span></div>
+        </div>
+      </div>
+      <p class="shift-footer">&#8600; Вниз — следующая смена · &#8594; Вправо — далее по докладу</p>
+      <div class="slide-footer">ONE! · Каникулы с ONE! · Смена 9</div>
+    </div>
+  </section>
+
+  <!-- Смена 10 -->
+  <section data-background-color="#1B2838">
+    <div class="shift-slide">
+      <p class="kicker">Смена 10</p>
+      <div class="shift-top">
+        <div class="shift-banner"><span class="num">10</span><img src="img/mission10-banner.JPG" alt="Island Survival"></div>
+        <div class="shift-info">
+          <h3>Island Survival<br>Eco-Tech Экспедиция</h3>
+          <div class="subtitle">SURVIVAL TECH &amp; ECO-ENGINEERING</div>
+          <p class="legend">Команды «исследователей» терпят «крушение» на необитаемом острове. Но у них есть «Техно-десант» — набор гаджетов и материалов. Задача — построить высокотехнологичный эко-отдых.</p>
+          <div class="chips"><span class="chip">Спорт</span><span class="chip">Дипломатия</span><span class="chip">Предпринимательство</span></div>
+        </div>
+      </div>
+      <p class="shift-footer">&#8593; Вверх — назад к карте смен · &#8594; Вправо — далее по докладу</p>
+      <div class="slide-footer">ONE! · Каникулы с ONE! · Смена 10</div>
+    </div>
+  </section>
+</section>
+
+<!-- ============ SLIDE : 7 НАПРАВЛЕНИЙ ============ -->
+<section data-background-color="#1B2838">
+  <p class="kicker">04 · Навыки</p>
+  <h2>7 профессиональных направлений</h2>
+  <p class="dim">Ребёнок проходит через <span class="blue">все 7 направлений</span> за каждую смену — навыки будущего в действии.</p>
+  <div class="grid2">
+    <div class="card"><h4>🏅 Спорт</h4><p>Blazepod, лазертаг, Archery Tag, паркур, фехтование, йога, GPS-трекинг. Измеримые результаты, не разминка.</p></div>
+    <div class="card"><h4>💻 IT</h4><p>micro:bit, Arduino, Scratch, Roblox, Python. Датчики, IoT, QR/AR-квесты, Telegram-боты.</p></div>
+    <div class="card"><h4>🧬 Биотех</h4><p>Биометрия, гидропоника, альтернативная энергетика, биохакинг, мониторинг среды.</p></div>
+    <div class="card"><h4>🎬 Медиа</h4><p>Видеосъёмка, подкасты, хромакей, ИИ-монтаж. Продюсирование контента — реальный навык.</p></div>
+    <div class="card"><h4>🤝 Дипломатия</h4><p>Переговоры, питчи, интервью на английском. Коммуникация — ключевой soft skill.</p></div>
+    <div class="card"><h4>📊 Предпринимательство</h4><p>Юнит-экономика, питчинг, Demo Day, внутренняя валюта, стартап-команды.</p></div>
+    <div class="card" style="grid-column:1 / -1;"><h4>🎨 Art &amp; Design</h4><p>UX/UI, 3D-моделлинг, концепт-арт, айдентика, физические макеты. Дизайн — инструмент решения задач.</p></div>
+  </div>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE : ФИДЖИТАЛ-ЦИКЛ ============ -->
+<section data-background-color="#1B2838">
+  <p class="kicker">05 · Подход</p>
+  <h2>Фиджитал-цикл</h2>
+  <p class="dim">Не «слово», а принцип, пронизывающий каждую смену: физический мир и цифровые инструменты — одно целое.</p>
+  <div class="grid4">
+    <div class="card phase"><h4>1 · Физика</h4><p>Спортивные задания, эксперименты, проверка гипотез на практике. Всё измеримо.</p></div>
+    <div class="card phase"><h4>2 · Трекинг</h4><p>Каждое действие фиксируется: бейджи, QR/AR, RFID. Данные в системе автоматически.</p></div>
+    <div class="card phase"><h4>3 · Анализ</h4><p>Действия → цифровое пространство: баллы, прогресс, достижения. Видно и ребёнку, и родителям.</p></div>
+    <div class="card phase"><h4>4 · Личность</h4><p>Цикл формирует привычки: дисциплину, целеустремлённость, интерес.</p></div>
+  </div>
+  <p class="dim" style="margin-top:.7em;">Приложение — не замена физическому миру, а инструмент отслеживания и продолжение опыта.</p>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE : СТРУКТУРА СМЕНЫ / ДЕНЬ ============ -->
+<section data-background-color="#1B2838">
+  <p class="kicker">06 · Организация</p>
+  <h2>Как устроен день смены</h2>
+  <div class="two-col">
+    <div>
+      <h3 style="color:var(--accent);font-size:.8em;margin-bottom:.2em;">Структура</h3>
+      <p>Смена — <b>5–10 дней</b>. Каждый день — новое задание, новые уровни, новые испытания.</p>
+      <ul>
+        <li><span class="accent">Утро</span> — брифинг, распределение ресурсов, планирование.</li>
+        <li><span class="accent">День</span> — миссии по направлениям: спорт, IT, биотех, медиа, дипломатия, предпринимательство, дизайн.</li>
+        <li><span class="accent">Вечер</span> — рефлексия, итоги, награждение.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color:var(--accent);font-size:.8em;margin-bottom:.2em;">Принципы</h3>
+      <ul>
+        <li><b>Каждый ребёнок — капитан</b> своего корабля. Ответственность реальная.</li>
+        <li><b>Команды самоуправляемые</b> — новые роли и задачи каждый день.</li>
+        <li><b>Вожатые — коучи</b>, а не контролёры: сопровождают личную траекторию.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE : ГЕЙМИФИКАЦИЯ ============ -->
+<section data-background-color="#132245">
+  <p class="kicker">07 · Механика</p>
+  <h2>Геймификация: мотивировать, а не заставлять</h2>
+  <div class="grid4">
+    <div class="stat"><div class="big-num">XP</div><p>Опыт за каждое задание. Накапливается, открывает возможности.</p></div>
+    <div class="stat"><div class="big-num">10</div><p>Уровней. Каждый даёт новые способности и привилегии.</p></div>
+    <div class="stat"><div class="big-num">50</div><p>Предметов инвентаря. Полезные и декоративные — все заработаны.</p></div>
+    <div class="stat"><div class="big-num">84</div><p>Уникальных бейджа. За конкретные достижения.</p></div>
+  </div>
+  <h3 style="margin-top:.6em;color:#fff;font-size:.8em;">DISC-профиль каждого ребёнка</h3>
+  <div class="grid4" style="margin-top:.2em;">
+    <div class="card"><h4>D · Командир</h4><p>«Я беру высоту!»</p></div>
+    <div class="card"><h4>I · Звездочёт</h4><p>«Я зажигаю свет!»</p></div>
+    <div class="card"><h4>S · Хранитель</h4><p>«Я держу строй!»</p></div>
+    <div class="card"><h4>C · Мастер</h4><p>«Я знаю секрет!»</p></div>
+  </div>
+  <p class="dim" style="margin-top:.5em;">Геймификация — не награда за послушание, а инструмент развития: XP за инициативу, бейджи за сотрудничество, уровни за рост.</p>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE : ПРОФИЛЬ ИГРОКА ============ -->
+<section data-background-color="#1B2838">
+  <p class="kicker">08 · Цифровой продукт</p>
+  <h2>Профиль игрока — портрет личности</h2>
+  <p class="dim">Каждый ребёнок — игрок со своей историей. Профиль растёт вместе с ним.</p>
+  <div class="grid3">
+    <div class="card"><h4>📋 Обзор</h4><p>Уровень, XP, достижения, статус.</p></div>
+    <div class="card"><h4>📈 Навыки</h4><p>Развитие по 7 направлениям.</p></div>
+    <div class="card"><h4>🎒 Инвентарь</h4><p>Собранные предметы и редкость.</p></div>
+    <div class="card"><h4>🏅 Бейджи</h4><p>Коллекция достижений и условия.</p></div>
+    <div class="card"><h4>🧩 DISC</h4><p>Профиль личности + рекомендации.</p></div>
+    <div class="card"><h4>📖 Статистика</h4><p>Графики прогресса и динамики.</p></div>
+  </div>
+  <p class="dim" style="margin-top:.5em;">Это не счётчик, а портрет личности: что узнал, в чём вырос, что развивать дальше.</p>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE : АНАЛИТИКА ============ -->
+<section data-background-color="#1B2838">
+  <p class="kicker">09 · Управление</p>
+  <h2>Аналитика для команды и менеджмента</h2>
+  <div class="two-col">
+    <div>
+      <h3 style="color:var(--blue);font-size:.8em;">Для вожатых</h3>
+      <ul>
+        <li>Прогресс каждого ребёнка в реальном времени.</li>
+        <li>Активность по направлениям, посещаемость, вовлечённость.</li>
+        <li>DISC-профили всей группы.</li>
+        <li>Инвентарь, бейджи, уведомления.</li>
+        <li>Индивидуальные рекомендации и отчёт для родителей.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color:var(--green);font-size:.8em;">Для менеджмента</h3>
+      <ul>
+        <li>Сводки по всем сменам и кампусам (ШОП / ШСТ).</li>
+        <li>Эффективность направлений.</li>
+        <li>Удержание и удовлетворённость.</li>
+        <li>Финансовая аналитика и прогноз загрузки.</li>
+        <li>Видно не «сколько детей», а «какие дети и результаты».</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE : ТЕХНОЛОГИИ + ССЫЛКА ============ -->
+<section data-background-color="#1B2838">
+  <p class="kicker">10 · Инфраструктура</p>
+  <h2>Технологическая платформа</h2>
+  <div class="two-col">
+    <div>
+      <h3 style="color:var(--accent);font-size:.8em;">Стек</h3>
+      <ul>
+        <li><span class="blue">PWA (React + TypeScript)</span> — работает на любом устройстве, офлайн через WatermelonDB.</li>
+        <li><span class="blue">Supabase</span> — PostgreSQL, Realtime, Row-Level Security.</li>
+        <li><span class="blue">GitHub Pages</span> — бесплатный хостинг.</li>
+        <li>Масштабируемость: любые объёмы данных, смен и кампусов.</li>
+        <li>Генерация <b>PDF-отчётов</b> по каждому ребёнку.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color:var(--green);font-size:.8em;">Приложение (работает онлайн)</h3>
+      <ul>
+        <li>Веб-приложение для управления сменами и участниками.</li>
+        <li>Дашборды: отряд, миссия, оценка заданий.</li>
+        <li>Профили игроков: навыки, бейджи, DISC, рекомендации.</li>
+        <li>Автоначисление бейджей и отчёты для родителей.</li>
+        <li>Данные накапливаются в базе за все смены.</li>
+      </ul>
+      <p style="margin-top:.4em;"><span class="urlbar">&#9654; <a href="https://crazynordic19871987.github.io/kanikuly-s-one/" target="_blank">Открыть приложение</a></span></p>
+    </div>
+  </div>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE : ОПЫТ ДЛЯ РОДИТЕЛЕЙ ============ -->
+<section data-background-color="#1B2838">
+  <p class="kicker">11 · Родители</p>
+  <h2>Родители получают больше, чем ожидают</h2>
+  <div class="grid3">
+    <div class="card"><h4>💌 Welcome Pack</h4><p>Приветственная открытка, виртуальный тур по кампусу. Первая эмоциональная привязка.</p></div>
+    <div class="card"><h4>📲 Прогресс-отчёт</h4><p>Ежедневные обновления в Telegram-боте: что сделал, какие навыки прокачал, фото и видео.</p></div>
+    <div class="card"><h4>🎤 Demo Day</h4><p>Финальное событие: защита проектов перед родителями. Виден результат.</p></div>
+    <div class="card"><h4>📋 Индивидуальный профиль</h4><p>DISC-тип, навыки, достижения. Не «был на каникулах», а «вырос в компетенциях».</p></div>
+    <div class="card"><h4>🤝 Консультация</h4><p>Вожатый объясняет результаты ребёнка и что развивать дальше.</p></div>
+    <div class="card"><h4>🔁 Сопровождение</h4><p>Рекомендации после смены. Развитие не заканчивается на Demo Day.</p></div>
+  </div>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE : УНИКАЛЬНОСТЬ ============ -->
+<section data-background-color="#132245">
+  <p class="kicker">12 · Ценность</p>
+  <h2>Что отличает нас</h2>
+  <div class="two-col">
+    <div>
+      <ul>
+        <li><span class="accent">Фиджитал-центр</span> — физическая среда и цифровые инструменты как единая платформа.</li>
+        <li><span class="accent">7 равных компонентов</span> — спорт, английский, педагогика, IT, продукты, чемпионаты, квизы.</li>
+        <li><span class="accent">10 аутентичных смен</span> — разные вселенные, без повторов.</li>
+        <li><span class="accent">Англо-среда</span> — язык общения, а не предмет.</li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li><span class="accent">1 готовый продукт</span> — «вот результат»: игра, устройство, стартап.</li>
+        <li><span class="accent">Физическая активность</span> — 1,5–2 часа ежедневно.</li>
+        <li><span class="accent">Экран — лишь инструмент</span> отслеживания, а не замена живого опыта.</li>
+        <li><span class="accent">Геймификация</span> — единая сквозная механика всех смен.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE : ИТОГИ / ДОРОЖНАЯ КАРТА ============ -->
+<section data-background-color="#1B2838">
+  <p class="kicker">13 · Перспектива</p>
+  <h2>Текущее состояние и развитие</h2>
+  <div class="two-col">
+    <div>
+      <h3 style="color:var(--green);font-size:.8em;">Сейчас</h3>
+      <ul>
+        <li>10 смен работают по готовым концепциям.</li>
+        <li>Фиджитал-платформа развивается, данные накапливаются.</li>
+        <li>Оба кампуса — ШОП и ШСТ — в системе.</li>
+      </ul>
+      <h3 style="color:var(--blue);font-size:.8em;margin-top:.5em;">Ближайшее будущее</h3>
+      <ul>
+        <li>Расширение кампусов и смен.</li>
+        <li>Улучшение аналитики и отчётов.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color:var(--accent);font-size:.8em;">Долгосрочно</h3>
+      <ul>
+        <li>Полная платформа для любых детских каникул.</li>
+        <li>Масштабирование модели на другие площадки.</li>
+        <li>Единый цифровой след ребёнка за все годы каникул.</li>
+      </ul>
+      <p style="margin-top:.5em;"><span class="urlbar">&#9654; <a href="https://crazynordic19871987.github.io/kanikuly-s-one/" target="_blank">Демо платформы</a></span></p>
+    </div>
+  </div>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+<!-- ============ SLIDE : ФИНАЛ ============ -->
+<section data-background-color="#1B2838">
+  <div class="center" style="text-align:center;">
+    <p class="kicker">Спасибо</p>
+    <h1 style="font-size:2em;text-align:center;">Каникулы с ONE!</h1>
+    <p class="lead" style="text-align:center;">Фиджитал-платформа для детских каникул.<br>Геймификация · 10 смен · 7 направлений · реальные проекты.</p>
+    <div class="tag-line">
+      <span>IT</span><span>Спорт</span><span>Английский</span><span>Арт и Дизайн</span><span>Предпринимательство</span><span>Биотех</span><span>Дипломатия</span><span>Инженерия</span>
+    </div>
+    <p style="margin-top:1em;" class="center"><span class="urlbar">&#9654; <a href="https://crazynordic19871987.github.io/kanikuly-s-one/" target="_blank">crazynordic19871987.github.io/kanikuly-s-one</a></span></p>
+    <p class="dim" style="margin-top:.8em;">Демо-версия платформы доступна по ссылке. Презентация: reveal.js</p>
+  </div>
+  <div class="slide-footer">ONE! · Каникулы с ONE!</div>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    controls: true,
+    progress: true,
+    center: true,
+    transition: 'slide',
+    plugins: [RevealNotes, RevealHighlight],
+    width: 1280,
+    height: 800
+  });
+</script>
+</body>
+</html>
