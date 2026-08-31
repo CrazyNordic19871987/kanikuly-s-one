@@ -91,41 +91,25 @@ function shiftParticipants(shiftId) {
   (state.participations || []).forEach(r => {
     if (String(r.shift_id) === String(shiftId)) parts[String(r.student_id)] = r.squad;
   });
-  // Fallback для студентов со старым полем shift/squad без строки участия
-  state.students.forEach(s => {
-    if (String(s.shift) === String(shiftId) && !(String(s.id) in parts) && s.squad != null) {
-      parts[String(s.id)] = s.squad;
-    }
-  });
   return state.students.filter(s => String(s.id) in parts);
 }
-// Команда студента в миссии (приоритет participations, иначе старое поле squad)
+// Команда студента в миссии (источник — participations)
 function squadOfIn(studentId, shiftId) {
-  const t = studentSquadIn(studentId, shiftId);
-  if (t != null) return t;
-  const s = state.students.find(x => String(x.id) === String(studentId));
-  return (s && String(s.shift) === String(shiftId) && s.squad != null) ? s.squad : null;
+  return studentSquadIn(studentId, shiftId);
 }
-// «Основная» миссия студента (для карточки/профиля): первая participation, иначе старое поле shift
+// «Основная» миссия студента (для карточки/профиля): первая participation
 function studentPrimaryShift(studentId) {
-  const s = state.students.find(x => String(x.id) === String(studentId));
   const parts = (state.participations || []).filter(r => String(r.student_id) === String(studentId));
-  if (parts.length) return parts[0].shift_id;
-  return s ? s.shift : null;
+  return parts.length ? parts[0].shift_id : null;
 }
 function studentPrimarySquad(studentId) {
-  const s = state.students.find(x => String(x.id) === String(studentId));
   const parts = (state.participations || []).filter(r => String(r.student_id) === String(studentId));
-  if (parts.length) return parts[0].squad;
-  return s ? s.squad : null;
+  return parts.length ? parts[0].squad : null;
 }
 
 // Все миссии, в которых участвует студент (номера миссий)
 function studentShifts(studentId) {
-  const parts = (state.participations || []).filter(r => String(r.student_id) === String(studentId)).map(r => r.shift_id);
-  if (parts.length) return parts;
-  const s = state.students.find(x => String(x.id) === String(studentId));
-  return s && s.shift != null ? [s.shift] : [];
+  return (state.participations || []).filter(r => String(r.student_id) === String(studentId)).map(r => r.shift_id);
 }
 
 // Перечитать участия из Supabase
@@ -158,10 +142,8 @@ async function addParticipation(studentId, shiftId, squad) {
 
 // Команда студента (для фильтра) — команда в любой его миссии
 function studentInAnySquad(studentId) {
-  const s = state.students.find(x => String(x.id) === String(studentId));
   const parts = (state.participations || []).filter(r => String(r.student_id) === String(studentId));
-  if (parts.length) return String(parts[0].squad);
-  return s && s.squad != null ? String(s.squad) : null;
+  return parts.length ? String(parts[0].squad) : null;
 }
 
 // Краткое описание участий: "М1 · Команда 2, М3 · Команда 5"
@@ -170,7 +152,6 @@ function studentParticipationLabel(s) {
   if (parts.length) {
     return parts.map(r => 'М' + r.shift_id + ' · Команда ' + r.squad).join(', ');
   }
-  if (s.shift != null) return 'М' + s.shift + (s.squad != null ? ' · Команда ' + s.squad : '');
   return '—';
 }
 
@@ -336,7 +317,7 @@ function checkLimitedBadges(studentId) {
   const today = new Date().toISOString().slice(0, 10);
   const todayComps = state.completions.filter(c => c.student_id == studentId && c.created_at && c.created_at.slice(0, 10) === today);
   const student = state.students.find(s => s.id == studentId);
-  const shiftId = student ? parseInt(studentPrimaryShift(student.id) || student.shift) : 0;
+  const shiftId = student ? parseInt(studentPrimaryShift(student.id) || 0) : 0;
   const myShifts = student ? studentShifts(student.id).map(String) : [];
   const newlyEarned = [];
   for (const lb of LIMITED_BADGES) {
@@ -556,7 +537,7 @@ function computeInventory(studentId) {
   const items = [];
   const completions = state.completions.filter(c => c.student_id == studentId);
   const student = state.students.find(s => s.id === studentId);
-  const shiftId = student ? studentPrimaryShift(student.id) || student.shift : null;
+  const shiftId = student ? studentPrimaryShift(student.id) : null;
   // Предметы: из Supabase (content_inventory_items) приоритетно, иначе встроенные
   const dbItems = state.inventoryItems.filter(it => String(it.shift_id) === String(shiftId));
   const shiftData = dbItems.length ? { name: (state.shifts.find(sh => String(sh.id) === String(shiftId)) || {}).name || ('Миссия ' + shiftId), items: dbItems }
@@ -1078,6 +1059,8 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
   btn.textContent = 'Сохранение...';
   btn.disabled = true;
 
+  const sSquad = parseInt(v('s-squad'));
+  const sShift = parseInt(v('s-shift'));
   const student = {
     first_name: v('s-firstname'),
     last_name:  v('s-lastname'),
@@ -1086,8 +1069,6 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
     age:        parseInt(v('s-age')),
     gender:     v('s-gender'),
     grade:      parseInt(v('s-grade')),
-    squad:      parseInt(v('s-squad')),
-    shift:      parseInt(v('s-shift')),
     campus:     v('s-campus'),
     notes:      v('s-notes'),
     created_at: new Date().toISOString()
@@ -1099,12 +1080,12 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
     if (!result || !result[0]) { showToast('⚠️ Ошибка сохранения', 'warn'); btn.textContent = '+ Добавить участника'; btn.disabled = false; return; }
     saved = result[0];
     // Записываем участие в миссии (студент + миссия + команда)
-    if (student.shift && student.squad) {
+    if (sShift && sSquad) {
       try {
         await api.insert(TABLES.PARTICIPATIONS, {
           student_id: saved.id,
-          shift_id:   student.shift,
-          squad:      student.squad,
+          shift_id:   sShift,
+          squad:      sSquad,
           created_at: new Date().toISOString()
         });
       } catch (_e) { /* участие опционально */ }
@@ -1274,7 +1255,7 @@ function renderCurrentTask() {
   const student = state.students.find(s => s.id === studentId);
   if (!student) { container.innerHTML = '<p class="empty-note">Участник не найден</p>'; return; }
 
-  const primShift = studentPrimaryShift(student.id) || student.shift;
+  const primShift = studentPrimaryShift(student.id);
   const shift = state.shifts.find(s => s.id == primShift);
   if (!shift || !shift.directions) { container.innerHTML = '<p class="empty-note">Нет данных по миссии</p>'; return; }
 
@@ -1583,7 +1564,7 @@ function buyShopItem(itemId) {
       }
     } else if (itemId === 'shop_rare_chest') {
       const student = state.students.find(s => s.id == state.currentStudentId);
-      const ps = student ? (studentPrimaryShift(student.id) || student.shift) : null;
+      const ps = student ? studentPrimaryShift(student.id) : null;
       const dbItems = state.inventoryItems.filter(it => String(it.shift_id) === String(ps));
       const inv = dbItems.length ? { items: dbItems } : SHIFT_INVENTORY[ps];
       if (inv) {
@@ -1656,7 +1637,7 @@ function renderTalentCard(studentId) {
   const earnedBadges = state.badges.filter(b => b.student_id === studentId && b.earned);
   const xp = calcStudentXP(studentId);
   const lv = getLevel(xp);
-  const primShift = studentPrimaryShift(studentId) || student.shift;
+  const primShift = studentPrimaryShift(studentId);
   const shift = state.shifts.find(s => s.id == primShift);
   const shiftName = shift ? shift.name : primShift;
 
@@ -3310,8 +3291,8 @@ function fillReport(student) {
   set('rp-name', displayName(student));
   set('rp-age', student.age != null ? student.age + ' лет' : '—');
   set('rp-grade', student.grade != null ? student.grade + ' класс' : '—');
-  const rpPrimShift = studentPrimaryShift(student.id) || student.shift;
-  const rpPrimSquad = studentPrimarySquad(student.id) || student.squad;
+  const rpPrimShift = studentPrimaryShift(student.id);
+  const rpPrimSquad = studentPrimarySquad(student.id);
   set('rp-squad', rpPrimSquad != null ? 'Команда ' + rpPrimSquad : '—');
   const shiftDef = state.shifts.find(sh => sh.id == rpPrimShift);
   set('rp-shift', shiftDef ? shiftDef.name : 'Миссия ' + rpPrimShift);
@@ -3826,15 +3807,21 @@ function renderAssessSummary() {
 // ═══════════════════════════════════════════════════════
 
 const CARD_RARITY = {
-  'Обычный':     { border:'#6b7280', glow:'rgba(107,114,128,0.10)', text:'#9ca3af' },
-  'Редкий':      { border:'#3b82f6', glow:'rgba(59,130,246,0.15)',  text:'#60a5fa' },
-  'Эпический':   { border:'#8b5cf6', glow:'rgba(139,92,246,0.15)',  text:'#a78bfa' },
-  'Легендарный': { border:'#fbbf24', glow:'rgba(251,191,36,0.25)',  text:'#fbbf24' }
+  common:    { border:'#6b7280', glow:'rgba(107,114,128,0.10)', text:'#9ca3af' },
+  rare:      { border:'#3b82f6', glow:'rgba(59,130,246,0.15)',  text:'#60a5fa' },
+  epic:      { border:'#8b5cf6', glow:'rgba(139,92,246,0.15)',  text:'#a78bfa' },
+  legendary: { border:'#fbbf24', glow:'rgba(251,191,36,0.25)',  text:'#fbbf24' }
 };
-const CARD_RARITY_ORDER = ['Легендарный', 'Эпический', 'Редкий', 'Обычный'];
+const CARD_RARITY_ORDER = ['legendary', 'epic', 'rare', 'common'];
+
+function rarityKey(r) {
+  if (CARD_RARITY[r]) return r;
+  const rev = { 'Обычный':'common', 'Редкий':'rare', 'Эпический':'epic', 'Легендарный':'legendary' };
+  return rev[r] || 'common';
+}
 
 function cardRarityStyle(rarity) {
-  const r = CARD_RARITY[rarity] || CARD_RARITY['Обычный'];
+  const r = CARD_RARITY[rarityKey(rarity)] || CARD_RARITY.common;
   return '--rc-border:' + r.border + '; --rc-glow:' + r.glow + '; --rc-text:' + r.text + ';';
 }
 
@@ -3844,19 +3831,20 @@ function cardNumBadge(c, pad) {
 }
 
 function cardInventory(c) {
-  return '<div class="card" data-rarity="' + esc(c.rarity) + '" style="' + cardRarityStyle(c.rarity) + '">' +
+  const rk = rarityKey(c.rarity);
+  return '<div class="card" data-rarity="' + rk + '" style="' + cardRarityStyle(c.rarity) + '">' +
     '<div class="rarity-stripe"></div>' +
     '<div class="num">' + cardNumBadge(c, true) + '</div>' +
     '<div class="mission-badge">М' + esc(c.mission) + '</div>' +
     '<div class="icon">' + esc(c.icon) + '</div>' +
     '<div class="name">' + esc(c.name) + '</div>' +
-    '<div class="rarity-pill">' + esc(c.rarity) + '</div>' +
+    '<div class="rarity-pill">' + esc(rarityLabel(rk)) + '</div>' +
     '<div class="bonus">' + esc(c.bonus) + '</div>' +
   '</div>';
 }
 
 function cardRelic(c) {
-  return '<div class="card" data-rarity="Эпический" style="' + cardRarityStyle('Эпический') + '">' +
+  return '<div class="card" data-rarity="epic" style="' + cardRarityStyle('epic') + '">' +
     '<div class="rarity-stripe"></div>' +
     '<div class="num">#' + esc(c.num) + '</div>' +
     '<div class="mission-badge">Смена ' + esc(c.shift) + '</div>' +
@@ -3868,18 +3856,19 @@ function cardRelic(c) {
 }
 
 function cardBadge(c) {
-  return '<div class="badge-card" data-rarity="' + esc(c.rarity) + '" style="' + cardRarityStyle(c.rarity) + '">' +
+  const rk = rarityKey(c.rarity);
+  return '<div class="badge-card" data-rarity="' + rk + '" style="' + cardRarityStyle(c.rarity) + '">' +
     '<div class="icon">' + esc(c.icon) + '</div>' +
     '<div class="name">' + esc(c.name) + '</div>' +
     '<div class="cond">' + esc(c.condition) + '</div>' +
-    '<div class="rarity-pill">' + esc(c.rarity) + '</div>' +
+    '<div class="rarity-pill">' + esc(rarityLabel(rk)) + '</div>' +
   '</div>';
 }
 
 function cardBoss(c) {
   const maxHp = 1500;
   const pct = Math.round((c.hp / maxHp) * 100);
-  return '<div class="card boss-card" data-rarity="Легендарный" style="' + cardRarityStyle('Легендарный') + '">' +
+  return '<div class="card boss-card" data-rarity="legendary" style="' + cardRarityStyle('legendary') + '">' +
     '<div class="rarity-stripe"></div>' +
     '<div class="num">#' + esc(c.num) + '</div>' +
     '<div class="icon">' + esc(c.icon) + '</div>' +
@@ -3893,7 +3882,8 @@ function cardBoss(c) {
 }
 
 function cardShop(c) {
-  return '<div class="card shop-card" data-rarity="' + esc(c.rarity) + '" style="' + cardRarityStyle(c.rarity) + '">' +
+  const rk = rarityKey(c.rarity);
+  return '<div class="card shop-card" data-rarity="' + rk + '" style="' + cardRarityStyle(c.rarity) + '">' +
     '<div class="rarity-stripe"></div>' +
     '<div class="num">#' + esc(c.num) + '</div>' +
     '<div class="icon">' + esc(c.icon) + '</div>' +
@@ -3905,7 +3895,8 @@ function cardShop(c) {
 }
 
 function cardMystery(c) {
-  return '<div class="card mystery-card" data-rarity="' + esc(c.rarity) + '" style="' + cardRarityStyle(c.rarity) + '">' +
+  const rk = rarityKey(c.rarity);
+  return '<div class="card mystery-card" data-rarity="' + rk + '" style="' + cardRarityStyle(c.rarity) + '">' +
     '<div class="rarity-stripe"></div>' +
     '<div class="num">#' + esc(c.num) + '</div>' +
     '<div class="icon">' + esc(c.icon) + '</div>' +
@@ -3984,23 +3975,23 @@ function renderCardsPage() {
     '<div class="grid">' + mystery.map(cardMystery).join('') + '</div></section>';
 
   // ── Просмотр «По редкости» ──
-  const byRarity = { 'Обычный': [], 'Редкий': [], 'Эпический': [], 'Легендарный': [] };
+  const byRarity = { rare: [], common: [], epic: [], legendary: [] };
   cards.forEach(c => {
     if (c.section === 'badge') return; // badges собираем отдельно
-    if (!byRarity[c.rarity]) byRarity[c.rarity] = [];
-    byRarity[c.rarity].push(renderCard(c));
+    if (!byRarity[rarityKey(c.rarity)]) byRarity[rarityKey(c.rarity)] = [];
+    byRarity[rarityKey(c.rarity)].push(renderCard(c));
   });
-  const badgesByRarity = { 'Обычный': [], 'Редкий': [], 'Эпический': [], 'Легендарный': [] };
+  const badgesByRarity = { rare: [], common: [], epic: [], legendary: [] };
   cards.filter(c => c.section === 'badge').forEach(c => {
-    if (!badgesByRarity[c.rarity]) badgesByRarity[c.rarity] = [];
-    badgesByRarity[c.rarity].push(cardBadge(c));
+    if (!badgesByRarity[rarityKey(c.rarity)]) badgesByRarity[rarityKey(c.rarity)] = [];
+    badgesByRarity[rarityKey(c.rarity)].push(cardBadge(c));
   });
 
   let rarityHtml = '';
   CARD_RARITY_ORDER.forEach(r => {
     const total = (byRarity[r] || []).length + (badgesByRarity[r] || []).length;
     rarityHtml += '<section class="card-block" data-rarity-group="' + r + '"><div class="card-block-head">' +
-      '<h2>' + r + '</h2><span class="count">' + total + ' карточек</span></div>';
+      '<h2>' + rarityLabel(r) + '</h2><span class="count">' + total + ' карточек</span></div>';
     if ((byRarity[r] || []).length) rarityHtml += '<div class="grid">' + byRarity[r].join('') + '</div>';
     if ((badgesByRarity[r] || []).length) rarityHtml += '<div class="grid badges" style="margin-top:18px">' + badgesByRarity[r].join('') + '</div>';
     rarityHtml += '</section>';
@@ -4017,16 +4008,16 @@ function renderCardsPage() {
         '<button class="filter-btn" data-view="rarity">По редкости</button>' +
       '</div>' +
       '<button class="filter-btn" data-r="all" data-active="true">Все <span class="cnt" id="ccnt-all"></span></button>' +
-      '<button class="filter-btn" data-r="Обычный">Обычный <span class="cnt" id="ccnt-Обычный"></span></button>' +
-      '<button class="filter-btn" data-r="Редкий">Редкий <span class="cnt" id="ccnt-Редкий"></span></button>' +
-      '<button class="filter-btn" data-r="Эпический">Эпический <span class="cnt" id="ccnt-Эпический"></span></button>' +
-      '<button class="filter-btn" data-r="Легендарный">Легендарный <span class="cnt" id="ccnt-Легендарный"></span></button>' +
+      '<button class="filter-btn" data-r="common">Обычный <span class="cnt" id="ccnt-common"></span></button>' +
+      '<button class="filter-btn" data-r="rare">Редкий <span class="cnt" id="ccnt-rare"></span></button>' +
+      '<button class="filter-btn" data-r="epic">Эпический <span class="cnt" id="ccnt-epic"></span></button>' +
+      '<button class="filter-btn" data-r="legendary">Легендарный <span class="cnt" id="ccnt-legendary"></span></button>' +
     '</div>' +
     '<div class="card-app" id="cardApp">' + html + '</div>' +
     '<div class="card-app" id="cardAppRarity" style="display:none">' + rarityHtml + '</div>';
 
   // ── Счётчики ──
-  const rCounts = { 'Обычный': 0, 'Редкий': 0, 'Эпический': 0, 'Легендарный': 0 };
+  const rCounts = { common: 0, rare: 0, epic: 0, legendary: 0 };
   wrap.querySelectorAll('#cardApp [data-rarity]').forEach(el => { rCounts[el.dataset.rarity] = (rCounts[el.dataset.rarity] || 0) + 1; });
   const total = Object.values(rCounts).reduce((a, b) => a + b, 0);
   const setCnt = (id, v) => { const el = ge(id); if (el) el.textContent = v; };
