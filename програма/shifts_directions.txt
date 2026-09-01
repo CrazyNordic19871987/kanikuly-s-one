@@ -341,9 +341,6 @@
     Mission: Доставка грузов
       Desc: Полоса препятствий с переносом модулей инфраструктуры
       Skills: persistence, cooperation
-    Mission: Пилотирование мини-дронов
-      Desc: Управление дронами для облёта территории
-      Skills: adaptability, problem_solving
     Mission: Светофор на Blazepod
       Desc: Тренировка реакции в формате городской игры
       Skills: adaptability, persistence
