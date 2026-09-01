@@ -411,10 +411,24 @@ textarea:focus{border-color:var(--orange)}
 .pp-stat{padding:12px;background:var(--glass);border:1px solid var(--border);border-radius:var(--r);text-align:center}
 .pp-stat-num{font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--orange)}
 .pp-stat-label{font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-top:2px}
-.pp-tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
-.pp-tab{padding:8px 14px;border-radius:8px;background:var(--glass);border:1px solid var(--border);color:var(--muted);font-size:0.7rem;font-weight:600;cursor:pointer;transition:all 0.2s}
-.pp-tab.active{background:var(--orange);color:var(--bg);border-color:var(--orange)}
-.pp-tab:hover:not(.active){border-color:var(--orange)}
+.pp-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.pp-tab{
+  position:relative;padding:9px 16px;border-radius:999px;
+  background:linear-gradient(160deg,rgba(19,34,69,0.6),rgba(27,40,56,0.8));
+  backdrop-filter:blur(6px);
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s ease;
+}
+.pp-tab::before{content:"";position:absolute;left:12px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:currentColor;opacity:0;transition:opacity 0.2s}
+.pp-tab:hover:not(.active){border-color:var(--border-h);color:var(--white);box-shadow:0 0 18px -4px rgba(59,130,246,0.3)}
+.pp-tab.active{
+  border-color:var(--orange);color:var(--orange);
+  background:linear-gradient(160deg,rgba(59,130,246,0.16),rgba(27,40,56,0.85));
+  box-shadow:0 0 0 1px rgba(255,255,255,0.03) inset,0 0 24px -4px rgba(59,130,246,0.45),0 6px 16px -8px rgba(0,0,0,0.6);
+}
+.pp-tab.active::before{opacity:1;box-shadow:0 0 8px currentColor}
 .pp-panel{display:none}.pp-panel.active{display:block}
 .pp-panel .gc{margin-bottom:12px}
 @media(max-width:800px){.pp-hero{flex-direction:column;text-align:center}.pp-stats-grid{grid-template-columns:repeat(2,1fr)}}
