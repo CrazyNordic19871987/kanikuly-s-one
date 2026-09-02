@@ -639,6 +639,7 @@ function populateAddParticipationForm() {
 }
 
 async function onAddParticipation() {
+  if (!authIsAdmin()) { showToast('Только администратор может добавлять участие', 'warn'); return; }
   const studentId = ge('ap-student')?.value;
   const shiftId = ge('ap-shift')?.value;
   const squad = ge('ap-squad')?.value;
@@ -683,6 +684,21 @@ function populateDbFilters() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    var session = await authGetSession();
+    if (!session) {
+      showAuthScreen();
+      return;
+    }
+    var profile = await authGetProfile();
+    window.__userProfile = profile;
+    hideAuthScreen(profile);
+    api.refreshAuth();
+  } catch(e) {
+    console.error('Auth error:', e);
+    showAuthScreen();
+    return;
+  }
+  try {
     showLoader(true);
     await loadData();
   } catch(e) {
@@ -691,6 +707,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try { setupNav(); } catch(e) { console.error('Nav error:', e); }
   try { setupSearch(); } catch(e) { console.error('Search error:', e); }
   try { renderShiftsPage(); } catch(e) { console.error('Shifts error:', e); }
+  applyRoleRestrictions(window.__userProfile);
   showLoader(false);
 
   const hash = location.hash.replace('#', '');
@@ -972,6 +989,7 @@ function rebuildMainContent() {
   populateDbFilters();
   populateStudentSelect('talent-student-select', onTalentStudentChange);
   rebindSearch();
+  applyRoleRestrictions(window.__userProfile);
 }
 
 function goHome() {
@@ -1055,6 +1073,7 @@ function rebindSearch() {
 
 document.getElementById('student-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  if (!authIsAdmin()) { showToast('Только администратор может добавлять участников', 'warn'); return; }
   const btn = e.target.querySelector('button[type="submit"]');
   btn.textContent = 'Сохранение...';
   btn.disabled = true;
@@ -1155,7 +1174,7 @@ function renderStudentList() {
             <span class="sc-progress-label">${obs} занятий · ${bdgs} значков · ${xp} XP</span>
           </div>
         </div>
-        <button class="sc-delete" onclick="deleteStudent(event,'${s.id}')">✕</button>
+        ${authIsAdmin() ? '<button class="sc-delete" onclick="deleteStudent(event,\'' + s.id + '\')">✕</button>' : ''}
       </div>`;
   }).join('');
 
@@ -1179,6 +1198,7 @@ function quickViewStudent(id) {
 
 async function deleteStudent(e, id) {
   e.stopPropagation();
+  if (!authIsAdmin()) { showToast('Только администратор может удалять участников', 'warn'); return; }
   if (!confirm('Удалить участника и все его данные?')) return;
   try {
     await api.remove(TABLES.STUDENTS, id);
@@ -1339,6 +1359,7 @@ function setRating(field, val) {
 }
 
 async function saveObservation() {
+  if (!authIsAdmin()) { showToast('Только администратор может оценивать', 'warn'); return; }
   const indEl = document.querySelectorAll('#rate-independence .star.active');
   const qualEl = document.querySelectorAll('#rate-quality .star.active');
   const independence = indEl.length || tempRatings.independence;
@@ -1394,6 +1415,7 @@ function hasObservation(studentId, day, track) {
 // =============================================
 
 async function checkAndAwardBadges(studentId, day, track, obs) {
+  if (!authIsAdmin()) return;
   const defs = state.badgeDefs;
   for (const def of defs) {
     const alreadyEarned = state.badges.find(b => b.student_id === studentId && b.badge_id === def.id && b.earned);
@@ -3677,6 +3699,7 @@ function onAssScoreChange(input) {
 }
 
 async function saveAssessments() {
+  if (!authIsAdmin()) { showToast('Только администратор может сохранять оценки', 'warn'); return; }
   const shiftId = parseInt(ge('ass-shift').value);
   const studentId = ge('ass-student').value;
   if (!shiftId || !studentId) return showToast('⚠️ Выберите участника', 'warn');

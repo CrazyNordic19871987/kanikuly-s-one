@@ -1523,16 +1523,176 @@ section.card-block{margin-top:56px}
 .rec-chip.gray{color:var(--rc-text,#9ca3af);background:rgba(107,114,128,0.10)}
 .rec-develop{display:flex;flex-wrap:wrap;gap:8px}
 
+/* ═══════════════════════════════════════════
+   AUTH SCREEN
+═════════════════════════════════════════ */
+.auth-overlay{
+  position:fixed;inset:0;z-index:10000;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+.auth-overlay.hidden{display:none}
+.auth-card{
+  width:100%;max-width:400px;
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:36px 32px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+.auth-logo{
+  text-align:center;margin-bottom:24px;
+}
+.auth-logo h1{
+  font-family:'Orbitron',monospace;
+  font-size:1.3rem;font-weight:800;
+  color:var(--orange);margin-bottom:4px;
+  letter-spacing:0.08em;
+}
+.auth-logo p{
+  font-size:0.72rem;color:var(--muted);
+  letter-spacing:0.04em;
+}
+.auth-tabs{
+  display:flex;gap:4px;margin-bottom:24px;
+  background:rgba(255,255,255,0.04);
+  border-radius:10px;padding:4px;
+}
+.auth-tab{
+  flex:1;padding:10px 0;border:none;
+  background:none;color:var(--muted);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.82rem;font-weight:600;
+  border-radius:8px;cursor:pointer;
+  transition:all .2s;
+}
+.auth-tab.active{
+  background:var(--orange-dim);
+  color:var(--orange);
+}
+.auth-form{display:flex;flex-direction:column;gap:14px}
+.auth-form.hidden{display:none}
+.auth-field{display:flex;flex-direction:column;gap:5px}
+.auth-field label{
+  font-size:0.68rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.06em;
+  font-weight:600;
+}
+.auth-field input{
+  padding:12px 14px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--white);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.9rem;
+  transition:border-color .2s;
+}
+.auth-field input:focus{
+  outline:none;
+  border-color:var(--orange);
+  box-shadow:0 0 12px rgba(59,130,246,0.15);
+}
+.auth-field input::placeholder{color:var(--muted2)}
+.auth-btn{
+  padding:13px;border:none;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--orange),#2563EB);
+  color:#fff;font-family:'Space Grotesk',sans-serif;
+  font-size:0.9rem;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  margin-top:4px;letter-spacing:0.02em;
+}
+.auth-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(59,130,246,0.3)}
+.auth-btn:active{transform:translateY(0)}
+.auth-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.auth-error{
+  padding:10px 14px;border-radius:8px;
+  background:rgba(239,68,68,0.12);
+  border:1px solid rgba(239,68,68,0.25);
+  color:#fca5a5;font-size:0.78rem;
+  display:none;
+}
+.auth-error.show{display:block}
+.auth-hint{
+  text-align:center;margin-top:16px;
+  font-size:0.68rem;color:var(--muted2);
+}
+.auth-user-badge{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 12px;border-radius:8px;
+  background:var(--glass);border:1px solid var(--border);
+  font-size:0.72rem;color:var(--muted);
+  margin-left:auto;cursor:pointer;
+  transition:all .2s;
+}
+.auth-user-badge:hover{border-color:var(--border-h);color:var(--white)}
+.auth-user-badge .role-badge{
+  padding:2px 8px;border-radius:6px;
+  font-size:0.6rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em;
+}
+.auth-user-badge .role-badge.admin{
+  background:rgba(251,191,36,0.15);color:#FBBF24;
+}
+.auth-user-badge .role-badge.player{
+  background:rgba(59,130,246,0.15);color:var(--orange);
+}
+#app-shell.hidden{display:none}
 </style>
 </head>
 <body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen" class="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <h1>Каникулы с ONE!</h1>
+      <p>Войдите в аккаунт или создайте новый</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">Вход</button>
+      <button class="auth-tab" data-tab="signup" onclick="switchAuthTab('signup')">Регистрация</button>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <form class="auth-form" id="auth-login-form" onsubmit="onAuthLogin(event)">
+      <div class="auth-field">
+        <label>Имя пользователя</label>
+        <input type="text" id="auth-login-user" placeholder="Ваш логин" required autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>Пароль</label>
+        <input type="password" id="auth-login-pass" placeholder="Ваш пароль" required autocomplete="current-password">
+      </div>
+      <button class="auth-btn" type="submit" id="auth-login-btn">Войти</button>
+    </form>
+    <form class="auth-form hidden" id="auth-signup-form" onsubmit="onAuthSignup(event)">
+      <div class="auth-field">
+        <label>Имя пользователя</label>
+        <input type="text" id="auth-signup-user" placeholder="Придумайте логин" required autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>Отображаемое имя</label>
+        <input type="text" id="auth-signup-name" placeholder="Как вас зовут?">
+      </div>
+      <div class="auth-field">
+        <label>Пароль</label>
+        <input type="password" id="auth-signup-pass" placeholder="Минимум 6 символов" required minlength="6" autocomplete="new-password">
+      </div>
+      <button class="auth-btn" type="submit" id="auth-signup-btn">Создать аккаунт</button>
+    </form>
+    <div class="auth-hint">Игроки видят свои профили и статистику. Администраторы управляют всем.</div>
+  </div>
+</div>
 
 <div id="app-loader">
   <div class="loader-ring"></div>
   <div class="loader-text">Каникулы с ONE!</div>
 </div>
 
-<div class="app-shell">
+<div id="app-shell" class="app-shell hidden">
   <!-- ── SIDEBAR ── -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo" style="cursor:pointer" onclick="goHome()" title="На главную">Каникулы<br>с ONE!</div>
@@ -1543,6 +1703,12 @@ section.card-block{margin-top:56px}
     <button class="nav-item" data-page="dashboard" title="Дашборд">📊<span>Стат</span></button>
     <button class="nav-item" data-page="assessments" title="Оценка">📋<span>Оценка</span></button>
     <div class="nav-spacer"></div>
+    <div id="sidebar-user-info" style="padding:0 8px 8px;display:none">
+      <div class="auth-user-badge" id="sidebar-user-badge" onclick="authSignOut()" title="Нажмите чтобы выйти">
+        <span id="sidebar-username">—</span>
+        <span class="role-badge" id="sidebar-role">—</span>
+      </div>
+    </div>
   </aside>
 
   <!-- Mobile overlay -->
@@ -1562,6 +1728,10 @@ section.card-block{margin-top:56px}
         <input type="text" id="search-input" placeholder="Поиск участников...">
       </div>
       <div class="topbar-right">
+        <div class="auth-user-badge" id="topbar-user-badge" style="display:none" onclick="authSignOut()" title="Нажмите чтобы выйти">
+          <span id="topbar-username">—</span>
+          <span class="role-badge" id="topbar-role">—</span>
+        </div>
         <div class="status-dot"></div>
       </div>
     </div>
@@ -2111,8 +2281,77 @@ section.card-block{margin-top:56px}
 <div id="toast-container"></div>
 
 <!-- SCRIPTS -->
-<script src="js/config.js?v=7"></script>
-<script src="js/api.js?v=4"></script>
+<script src="js/config.js?v=8"></script>
+<script src="js/auth.js?v=1"></script>
+<script src="js/api.js?v=5"></script>
+<script>
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
+  document.getElementById('auth-login-form').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('auth-signup-form').classList.toggle('hidden', tab !== 'signup');
+  document.getElementById('auth-error').classList.remove('show');
+}
+function showAuthError(msg) {
+  var el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideAuthError() { document.getElementById('auth-error').classList.remove('show'); }
+async function onAuthLogin(e) {
+  e.preventDefault(); hideAuthError();
+  var btn = document.getElementById('auth-login-btn');
+  var user = document.getElementById('auth-login-user').value.trim();
+  var pass = document.getElementById('auth-login-pass').value;
+  if (!user || !pass) { showAuthError('Заполните все поля'); return; }
+  btn.textContent = 'Вход...'; btn.disabled = true;
+  try { await authSignIn(user, pass); location.reload(); }
+  catch(err) { showAuthError(err.message || 'Ошибка входа'); btn.textContent = 'Войти'; btn.disabled = false; }
+}
+async function onAuthSignup(e) {
+  e.preventDefault(); hideAuthError();
+  var btn = document.getElementById('auth-signup-btn');
+  var user = document.getElementById('auth-signup-user').value.trim();
+  var name = document.getElementById('auth-signup-name').value.trim();
+  var pass = document.getElementById('auth-signup-pass').value;
+  if (!user || !pass) { showAuthError('Заполните логин и пароль'); return; }
+  if (user.length < 3) { showAuthError('Логин: минимум 3 символа'); return; }
+  btn.textContent = 'Создание...'; btn.disabled = true;
+  try { await authSignUp(user, pass, name || user); location.reload(); }
+  catch(err) { showAuthError(err.message || 'Ошибка регистрации'); btn.textContent = 'Создать аккаунт'; btn.disabled = false; }
+}
+function showAuthScreen() {
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('app-shell').classList.add('hidden');
+}
+function hideAuthScreen(profile) {
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('app-shell').classList.remove('hidden');
+  if (profile) {
+    var name = profile.display_name || profile.username || '';
+    var role = profile.role || 'player';
+    document.getElementById('sidebar-user-info').style.display = '';
+    document.getElementById('topbar-user-badge').style.display = '';
+    document.getElementById('sidebar-username').textContent = name;
+    document.getElementById('topbar-username').textContent = name;
+    var r1 = document.getElementById('sidebar-role');
+    var r2 = document.getElementById('topbar-role');
+    r1.textContent = role === 'admin' ? 'Админ' : 'Игрок';
+    r2.textContent = role === 'admin' ? 'Админ' : 'Игрок';
+    r1.className = 'role-badge ' + role;
+    r2.className = 'role-badge ' + role;
+  }
+}
+function applyRoleRestrictions(profile) {
+  if (!profile || profile.role !== 'admin') {
+    document.querySelector('.nav-item[data-page="assessments"]').style.display = 'none';
+    document.querySelector('.nav-item[data-page="students"]').style.display = 'none';
+    var ab = document.querySelector('.btab[data-page="assessments"]');
+    if (ab) ab.style.display = 'none';
+    var sb = document.querySelector('.btab[data-page="students"]');
+    if (sb) sb.style.display = 'none';
+  }
+}
+</script>
 <script>
 window.onerror = function(msg, url, line, col, error) {
   if (document.getElementById('global-error-banner')) return;
@@ -2124,7 +2363,7 @@ window.onerror = function(msg, url, line, col, error) {
   document.body.appendChild(el);
 };
 </script>
-<script src="js/app.js?v=20"></script>
+<script src="js/app.js?v=21"></script>
 
 <!-- Mobile menu script -->
 <script>

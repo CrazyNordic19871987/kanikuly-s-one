@@ -5,12 +5,21 @@
 class SupabaseAPI {
   constructor() {
     this.base = SUPABASE_URL + '/rest/v1';
+    this._updateHeaders();
+  }
+
+  _updateHeaders() {
+    const token = localStorage.getItem('kanikuly_access_token') || SUPABASE_ANON_KEY;
     this.h = {
       'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + token,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     };
+  }
+
+  refreshAuth() {
+    this._updateHeaders();
   }
 
   async _req(url, opts) {
