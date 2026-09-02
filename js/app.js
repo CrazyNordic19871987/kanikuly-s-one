@@ -76,6 +76,20 @@ function initialsOf(st) {
   return (st.first_name?.[0] || '') + (st.last_name?.[0] || '');
 }
 
+// ── Role-scoped student list ──
+// Admins see all students; a player sees only their own linked student.
+function visibleStudents() {
+  if (typeof authIsAdmin === 'function' && authIsAdmin()) return state.students;
+  const session = localStorage.getItem('kanikuly_access_token');
+  if (!session) return state.students;
+  const uid = window._authCache && window._authCache.user ? window._authCache.user.id : null;
+  if (uid) {
+    const mine = state.students.filter(s => String(s.user_id) === String(uid));
+    if (mine.length) return mine;
+  }
+  return state.students;
+}
+
 // ── Участие в миссиях (participations) ──
 // Одна строка = студент в миссии X, команда N (1..10).
 // Студент может участвовать в нескольких миссиях; в каждой — команда своя.
@@ -682,6 +696,38 @@ function populateDbFilters() {
   }
 }
 
+// ── Player ↔ Student self-link ───────────────────────────────
+// A player (non-admin) claims their own student record by username.
+async function selfLinkStudent(profile) {
+  const username = (profile.username || '').trim().toLowerCase();
+  if (!username) return null;
+  try {
+    const session = await authGetSession();
+    if (!session) return null;
+    const url = `${SUPABASE_URL}/rest/v1/${TABLES.STUDENTS}?username=ilike.${encodeURIComponent(username)}&select=*&limit=5`;
+    const res = await api._req(url);
+    const mine = (Array.isArray(res) ? res : []).find(s => String(s.user_id) === String(session.user.id));
+    if (mine) {
+      state.currentStudentId = mine.id;
+      return mine;
+    }
+    const candidate = (Array.isArray(res) ? res : []).find(s => !s.user_id);
+    if (candidate) {
+      try {
+        await api._req(`${SUPABASE_URL}/rest/v1/${TABLES.STUDENTS}?id=eq.${candidate.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ user_id: session.user.id })
+        });
+        state.currentStudentId = candidate.id;
+        return candidate;
+      } catch (e) { return null; }
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     var session = await authGetSession();
@@ -693,6 +739,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.__userProfile = profile;
     hideAuthScreen(profile);
     api.refreshAuth();
+    if (profile && profile.role !== 'admin') {
+      await selfLinkStudent(profile);
+    }
   } catch(e) {
     console.error('Auth error:', e);
     showAuthScreen();
@@ -892,6 +941,7 @@ function rebuildMainContent() {
         <form id="student-form"><div class="form-grid">
           <div class="form-group"><label>Имя</label><input class="form-input" id="s-firstname" required placeholder="Имя"></div>
           <div class="form-group"><label>Фамилия</label><input class="form-input" id="s-lastname" required placeholder="Фамилия"></div>
+          <div class="form-group"><label>Логин игрока</label><input class="form-input" id="s-username" placeholder="Напр. player1 (для привязки аккаунта)"></div>
           <div class="form-group"><label>Возраст</label><input class="form-input" id="s-age" type="number" min="7" max="12" required placeholder="7-12"></div>
           <div class="form-group"><label>Пол</label><select class="form-input" id="s-gender" required><option value="">Выбрать...</option><option value="Мужской">Мужской</option><option value="Женский">Женский</option></select></div>
           <div class="form-group"><label>Класс</label><input class="form-input" id="s-grade" type="number" min="1" max="11" required placeholder="Класс"></div>
@@ -1083,6 +1133,7 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
   const student = {
     first_name: v('s-firstname'),
     last_name:  v('s-lastname'),
+    username:   v('s-username').trim().toLowerCase() || null,
     nickname:   v('s-nickname'),
     avatar_url: v('s-avatar') || null,
     age:        parseInt(v('s-age')),
@@ -1130,7 +1181,7 @@ function renderStudentList() {
   const el = document.getElementById('student-list');
   const countEl = document.getElementById('student-count');
   if (!el) return;
-  let list = state.students;
+  let list = visibleStudents();
 
   const filters = getStudentFilters();
   if (filters.shift) list = list.filter(s => studentShifts(s.id).map(String).includes(String(filters.shift)));
@@ -1220,8 +1271,9 @@ async function deleteStudent(e, id) {
 
 function populateStudentSelect(selectId, onChange) {
   const sel = document.getElementById(selectId);
+  const list = visibleStudents();
   sel.innerHTML = '<option value="">— Выбрать участника —</option>' +
-    state.students.map(s =>
+    list.map(s =>
       `<option value="${s.id}">${displayNameEsc(s)} · ${studentParticipationLabel(s)} · ${s.campus || ''}</option>`
     ).join('');
   sel.onchange = onChange;
