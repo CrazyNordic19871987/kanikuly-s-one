@@ -1703,12 +1703,13 @@ section.card-block{margin-top:56px}
     <button class="nav-item" data-page="dashboard" title="Дашборд">📊<span>Стат</span></button>
     <button class="nav-item" data-page="assessments" title="Оценка">📋<span>Оценка</span></button>
     <div class="nav-spacer"></div>
-    <div id="sidebar-user-info" style="padding:0 8px 8px;display:none">
-      <div class="auth-user-badge" id="sidebar-user-badge" onclick="authSignOut()" title="Нажмите чтобы выйти">
+    <div id="sidebar-user-info" style="padding:8px;display:none">
+      <div class="auth-user-badge" id="sidebar-user-badge">
         <span id="sidebar-username">—</span>
         <span class="role-badge" id="sidebar-role">—</span>
       </div>
     </div>
+    <button class="nav-item" id="logout-btn" onclick="authSignOut()" title="Выйти" style="display:none;color:#ef4444">🚪<span>Выйти</span></button>
   </aside>
 
   <!-- Mobile overlay -->
@@ -2390,6 +2391,7 @@ function showAuthScreen() {
 function hideAuthScreen(profile) {
   document.getElementById('auth-screen').classList.add('hidden');
   document.getElementById('app-shell').classList.remove('hidden');
+  document.getElementById('logout-btn').style.display = '';
   if (profile) {
     var name = profile.display_name || profile.username || '';
     var role = profile.role || 'player';
