@@ -84,6 +84,19 @@ function rarityLabel(r) {
   return { common:'Обычный', rare:'Редкий', epic:'Эпический', legendary:'Легендарный' }[r] || r;
 }
 
+// -- XP economy (pure) --------------------------
+function xpFromCompletion(score) {
+  const s = Number(score) || 1;
+  return 20 + s * 15;
+}
+
+function xpFromBadge(rarity) {
+  if (rarity === 'legendary') return 100;
+  if (rarity === 'epic') return 60;
+  if (rarity === 'rare') return 40;
+  return 20;
+}
+
 // -- Assessment scoring -------------------------
 function calcXp(score) {
   return Math.round(score * score * 2);
@@ -105,6 +118,8 @@ if (typeof window !== 'undefined') {
   window.xpToNextLevel = xpToNextLevel;
   window.getLevel = getLevel;
   window.rarityLabel = rarityLabel;
+  window.xpFromCompletion = xpFromCompletion;
+  window.xpFromBadge = xpFromBadge;
   window.calcXp = calcXp;
   window.calcCurrency = calcCurrency;
 }
@@ -121,6 +136,8 @@ if (typeof module !== 'undefined' && module.exports) {
     xpToNextLevel,
     getLevel,
     rarityLabel,
+    xpFromCompletion,
+    xpFromBadge,
     calcXp,
     calcCurrency
   };

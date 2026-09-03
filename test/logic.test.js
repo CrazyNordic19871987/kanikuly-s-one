@@ -9,6 +9,8 @@ import {
   xpToNextLevel,
   getLevel,
   rarityLabel,
+  xpFromCompletion,
+  xpFromBadge,
   calcXp,
   calcCurrency
 } from '../js/logic.js';
@@ -112,6 +114,12 @@ describe('getLevel()', () => {
     expect(getLevel(900).level).toBe(3);
   });
 
+  it('is exactly at the boundary of the next level', () => {
+    // 350 exactly = level 2 (0+350 is not > 350)
+    expect(getLevel(350).level).toBe(2);
+    expect(getLevel(349).level).toBe(1);
+  });
+
   it('caps at level 10 (Легенда)', () => {
     const max = getLevel(999999);
     expect(max.level).toBe(10);
@@ -123,6 +131,33 @@ describe('getLevel()', () => {
     expect(lv.level).toBe(1);
     expect(lv.progress).toBeGreaterThanOrEqual(0);
     expect(lv.progress).toBeLessThanOrEqual(100);
+  });
+});
+
+describe('xpFromCompletion()', () => {
+  it('gives 20 base plus 15 per score point', () => {
+    expect(xpFromCompletion(1)).toBe(35);
+    expect(xpFromCompletion(10)).toBe(170);
+  });
+
+  it('falls back to score 1 for falsy values (matches legacy c.score || 1)', () => {
+    expect(xpFromCompletion(null)).toBe(35);
+    expect(xpFromCompletion(undefined)).toBe(35);
+    expect(xpFromCompletion(0)).toBe(35);
+  });
+});
+
+describe('xpFromBadge()', () => {
+  it('awards XP by rarity tier', () => {
+    expect(xpFromBadge('legendary')).toBe(100);
+    expect(xpFromBadge('epic')).toBe(60);
+    expect(xpFromBadge('rare')).toBe(40);
+    expect(xpFromBadge('common')).toBe(20);
+  });
+
+  it('defaults unknown/falsy rarity to common (20)', () => {
+    expect(xpFromBadge('mythic')).toBe(20);
+    expect(xpFromBadge(null)).toBe(20);
   });
 });
 

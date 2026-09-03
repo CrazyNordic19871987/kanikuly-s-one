@@ -184,14 +184,10 @@ function shiftBannerUrl(s) {
 function calcStudentXP(studentId) {
   let xp = 0;
   state.completions.filter(c => c.student_id == studentId).forEach(c => {
-    const score = c.score || 1;
-    xp += 20 + score * 15;
+    xp += xpFromCompletion(c.score);
   });
   state.badges.filter(b => b.student_id == studentId && b.earned).forEach(b => {
-    if (b.rarity === 'legendary') xp += 100;
-    else if (b.rarity === 'epic') xp += 60;
-    else if (b.rarity === 'rare') xp += 40;
-    else xp += 20;
+    xp += xpFromBadge(b.rarity);
   });
   xp += getStreakBonusXP(studentId);
   xp += getRelicBonus(studentId);

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.4.0] - 2026-09-03
+
+### Added
+- Expanded test suite: new `test/dom.test.js` (jsdom environment) validating `esc`/`sanitizeText`/`displayNameEsc` against the **real DOM** (`innerHTML` serialization) with DOMPurify loaded.
+- Pure XP-economy helpers `xpFromCompletion(score)` / `xpFromBadge(rarity)` added to `js/logic.js`; `calcStudentXP` in `js/app.js` now delegates to them (single-sourced, testable) — no behavior change.
+- `jsdom` added as a dev dependency.
+- **36 tests passing** (28 logic + 8 DOM).
+
+### Changed
+- `js/app.js` `calcStudentXP` now uses `xpFromCompletion`/`xpFromBadge` from `js/logic.js`.
+
 ## [3.3.1] - 2026-09-03
 
 ### Added
