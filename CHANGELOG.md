@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.2] - 2026-09-03
+
+### Removed
+- Broken, unreferenced one-time SQL generator `scripts/generate_sql.js` (and empty `scripts/` dir). Its regex targets (`SHIFTS`, `COMPETENCIES`, `BADGE_DEFS`, `DISC_*`) no longer exist in `js/config.js`, so it could no longer run. Content is already seeded in Supabase via real migrations.
+
+### Verified (retained)
+- `getMissionBranch()` and `setAvatar()` — flagged in an earlier audit as "dead", but confirmed **live**: `getMissionBranch` is called by the mission-branch panel (`js/app.js:2172`), `setAvatar` by cosmetic shop items (`js/app.js:1686,1689,1694`). Not removed.
+
 ## [3.2.1] - 2026-09-03
 
 ### Removed
