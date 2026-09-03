@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - `js/app.js` `calcStudentXP` now uses `xpFromCompletion`/`xpFromBadge` from `js/logic.js`.
+- Pin `jsdom@^26.1.0` (was `^30.0.1`) — resolves `undici` `webidl.util.markAsUncloneable` crash in CI (GitHub Actions Node 20); still 36/36 tests green.
 
 ## [3.3.1] - 2026-09-03
 
