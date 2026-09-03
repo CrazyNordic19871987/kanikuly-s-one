@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.3.1] - 2026-09-03
+
+### Added
+- CI quality gate (`.github/workflows/deploy.yml`): new `test` job runs `npm ci` + `npm test` (vitest) and `node --check` syntax lint on all browser JS. Deployment now depends on tests passing — broken code won't reach GitHub Pages.
+
+### Note
+- CHECK constraints (observations 0..5, completions 0..10, participations.squad 1..10, profiles.role enum, cards.section enum) were already added in migrations 007/011/013; Phase 9 adds the CI gate rather than redundant constraints.
+
 ## [3.3.0] - 2026-09-03
 
 ### Added
