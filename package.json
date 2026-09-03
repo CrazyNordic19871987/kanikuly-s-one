@@ -1,0 +1,13 @@
+{
+  "name": "kanikuly-s-one",
+  "version": "3.2.3",
+  "description": "Каникулы с ONE! — summer camp management SPA (GitHub Pages, no build step)",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  }
+}

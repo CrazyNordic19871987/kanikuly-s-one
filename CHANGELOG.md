@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.3.0] - 2026-09-03
+
+### Added
+- `js/logic.js` — pure, DOM-free logic module (esc, sanitizeText, displayName, initialsOf, level/XP system, rarityLabel, calcXp, calcCurrency). Exposed on `window` in browser, `module.exports` for Node.
+- Test harness: `package.json` + `vitest` (dev-only, `npm test`), `test/logic.test.js` with 23 passing unit tests. No build step — runtime remains static HTML+JS on GitHub Pages.
+- `.gitignore` entry for `coverage/`.
+
+### Changed
+- `js/app.js` reduced by extracting pure functions into `js/logic.js` (loaded before `app.js`; no runtime behavior change).
+
 ## [3.2.2] - 2026-09-03
 
 ### Removed

@@ -52,44 +52,6 @@ function ge(id) {
   return document.getElementById(id);
 }
 
-// -- XSS escape helper --------------------------
-function esc(s) {
-  if (!s) return '';
-  const d = document.createElement('div');
-  d.textContent = String(s);
-  return d.innerHTML;
-}
-
-// -- HTML sanitizer for free-text input (write-path defense-in-depth) --
-function sanitizeText(s) {
-  if (!s) return '';
-  let str = String(s);
-  try {
-    if (typeof DOMPurify !== 'undefined' && typeof DOMPurify.sanitize === 'function') {
-      str = DOMPurify.sanitize(str, { USE_PROFILES: { html: false } });
-    }
-  } catch (_e) { /* fall back to tag-stripping below */ }
-  return str.replace(/<\s*\/?\s*(script|style|iframe|object|embed|form)[^>]*>/gi, '')
-            .replace(/on\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-            .replace(/javascript\s*:/gi, '');
-}
-
-// ── Display name: nickname (name hidden in app) ──
-function displayName(st) {
-  if (!st) return '';
-  const nick = st.nickname || st.nick_name || '';
-  if (nick) return nick;
-  return (st.first_name || '') + ' ' + (st.last_name || '');
-}
-function displayNameEsc(st) {
-  return esc(displayName(st));
-}
-function initialsOf(st) {
-  const nick = st.nickname || st.nick_name || '';
-  if (nick) return nick.slice(0, 2).toUpperCase();
-  return (st.first_name?.[0] || '') + (st.last_name?.[0] || '');
-}
-
 // ── Role-scoped student list ──
 // Admins see all students; a player sees only their own linked student.
 function visibleStudents() {
@@ -217,12 +179,7 @@ function shiftBannerUrl(s) {
 }
 
 // -- XP + Level system ---------------------------
-const LEVEL_NAMES = ['Новичок','Стажёр','Ученик','Практикант','Специалист','Эксперт','Мастер','Профи','Гуру','Легенда'];
-
-function xpToNextLevel(level) {
-  if (level >= 10) return Infinity;
-  return 200 + (level * 150);
-}
+// LEVEL_NAMES / xpToNextLevel / getLevel live in js/logic.js (pure logic module).
 
 function calcStudentXP(studentId) {
   let xp = 0;
@@ -239,21 +196,6 @@ function calcStudentXP(studentId) {
   xp += getStreakBonusXP(studentId);
   xp += getRelicBonus(studentId);
   return xp;
-}
-
-function getLevel(xp) {
-  let level = 1;
-  let totalNeeded = 0;
-  while (level < 10) {
-    const needed = xpToNextLevel(level);
-    if (totalNeeded + needed > xp) break;
-    totalNeeded += needed;
-    level++;
-  }
-  const currentLevelXP = xp - totalNeeded;
-  const nextLevelXP = level >= 10 ? 0 : xpToNextLevel(level);
-  const progress = level >= 10 ? 100 : Math.round((currentLevelXP / nextLevelXP) * 100);
-  return { level, name: LEVEL_NAMES[level - 1], xp: currentLevelXP, nextXP: nextLevelXP, progress };
 }
 
 // ── CD8: Streak System ──────────────────────────────────────
@@ -1625,10 +1567,6 @@ function renderAchievements(studentId) {
   }
   if (achSummary) achSummary.innerHTML =
     `<span class="ach-count">${earned.length}</span> из <span>${filteredDefs.length}</span> значков получено`;
-}
-
-function rarityLabel(r) {
-  return { common:'Обычный', rare:'Редкий', epic:'Эпический', legendary:'Легендарный' }[r] || r;
 }
 
 // =============================================
@@ -3759,14 +3697,6 @@ function onAssStudentChange() {
   });
   html += `<button class="btn-primary assess-save-btn" onclick="saveAssessments()">💾 Сохранить оценки</button>`;
   area.innerHTML = html;
-}
-
-function calcXp(score) {
-  return Math.round(score * score * 2);
-}
-
-function calcCurrency(score, shift) {
-  return Math.round(score * 10);
 }
 
 function onAssScoreChange(input) {
