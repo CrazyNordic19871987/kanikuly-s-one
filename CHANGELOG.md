@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.1] - 2026-09-03
+
+### Removed
+- Dead `js/auth.js` — duplicate of the inline auth module in `index.html`. It was never loaded by any page and had a less-safe `usernameToEmail` (no username sanitization) than the authoritative inline version, so keeping it was a maintenance/regression risk.
+
 ## [3.2.0] - 2026-09-03
 
 ### Added
