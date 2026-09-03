@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] - 2026-09-03
+
+### Added
+- Gamification state persistence (coins, streaks, relics, bosses, mystery boxes, avatars, limited badges, inventory) to new Supabase `player_progress` table (migration 016)
+- `js/progress.js` — load/save/debounce service with per-student snapshot & RLS (own row + admin)
+- Vendored DOMPurify 3.1.6 (`js/vendor/purify.min.js`) for XSS defense-in-depth
+
+### Fixed
+- Stored XSS: student free-text fields (name, nickname, gender, campus, notes) and observation notes are sanitized on write (`sanitizeText`)
+- Escaped student `age`/`gender`/`grade`/`campus` in rendered cards, dropdown options and dashboard (defense-in-depth against presentation-layer XSS)
+- Image/avatar/badge `src` URLs already escaped; confirmed and retained
+
 ## [3.1.0] - 2026-09-03
 
 ### Fixed

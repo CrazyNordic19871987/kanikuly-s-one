@@ -60,6 +60,20 @@ function esc(s) {
   return d.innerHTML;
 }
 
+// -- HTML sanitizer for free-text input (write-path defense-in-depth) --
+function sanitizeText(s) {
+  if (!s) return '';
+  let str = String(s);
+  try {
+    if (typeof DOMPurify !== 'undefined' && typeof DOMPurify.sanitize === 'function') {
+      str = DOMPurify.sanitize(str, { USE_PROFILES: { html: false } });
+    }
+  } catch (_e) { /* fall back to tag-stripping below */ }
+  return str.replace(/<\s*\/?\s*(script|style|iframe|object|embed|form)[^>]*>/gi, '')
+            .replace(/on\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+            .replace(/javascript\s*:/gi, '');
+}
+
 // ── Display name: nickname (name hidden in app) ──
 function displayName(st) {
   if (!st) return '';
@@ -1151,16 +1165,16 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
   const sSquad = parseInt(v('s-squad'));
   const sShift = parseInt(v('s-shift'));
   const student = {
-    first_name: v('s-firstname'),
-    last_name:  v('s-lastname'),
-    username:   v('s-username').trim().toLowerCase() || null,
-    nickname:   v('s-nickname'),
-    avatar_url: v('s-avatar') || null,
+    first_name: sanitizeText(v('s-firstname')),
+    last_name:  sanitizeText(v('s-lastname')),
+    username:   sanitizeText(v('s-username')).trim().toLowerCase() || null,
+    nickname:   sanitizeText(v('s-nickname')),
+    avatar_url: sanitizeText(v('s-avatar')) || null,
     age:        parseInt(v('s-age')),
-    gender:     v('s-gender'),
+    gender:     sanitizeText(v('s-gender')),
     grade:      parseInt(v('s-grade')),
-    campus:     v('s-campus'),
-    notes:      v('s-notes'),
+    campus:     sanitizeText(v('s-campus')),
+    notes:      sanitizeText(v('s-notes')),
     created_at: new Date().toISOString()
   };
 
@@ -1238,7 +1252,7 @@ function renderStudentList() {
         <div class="sc-avatar">${avatarCircle(s, initials, 46)}<div class="sc-level-badge">${lv.level}</div></div>
         <div class="sc-info">
           <div class="sc-name">${displayNameEsc(s)} <span class="sc-level-tag">${lv.name}</span></div>
-          <div class="sc-meta">${s.age} лет · ${s.gender} · ${s.grade} кл. · ${studentParticipationLabel(s)} · ${s.campus || ''}</div>
+          <div class="sc-meta">${esc(s.age)} лет · ${esc(s.gender)} · ${esc(s.grade)} кл. · ${studentParticipationLabel(s)} · ${esc(s.campus)}</div>
           <div class="sc-xp-bar"><div class="sc-xp-fill" style="width:${lv.progress}%"></div></div>
           <div class="sc-progress">
             <div class="sc-progress-bar"><div class="sc-progress-fill" style="width:${progress}%"></div></div>
@@ -1294,7 +1308,7 @@ function populateStudentSelect(selectId, onChange) {
   const list = visibleStudents();
   sel.innerHTML = '<option value="">— Выбрать участника —</option>' +
     list.map(s =>
-      `<option value="${s.id}">${displayNameEsc(s)} · ${studentParticipationLabel(s)} · ${s.campus || ''}</option>`
+      `<option value="${s.id}">${displayNameEsc(s)} · ${studentParticipationLabel(s)} · ${esc(s.campus)}</option>`
     ).join('');
   sel.onchange = onChange;
 
@@ -1445,7 +1459,7 @@ async function saveObservation() {
     independence,
     quality,
     initiative:   document.getElementById('chk-initiative').checked,
-    notes:        document.getElementById('obs-notes').value,
+    notes:        sanitizeText(document.getElementById('obs-notes').value),
     created_at:   new Date().toISOString()
   };
 
@@ -2707,7 +2721,7 @@ function renderDashboard() {
         <div class="db-sc-avatar">${avatarCircle(s, initialsOf(s), 44)}<div class="db-sc-level">${lv.level}</div></div>
         <div class="db-sc-info">
           <strong>${displayNameEsc(s)}</strong> <span class="sc-level-tag">${lv.name}</span>
-          <span>${studentParticipationLabel(s)} · ${s.campus || ''} · ${s.grade} кл</span>
+          <span>${studentParticipationLabel(s)} · ${esc(s.campus)} · ${esc(s.grade)} кл</span>
         </div>
         <div class="db-sc-track">${trackIcon}</div>
       </div>
