@@ -339,7 +339,7 @@ function checkLimitedBadges(studentId) {
     if (lb.shift_ids.length && !myShifts.some(sh => lb.shift_ids.map(String).includes(sh))) continue;
     let met = false;
     if (lb.condition === '3 completions in 1 day') met = todayComps.length >= 3;
-    else if (lb.condition === '5/5 in 5 in a row') {
+    else if (lb.condition === '5 perfect scores in a row') {
       const last5 = state.completions.filter(c => c.student_id == studentId).slice(-5);
       met = last5.length === 5 && last5.every(c => (c.score || 0) >= 5);
     }
@@ -1625,7 +1625,6 @@ function buyShopItem(itemId) {
   }
   if (item.type === 'consumable') {
     if (itemId === 'shop_xp_boost') {
-      addCoins(state.currentStudentId, -50); // double-dip effect via negative
       showToast('⚡ XP-бустер активирован! +50 XP к следующему заданию', 'success');
     } else if (itemId === 'shop_badge_hint') {
       const unearned = state.badgeDefs.filter(b => !state.badges.find(eb => eb.student_id == state.currentStudentId && eb.badge_id === b.id && eb.earned));
