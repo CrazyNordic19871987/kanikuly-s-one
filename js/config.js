@@ -21,7 +21,8 @@ const TABLES = {
   CONTENT_MISSIONS:      'content_missions',
   CONTENT_INVENTORY:     'content_inventory_items',
   PARTICIPATIONS:        'participations',
-  CARDS:                 'cards'
+  CARDS:                 'cards',
+  PLAYER_PROGRESS:       'player_progress'
 };
 
 // ── Fallback данные (если Supabase пуст) ──────────────────

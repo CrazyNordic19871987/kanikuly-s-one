@@ -253,6 +253,7 @@ function checkAndUpdateStreak(studentId) {
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
   let newCount = streak.lastDate === yesterday ? streak.count + 1 : 1;
   state.streaks[studentId] = { count: newCount, lastDate: today };
+  persistProgress(studentId);
   const bonus = STREAK_BONUS[Math.min(newCount, STREAK_BONUS.length - 1)] || 0;
   const milestone = STREAK_MILESTONES.find(m => m.days === newCount);
   return { count: newCount, bonus, milestone };
@@ -264,14 +265,21 @@ function getStreakBonusXP(studentId) {
 
 // ── CD4/CD6: Economy System ──────────────────────────────────
 function getCoins(studentId) { return state.coins[studentId] || 0; }
+function persistProgress(studentId) {
+  if (typeof debouncedSaveProgress === 'function') {
+    debouncedSaveProgress(studentId, snapshotStudentProgress(state, studentId));
+  }
+}
 function addCoins(studentId, amount) {
   state.coins[studentId] = (state.coins[studentId] || 0) + amount;
+  persistProgress(studentId);
   return state.coins[studentId];
 }
 function spendCoins(studentId, amount) {
   const cur = getCoins(studentId);
   if (cur < amount) return false;
   state.coins[studentId] = cur - amount;
+  persistProgress(studentId);
   return true;
 }
 function getEconomyFromCompletions(studentId) {
@@ -287,6 +295,7 @@ function getEconomyFromCompletions(studentId) {
 function getMysteryCount(studentId) { return state.mysteryCount[studentId] || 0; }
 function incrementMysteryCount(studentId) {
   state.mysteryCount[studentId] = (state.mysteryCount[studentId] || 0) + 1;
+  persistProgress(studentId);
   if (state.mysteryCount[studentId] >= MYSTERY_BOX_INTERVAL) {
     state.mysteryCount[studentId] = 0;
     return rollMysteryBox();
@@ -319,6 +328,7 @@ function defeatBoss(studentId) {
   const weekKey = 'week' + boss.week;
   if (!state.bossDefeated[studentId]) state.bossDefeated[studentId] = {};
   state.bossDefeated[studentId][weekKey] = true;
+  persistProgress(studentId);
   return boss.rewards;
 }
 function getBossTeamDamage(studentId) {
@@ -361,6 +371,7 @@ function checkLimitedBadges(studentId) {
       state.limitedEarned[studentId].push(lb.id);
     }
   }
+  if (newlyEarned.length) persistProgress(studentId);
   return newlyEarned;
 }
 
@@ -373,6 +384,7 @@ function awardRelic(studentId, shiftId) {
   if (current.includes(relic.id)) return null;
   if (!state.relics[studentId]) state.relics[studentId] = [];
   state.relics[studentId].push(relic.id);
+  persistProgress(studentId);
   return relic;
 }
 function getRelicBonus(studentId) {
@@ -386,6 +398,7 @@ function getAvatar(studentId) {
 }
 function setAvatar(studentId, data) {
   state.avatars[studentId] = { ...getAvatar(studentId), ...data };
+  persistProgress(studentId);
 }
 
 // ── CD5: Social Comparison ────────────────────────────────────
@@ -896,6 +909,13 @@ async function loadData() {
     state.cards = cardsRows.sort((a, b) => (a.num || 0) - (b.num || 0));
   } else {
     state.cards = [];
+  }
+
+  // Persist gamification state loaded from Supabase (coins, streaks, relics,
+  // bosses, mystery, avatars, limited badges).
+  if (typeof loadAllProgress === 'function') {
+    const progressMap = await loadAllProgress();
+    applyProgressToState(state, progressMap);
   }
 
   populateShiftSelect();
