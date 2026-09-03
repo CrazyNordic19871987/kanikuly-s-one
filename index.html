@@ -2413,13 +2413,15 @@ function hideAuthScreen(profile) {
   }
 }
 function applyRoleRestrictions(profile) {
+  var hideNav = function(page) {
+    var b = document.querySelector('.nav-item[data-page="' + page + '"]');
+    if (b) b.style.display = 'none';
+    var t = document.querySelector('.btab[data-page="' + page + '"]');
+    if (t) t.style.display = 'none';
+  };
   if (!profile || profile.role !== 'admin') {
-    document.querySelector('.nav-item[data-page="assessments"]').style.display = 'none';
-    document.querySelector('.nav-item[data-page="students"]').style.display = 'none';
-    var ab = document.querySelector('.btab[data-page="assessments"]');
-    if (ab) ab.style.display = 'none';
-    var sb = document.querySelector('.btab[data-page="students"]');
-    if (sb) sb.style.display = 'none';
+    hideNav('assessments');
+    hideNav('students');
     var sel = document.getElementById('talent-student-select');
     if (sel) { try { sel.style.display = 'none'; } catch(e){} }
     var vis = (typeof visibleStudents === 'function') ? visibleStudents() : [];
