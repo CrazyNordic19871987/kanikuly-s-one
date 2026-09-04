@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.6.2] - 2026-09-04
+
+### Fixed
+- **Shift banner images missing after Vite migration**: `img/` (mission banner JPGs + `og-card.png`) were left in the repo root, so Vite did not copy them into `dist/` and they 404'd on GitHub Pages (banners relied on `public/` copying). Moved `img/` → `public/img/` (tracked via `git mv`); Vite now copies them into `dist/img/`, restoring `img/mission{N}-banner.JPG` references used by the SPA (and OG/twitter image URLs).
+
 ## [3.6.1] - 2026-09-04
 
 ### Fixed

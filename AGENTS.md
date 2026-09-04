@@ -18,7 +18,7 @@ Summer camp management web app for kids 7-12. Vanilla JS SPA built with Vite (`n
 - `js/api.js` — Supabase REST wrapper with pagination + retry/offline handling
 - `js/pdf.js` — printable student report generation via `window.print()`
 - `js/progress.js` — player_progress persistence
-- `public/` — static assets copied verbatim to `dist/` by Vite (bg.png, logo.svg, manifest.json, sw.js, _nojekyll)
+- `public/` — static assets copied verbatim to `dist/` by Vite (bg.png, logo.svg, manifest.json, sw.js, _nojekyll, and `img/` for mission banners + og-card.png). **Any file referenced by the app at a root-relative path must live under `public/` (or be copied to `dist/`), otherwise it 404s on the live site.**
 - `migrations/` — SQL for indexes, RLS
 - `test/` — vitest unit tests (`npm test` runs them). `js/logic.js` is tested here.
 - `програма/` — pedagogical program files for missions 1-6 (.md)
