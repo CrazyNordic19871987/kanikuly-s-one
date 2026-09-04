@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.6.0] - 2026-09-04
+
+### Added
+- **Vite build pipeline**: `vite.config.js`, `npm run dev` / `npm run build` / `npm run preview`. App now builds to `dist/` and deploys from there. Static assets (bg.png, logo.svg, manifest.json, sw.js, `_nojekyll`) moved to `public/` (Vite copies to dist/). CI: new `build` job runs before deploy, deploys `dist/`.
+- `js/*.js` remain plain `<script>` tags (not ES modules) — Vite copies them as-is into `dist/js/`. Full ES-module migration intentionally deferred (no ROI for this vanilla stack, higher regression risk on 4000+ line app.js).
+
 ## [3.5.0] - 2026-09-04
 
 ### Added
