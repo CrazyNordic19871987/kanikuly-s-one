@@ -107,6 +107,10 @@ export default [
         loadAllProgress: 'readonly',
         history: 'readonly',
         Event: 'readonly',
+        state: 'writable',
+        printStudentReport: 'readonly',
+        printReportNow: 'readonly',
+        ge: 'readonly',
       },
     },
     rules: {
