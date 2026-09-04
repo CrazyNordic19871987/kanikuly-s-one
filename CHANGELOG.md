@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **ESLint 9** (flat config) + **Prettier** for vanilla browser JS: `npm run lint`, `npm run format`. CI gate: lint runs before tests on every push. 0 errors, 90 warnings (eqeqeq + unused-vars, acceptable).
 - **API error handling**: retry (1 attempt with backoff) on network failures, retry on 5xx, offline detection via `navigator.onLine`, toast notifications for: offline, network error, auth expired, server error. Unchanged API surface.
+- **Accessibility**: 28 form inputs now have `aria-label`, 2 icon-only buttons labeled, skip-to-content link, `:focus-visible` orange outline, `.sr-only` utility class.
+- **PWA**: `manifest.json` + `sw.js` (cache-first for static assets, network-first for API). App is now installable on mobile with offline support for cached content.
+- **PDF reports**: `js/pdf.js` — `generatePDF()` generates a printable student report (XP, level, badges, DISC, observations) via `window.print()` with full Cyrillic support.
 
 ## [3.4.0] - 2026-09-03
 
