@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 - **Optional: move banners to Supabase Storage** (`migrations/017_shift_banners_supabase.sql`): documented workflow to upload banners into the `images` Storage bucket under the `mission_banner/` folder (`mission_1.JPG`..`mission_10.JPG`, filename number = `shift_id`) and backfill `content_shifts.banner_url` → `.../public/images/mission_banner/mission_{shift_id}.JPG`. `shiftBannerUrl()` already prefers `banner_url` with `public/img/*` as fallback, so no code change needed. Static files retained as fallback.
 
 ### Changed
-- **SEO/meta fix in `index.html`**: `og:image`/`twitter:image` switched from the portrait mission banner (720×1280) to the horizontal `img/og-card.png` (1200×630), matching `landing.html` — correct landscape preview for social/messengers. `meta description` reworded from "летние каникулы" → "школьные каникулы" (dates are Oct–Feb, so "summer" contradicted the schedule) and removed the "Anglophone" claim since the UI is fully Russian.
+- **SEO/meta fix in `index.html`**: `og:image`/`twitter:image` switched from the portrait mission banner (720×1280) to the horizontal `img/og-card.png` (1200×630), matching `landing.html` — correct landscape preview for social/messengers. `meta description` reworded from "летние каникулы" → "школьные каникулы" (dates are Oct–Feb, so "summer" contradicted the schedule).
 
 ## [3.6.1] - 2026-09-04
 
