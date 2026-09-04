@@ -1,0 +1,10 @@
+node_modules
+dist
+backup
+*.min.js
+*.sql
+*.md
+*.pptx
+*.xlsx
+*.txt
+*.log

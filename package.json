@@ -3,12 +3,20 @@
   "version": "3.2.3",
   "description": "Каникулы с ONE! — summer camp management SPA (GitHub Pages, no build step)",
   "private": true,
+  "type": "module",
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint js/",
+    "lint:fix": "eslint js/ --fix",
+    "format": "prettier --write js/**/*.js",
+    "format:check": "prettier --check js/**/*.js"
   },
   "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
     "jsdom": "^26.1.0",
+    "prettier": "^3.9.6",
     "vitest": "^2.1.8"
   }
 }
