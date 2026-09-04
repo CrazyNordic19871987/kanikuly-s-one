@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **Shift banner images missing after Vite migration**: `img/` (mission banner JPGs + `og-card.png`) were left in the repo root, so Vite did not copy them into `dist/` and they 404'd on GitHub Pages (banners relied on `public/` copying). Moved `img/` → `public/img/` (tracked via `git mv`); Vite now copies them into `dist/img/`, restoring `img/mission{N}-banner.JPG` references used by the SPA (and OG/twitter image URLs).
+- **Optional: move banners to Supabase Storage** (`migrations/017_shift_banners_supabase.sql`): documented workflow to upload `public/img/mission{N}-banner.JPG` into the `images` Storage bucket and backfill `content_shifts.banner_url`. `shiftBannerUrl()` already prefers `banner_url` with `public/img/*` as fallback, so no code change needed. Static files retained as fallback.
 
 ## [3.6.1] - 2026-09-04
 
