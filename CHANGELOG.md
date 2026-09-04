@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.5.0] - 2026-09-04
+
+### Added
+- **ESLint 9** (flat config) + **Prettier** for vanilla browser JS: `npm run lint`, `npm run format`. CI gate: lint runs before tests on every push. 0 errors, 90 warnings (eqeqeq + unused-vars, acceptable).
+- **API error handling**: retry (1 attempt with backoff) on network failures, retry on 5xx, offline detection via `navigator.onLine`, toast notifications for: offline, network error, auth expired, server error. Unchanged API surface.
+
 ## [3.4.0] - 2026-09-03
 
 ### Added
