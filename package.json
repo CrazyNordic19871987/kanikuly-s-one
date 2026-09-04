@@ -1,7 +1,7 @@
 {
   "name": "kanikuly-s-one",
   "version": "3.2.3",
-  "description": "Каникулы с ONE! — summer camp management SPA (GitHub Pages, no build step)",
+  "description": "Каникулы с ONE! — summer camp management SPA (GitHub Pages, Vite)",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,7 +10,10 @@
     "lint": "eslint js/",
     "lint:fix": "eslint js/ --fix",
     "format": "prettier --write js/**/*.js",
-    "format:check": "prettier --check js/**/*.js"
+    "format:check": "prettier --check js/**/*.js",
+    "dev": "vite",
+    "build": "vite build && node -e \"import{cpSync}from'fs';cpSync('js','dist/js',{recursive:true})\"",
+    "preview": "vite preview"
   },
   "devDependencies": {
     "eslint": "^9.39.5",
@@ -18,6 +21,7 @@
     "jsdom": "^26.1.0",
     "jspdf": "^4.2.1",
     "prettier": "^3.9.6",
+    "vite": "^5.4.21",
     "vitest": "^2.1.8"
   }
 }

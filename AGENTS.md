@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Summer camp management web app for kids 7-12. Static SPA (no build step) hosted on GitHub Pages.
+Summer camp management web app for kids 7-12. Vanilla JS SPA built with Vite (`npm run build` → `dist/`) and hosted on GitHub Pages.
 
 - **Repo**: `https://github.com/CrazyNordic19871987/kanikuly-s-one`
 - **Live**: `https://crazynordic19871987.github.io/kanikuly-s-one/`
@@ -11,11 +11,14 @@ Summer camp management web app for kids 7-12. Static SPA (no build step) hosted 
 
 ## Architecture
 
-- `index.html` — single HTML file, all CSS inline (~1000 lines)
+- `index.html` — single HTML page, all CSS inline (~1000 lines)
 - `js/app.js` — main application JS (single source of truth; the former root `app.js` duplicate was removed)
 - `js/logic.js` — pure, DOM-free logic (esc, sanitizeText, displayName, initialsOf, level/XP system, rarityLabel, calcXp, calcCurrency). Browser: exposed on `window` (loaded before `app.js`). Node/tests: `module.exports`. **Never put `state`/`document`/`api`/`auth*` logic here** — it must stay importable by vitest.
 - `js/config.js` — Supabase URL/key + TABLES constants + DEFAULT_* fallbacks (single source of truth; the former root `config.js` duplicate was removed)
-- `js/api.js` — Supabase REST wrapper with pagination
+- `js/api.js` — Supabase REST wrapper with pagination + retry/offline handling
+- `js/pdf.js` — printable student report generation via `window.print()`
+- `js/progress.js` — player_progress persistence
+- `public/` — static assets copied verbatim to `dist/` by Vite (bg.png, logo.svg, manifest.json, sw.js, _nojekyll)
 - `migrations/` — SQL for indexes, RLS
 - `test/` — vitest unit tests (`npm test` runs them). `js/logic.js` is tested here.
 - `програма/` — pedagogical program files for missions 1-6 (.md)
@@ -24,7 +27,8 @@ Summer camp management web app for kids 7-12. Static SPA (no build step) hosted 
 - `kanikuly_cards_collection.md`, `Миссии_для_педагогов.md`, `gamma_presentation_prompt.md` — content/presentation docs
 - `presentation_kanikuly_s_one.html` — standalone presentation page (not part of the SPA)
 - `*.pptx` — marketing deck sources (MS PowerPoint), not build inputs
-- No build step, no npm runtime deps, no framework. Vanilla JS + CSS. npm exists only for dev/test tooling (vitest).
+- No framework, no npm runtime deps. Vanilla JS + CSS. Vite exists for build/dev; `js/*.js` are still plain `<script>` tags (not ES modules) — Vite copies them as-is into `dist/js/`.
+- Deploy pipeline: `npm run lint` → `npm test` → `npm run build` → upload `dist/` → GitHub Pages.
 
 ## Color Palette
 
@@ -56,16 +60,20 @@ Summer camp management web app for kids 7-12. Static SPA (no build step) hosted 
 ## Common Commands
 
 ```bash
-# No build step — just edit files directly
-# Run unit tests (dev only)
+# Build to dist/ (Vite) — CI does this before deploy
+npm run build
+
+# Run unit tests (dev)
 npm test
 
-# Deploy = git push to master (GitHub Actions auto-deploys)
-git add . && git commit -m "description" && git push origin master
+# Lint
+npm run lint
 
-# Check live site
-# Use webfetch tool to verify deployment
+# Local dev server (optional)
+npm run dev
 ```
+
+Deploy = git push to master (GitHub Actions builds with Vite + deploys dist/)
 
 ## RPG System
 
