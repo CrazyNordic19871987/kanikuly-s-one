@@ -13,24 +13,24 @@
 --  его при наличии, иначе фолбэк на статичный файл.
 --  Статические файлы public/img/* оставлены как fallback.
 --
+--  ── Реальные данные проекта ─────────────────────────────────
+--  Бакет:      mission_banner
+--  Файлы:      mission_1.JPG ... mission_10.JPG
+--  Привязка:   номер файла = shift_id  (mission_3.JPG → shift_id 3)
+--
 --  ── ШАГ 1 (ручной, в дашборде Supabase Storage) ──────────────
---  Загрузи в бакет «images» (тот же, куда грузятся аватары)
---  10 файлов из public/img/ с ТЕМИ ЖЕ именами:
---     mission1-banner.JPG ... mission10-banner.JPG
---  Полный путь каждого объекта:
---     images/mission{N}-banner.JPG
+--  Убедись, что в бакете «mission_banner» загружены файлы:
+--     mission_1.JPG ... mission_10.JPG
+--  (как при загрузке аватаров).
 --
 --  ── ШАГ 2 (после загрузки файлов) ────────────────────────────
 --  Выполни UPDATE ниже. URL собирается по паттерну:
---     https://xzmxxnhyvbzdebqhomzd.supabase.co/storage/v1/object/public/images/...
---  Убедись, что имя бакета совпадает с тем, куда реально
---  загружены файлы (в проекте консистентно используется «images»).
---  При необходимости замени 'images' на актуальное имя бакета.
+--     https://xzmxxnhyvbzdebqhomzd.supabase.co/storage/v1/object/public/mission_banner/mission_{shift_id}.JPG
 
 UPDATE public.content_shifts
-SET banner_url = 'https://xzmxxnhyvbzdebqhomzd.supabase.co/storage/v1/object/public/images/mission'
+SET banner_url = 'https://xzmxxnhyvbzdebqhomzd.supabase.co/storage/v1/object/public/mission_banner/mission_'
                || shift_id::text
-               || '-banner.JPG'
+               || '.JPG'
 WHERE banner_url IS NULL
    OR banner_url = '';
 
