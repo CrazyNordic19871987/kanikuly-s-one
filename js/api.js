@@ -6,6 +6,8 @@ class SupabaseAPI {
   constructor() {
     this.base = SUPABASE_URL + '/rest/v1';
     this._updateHeaders();
+    this._retryCount = 1;
+    this._retryDelay = 800;
   }
 
   _updateHeaders() {
@@ -22,22 +24,62 @@ class SupabaseAPI {
     this._updateHeaders();
   }
 
-  async _req(url, opts) {
+  _isOffline() {
+    return typeof navigator !== 'undefined' && navigator.onLine === false;
+  }
+
+  _toast(msg, type) {
+    if (typeof showToast === 'function') showToast(msg, type || 'error');
+  }
+
+  async _req(url, opts, _attempt) {
+    const attempt = _attempt || 0;
+    if (this._isOffline() && attempt === 0) {
+      this._toast('Нет подключения к интернету', 'error');
+      throw new Error('OFFLINE');
+    }
+
     const options = opts || {};
     const headers = {};
     for (const k in this.h) headers[k] = this.h[k];
     if (options.headers) {
       for (const k2 in options.headers) headers[k2] = options.headers[k2];
     }
-    const r = await fetch(url, {
-      method: options.method || 'GET',
-      headers: headers,
-      body: options.body
-    });
-    if (!r.ok) {
-      const errBody = await r.text().catch(() => '');
-      throw new Error('API ' + r.status + ': ' + errBody.substring(0, 200));
+
+    let r;
+    try {
+      r = await fetch(url, {
+        method: options.method || 'GET',
+        headers: headers,
+        body: options.body
+      });
+    } catch (fetchErr) {
+      if (attempt < this._retryCount) {
+        await new Promise(function (res) { setTimeout(res, this._retryDelay * (attempt + 1)); }.bind(this));
+        return this._req(url, opts, attempt + 1);
+      }
+      this._toast('Сеть недоступна. Проверьте подключение.', 'error');
+      throw new Error('NETWORK_ERROR: ' + fetchErr.message);
     }
+
+    if (!r.ok) {
+      const errBody = await r.text().catch(function () { return ''; });
+      const msg = 'API ' + r.status + ': ' + errBody.substring(0, 200);
+
+      if (r.status === 401) {
+        this._toast('Сессия истекла. Войдите снова.', 'error');
+        throw new Error('AUTH_EXPIRED: ' + msg);
+      }
+      if (r.status >= 500 && attempt < this._retryCount) {
+        await new Promise(function (res) { setTimeout(res, this._retryDelay * (attempt + 1)); }.bind(this));
+        return this._req(url, opts, attempt + 1);
+      }
+      if (r.status >= 500) {
+        this._toast('Ошибка сервера. Попробуйте позже.', 'error');
+      }
+      throw new Error(msg);
+    }
+
     const text = await r.text();
     return text ? JSON.parse(text) : [];
   }
