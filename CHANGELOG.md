@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.6.1] - 2026-09-04
+
+### Fixed
+- **DISC methodology math**: "4 архетипа, каждый закрывает свои 10% задачи" was mathematically wrong (4×10% = 40%, not 100%). Corrected to **25%** everywhere: panel hero text (`index.html` + `js/app.js`), archetype `desc` fields, the `· 10%` card label now `· 25%`, and the "Синергия 4×10%" heading now "Синергия 4×25%". 4×25% = 100%, matching the stated "вместе — 100% результата". Card/item/relic "+10% к X" bonuses are untouched (they are per-item bonuses, not DISC methodology).
+
+### Changed
+- **Accessibility (alt texts)**: image helpers in `js/app.js` no longer emit empty `alt=""`. They now carry meaningful text — `avatarCircle` → participant initials, `avatarImg` → fallback initials, `badgeImg`/`itemImg`/DISC-type images → their emoji. All values passed through `esc()`. This makes loaded images legible to screen readers instead of silently decorative.
+
 ## [3.6.0] - 2026-09-04
 
 ### Added

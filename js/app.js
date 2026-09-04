@@ -150,7 +150,7 @@ function avatarCircle(st, innerText, size, borderColor) {
   const url = st && (st.avatar_url || st.avatar);
   size = size || 40;
   const style = 'width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;border:3px solid ' + (borderColor || 'var(--orange)') + ';display:block';
-  if (url) return '<img src="' + esc(url) + '" alt="" style="' + style + '" onerror="this.remove()">';
+  if (url) return '<img src="' + esc(url) + '" alt="' + esc(innerText || 'Аватар участника') + '" style="' + style + '" onerror="this.remove()">';
   return '<div class="sc-avatar-inner" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--glass-b);border:3px solid ' + (borderColor || 'var(--orange)') + ';display:flex;align-items:center;justify-content:center;font-size:' + (size * 0.4) + 'px;font-weight:700">' + (innerText || initialsOf(st)) + '</div>';
 }
 
@@ -160,17 +160,17 @@ function avatarCircle(st, innerText, size, borderColor) {
 function badgeImg(badgeId, emoji, size, url) {
   size = size || 48;
   const src = url || ('img/badges/' + badgeId + '.png');
-  return '<img src="' + esc(src) + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:12px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="badge-emoji-fallback" style="display:none;font-size:' + (size * 0.6) + 'px">' + emoji + '</span>';
+  return '<img src="' + esc(src) + '" alt="' + esc(emoji) + '" width="' + size + '" height="' + size + '" style="border-radius:12px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="badge-emoji-fallback" style="display:none;font-size:' + (size * 0.6) + 'px">' + emoji + '</span>';
 }
 function itemImg(itemId, emoji, size, url) {
   size = size || 40;
   const src = url || ('img/items/' + itemId + '.png');
-  return '<img src="' + esc(src) + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:10px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="item-emoji-fallback" style="display:none;font-size:' + (size * 0.6) + 'px">' + emoji + '</span>';
+  return '<img src="' + esc(src) + '" alt="' + esc(emoji) + '" width="' + size + '" height="' + size + '" style="border-radius:10px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="item-emoji-fallback" style="display:none;font-size:' + (size * 0.6) + 'px">' + emoji + '</span>';
 }
 function avatarImg(studentId, fallbackInitials, size, url) {
   size = size || 80;
   const src = url || ('img/avatars/' + studentId + '.jpg');
-  return '<img src="' + esc(src) + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:50%;object-fit:cover;border:3px solid var(--orange)" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="avatar-fallback" style="display:none;width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--glass-b);border:3px solid var(--orange);align-items:center;justify-content:center;font-size:' + (size * 0.4) + 'px;font-weight:700">' + fallbackInitials + '</span>';
+  return '<img src="' + esc(src) + '" alt="' + esc(fallbackInitials) + '" width="' + size + '" height="' + size + '" style="border-radius:50%;object-fit:cover;border:3px solid var(--orange)" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="avatar-fallback" style="display:none;width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--glass-b);border:3px solid var(--orange);align-items:center;justify-content:center;font-size:' + (size * 0.4) + 'px;font-weight:700">' + fallbackInitials + '</span>';
 }
 // Изображение миссии: Supabase banner_url, иначе img/mission{n}-banner.JPG
 function shiftBannerUrl(s) {
@@ -975,7 +975,7 @@ function rebuildMainContent() {
       <div class="pp-panel" data-panel="inventory"><div class="gc"><h3>🎒 Инвентарь</h3><div id="talent-inventory"></div></div></div>
       <div class="pp-panel" data-panel="shifts"><div class="gc"><h3>🏕️ Миссии участника</h3><div id="pp-shifts-list"></div></div></div>
       <div class="pp-panel" data-panel="history"><div class="gc"><h3>📜 История наблюдений</h3><div class="obs-list" id="talent-obs-list"></div></div></div>
-      <div class="pp-panel" data-panel="disc"><div class="gc"><div class="disc-hero"><div class="eyebrow">Каникулы с ONE! · Таланты</div><h1>🎭 DISC-профили участников</h1><p>4 архетипа команды. Каждый закрывает свои 10% задачи, вместе — 100% результата.</p></div><div class="disc-arch" id="disc-page-cards"></div><div class="disc-synergy" id="disc-page-synergy"></div><h3 style="margin-top:26px">🧩 Ваш DISC-профиль</h3><div class="disc-bars" id="disc-bars"></div><div class="disc-combo" id="disc-combo"></div></div></div>
+      <div class="pp-panel" data-panel="disc"><div class="gc"><div class="disc-hero"><div class="eyebrow">Каникулы с ONE! · Таланты</div><h1>🎭 DISC-профили участников</h1><p>4 архетипа команды. Каждый закрывает свои 25% задачи, вместе — 100% результата.</p></div><div class="disc-arch" id="disc-page-cards"></div><div class="disc-synergy" id="disc-page-synergy"></div><h3 style="margin-top:26px">🧩 Ваш DISC-профиль</h3><div class="disc-bars" id="disc-bars"></div><div class="disc-combo" id="disc-combo"></div></div></div>
       <div class="pp-panel" data-panel="recommend"><div class="gc"><h3>🔮 Рекомендации</h3><div id="pp-recommendations"></div></div></div>
       <div class="pp-panel" data-panel="social"><div class="gc"><h3>👥 Социальное</h3><div id="pp-social"></div></div></div>
       <div class="pp-panel" data-panel="legacy"><div class="gc"><h3>🏛️ Реликвии прошлых смен</h3><div id="pp-legacy"></div></div></div>
@@ -2417,7 +2417,7 @@ function discTypeImg(type, label) {
   const emojiMap = { D:'💪', I:'🌟', S:'🤝', C:'🧠' };
   const emoji = emojiMap[type] || '🧩';
   if (img) {
-    return '<img src="' + esc(img) + '" alt="" width="' + size + '" height="' + size + '" style="border-radius:10px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span style="display:none;width:' + size + 'px;height:' + size + 'px;border-radius:10px;background:var(--glass-b);align-items:center;justify-content:center;font-size:22px">' + emoji + '</span>';
+    return '<img src="' + esc(img) + '" alt="' + esc(emoji) + '" width="' + size + '" height="' + size + '" style="border-radius:10px;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span style="display:none;width:' + size + 'px;height:' + size + 'px;border-radius:10px;background:var(--glass-b);align-items:center;justify-content:center;font-size:22px">' + emoji + '</span>';
   }
   return '<span style="display:flex;width:' + size + 'px;height:' + size + 'px;border-radius:10px;background:var(--glass-b);align-items:center;justify-content:center;font-size:22px">' + emoji + '</span>';
 }
@@ -2426,22 +2426,22 @@ function discTypeImg(type, label) {
 const DISC_ARCHETYPES = [
   { t:'D', name:'Командир', archetype:'«Завоеватель» / «Штурмовой генерал»', motto:'«Я беру высоту!» 🚩',
     anchor:'«Короче. Делаем так.»',
-    desc:'10% чистой прорывной энергии. Не просит разрешения — предъявляет результат. Запускает систему одним толчком.',
+    desc:'25% чистой прорывной энергии. Не просит разрешения — предъявляет результат. Запускает систему одним толчком.',
     superpower:'Скорость решений в кризисе', shadow:'Тирания в мелочах, выгорание без подчинения',
     gives:'темп', through:'волю', question:'«Что дальше?»' },
   { t:'I', name:'Звездочёт', archetype:'«Трубадур» / «Уличный маг»', motto:'«Я зажигаю свет!» 🤝',
     anchor:'«А представьте, если бы...»',
-    desc:'10% вдохновения и харизмы. Работает не с фактами, а с верой людей в идею. Превращает трудности в приключение.',
+    desc:'25% вдохновения и харизмы. Работает не с фактами, а с верой людей в идею. Превращает трудности в приключение.',
     superpower:'Эмоциональная связь и вовлечённость', shadow:'Забывает дедлайны, обещает больше, чем реально',
     gives:'смысл', through:'слово', question:'«Кто с нами?»' },
   { t:'S', name:'Хранитель', archetype:'«Щитоносец» / «Старейшина клана»', motto:'«Я держу строй!» ⛩️',
     anchor:'«Давайте сначала проверим...»',
-    desc:'10% стабильности и лояльности. Каркас конструкции — держит строй, пока остальные бегут к цели.',
+    desc:'25% стабильности и лояльности. Каркас конструкции — держит строй, пока остальные бегут к цели.',
     superpower:'Надёжность в любых условиях', shadow:'Консерватизм, сопротивление изменениям',
     gives:'порядок', through:'заботу', question:'«Как сохранить?»' },
   { t:'C', name:'Мастер', archetype:'«Архитектор реальности» / «Хранитель Гримуаров»', motto:'«Я знаю секрет!» 🔮',
     anchor:'«Согласно данным...»',
-    desc:'10% чистого знания и холодного расчёта. Интеллектуальный капитал, без которого всё рассыплется.',
+    desc:'25% чистого знания и холодного расчёта. Интеллектуальный капитал, без которого всё рассыплется.',
     superpower:'Глубина анализа, точность прогнозов', shadow:'Паралич анализа, эмоциональная сдержанность',
     gives:'качество', through:'мысль', question:'«Почему это работает?»' }
 ];
@@ -2466,7 +2466,7 @@ function renderDiscPage() {
     '<div class="disc-arch-card" style="' + discArchStyle(a.t) + '">' +
       '<div class="rarity-stripe"></div>' +
       '<div class="disc-arch-head">' +
-        '<span class="disc-arch-letter">' + a.t + ' · 10%</span>' +
+        '<span class="disc-arch-letter">' + a.t + ' · 25%</span>' +
         '<span class="disc-arch-share">DISC</span>' +
       '</div>' +
       '<div class="disc-arch-icon">' + (DISC_ARCH_ICONS[a.t] || '🧩') + '</div>' +
@@ -2489,7 +2489,7 @@ function renderDiscPage() {
   ).join('');
   const synEl = document.getElementById('disc-page-synergy');
   if (synEl) {
-    synEl.innerHTML = '<h3>Синергия 4×10% — «Почини сломанный корабль»</h3>' +
+    synEl.innerHTML = '<h3>Синергия 4×25% — «Почини сломанный корабль»</h3>' +
       '<div class="disc-synergy-grid">' +
       DISC_ARCHETYPES.map(p =>
         '<div class="col"><span class="q">' + esc(p.name.toUpperCase()) + '</span><span class="a">' + esc(p.gives) + '</span></div>'
