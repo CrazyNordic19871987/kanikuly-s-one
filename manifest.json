@@ -1,0 +1,23 @@
+{
+  "name": "Каникулы с ONE!",
+  "short_name": "ONE Camp",
+  "start_url": "/kanikuly-s-one/",
+  "scope": "/kanikuly-s-one/",
+  "display": "standalone",
+  "background_color": "#1B2838",
+  "theme_color": "#E8A838",
+  "icons": [
+    {
+      "src": "logo.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
