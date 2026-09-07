@@ -1,5 +1,5 @@
-var CACHE_NAME = 'kanikuly-v1';
-var PRECACHE = ['index.html', 'bg.png', 'logo.svg', 'manifest.json'];
+var CACHE_NAME = 'kanikuly-v2';
+var PRECACHE = ['index.html', 'logo.svg', 'manifest.json'];
 
 self.addEventListener('install', function(e) {
   e.waitUntil(

@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [3.7.1] - 2026-09-07
+## [3.8.0] - 2026-09-07
+
+### Added
+- **Content Security Policy**: strict `Content-Security-Policy` meta in `index.html` (default-src 'self'; scripts/inline styles allowed, external scripts blocked; connect-src limited to the Supabase origin; fonts only from Google Fonts; frame-src/object-src 'none'). Lightweight protection against script/URL injection while keeping the inline-handler SPA working.
+- **WebP images**: `npm run optimize:images` (`scripts/optimize-images.mjs`, powered by `sharp`) converts the 10 mission-banner fallbacks into `public/img/mission{N}-banner.webp` (~58% smaller: 188–264KB → 67–109KB). `shiftBannerUrl()` now prefers `.webp`; the two banner `<img>` tags fall back to `.JPG` via `bannerOnerror()` in older browsers.
+- **SEO for the SPA**: a `<noscript>` block with the site description + the 10 mission titles is now in the static HTML, so crawlers/bots without JS still index meaningful content.
+
+### Changed
+- **Performance**: removed the unused `public/bg.png` (10.7MB) — it was referenced only by `public/sw.js` precache and never displayed (the background is the CSS `--bg` color). Dropped from the Service Worker precache (bumped to `kanikuly-v2`).
+- **Accessibility — heading hierarchy**: the app now has exactly one `<h1>` per view — the «Каникулы с ONE!» brand (auth screen) plus an sr-only `<h1>` in the app shell; all 8 page headers + DISC hero in `index.html` and 7 in `js/app.js` were demoted to `<h2>` (CSS selectors updated to keep the same look). No more 8+ competing H1s.
+- **Accessibility — contrast**: muted text tokens raised `--muted` 0.55 → 0.65 and `--muted2` 0.30 → 0.45, lifting small `var(--muted)` labels above the AA 4.5:1 threshold on the `#1B2838` background.
 
 ### Fixed
 - **Avatar upload session staleness**: `uploadStudentAvatar()` now calls `ensureAuthToken()` before the request — it re-validates the session (`authGetUser`) and falls back to `authRefreshToken()` if the stored access token expired (Supabase access tokens live ~1h; the app previously only refreshed at startup, so a long-lived tab uploaded with the anon key → RLS 403 "new row violates row-level security policy"). Also added `removeOldAvatar()` to delete a previous file when the extension changes (e.g. `.png` → `.jpg`), guarded by a new `authenticated_avatar_delete` storage policy.

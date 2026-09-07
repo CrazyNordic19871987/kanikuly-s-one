@@ -27,6 +27,7 @@
 <meta name="twitter:description" content="05.10–09.10.2026 · Спорт + IT + Биотех · Демо День · Геймификация">
 <meta name="twitter:image" content="https://crazynordic19871987.github.io/kanikuly-s-one/img/og-card.png">
 <meta name="description" content="Каникулы с ONE! — школьные каникулы для детей 7–12 лет. 10 тематических смен, Anglophone-среда, спорт, IT, биотех, Art & Design, предпринимательство, инженерия, дипломатия, защита проектов.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://xzmxxnhyvbzdebqhomzd.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════
@@ -53,8 +54,8 @@
   --common:    #6B7280;
   --blue:      #1B2838;
   --white:     #F0EDE5;
-  --muted:     rgba(240,237,229,0.55);
-  --muted2:    rgba(240,237,229,0.30);
+--muted:     rgba(240,237,229,0.65);
+--muted2:    rgba(240,237,229,0.45);
   --r:         12px;
   --r-lg:      20px;
 }
@@ -198,7 +199,7 @@ body::after{
   to{opacity:1;transform:translateY(0)}
 }
 .page-header{margin-bottom:16px}
-.page-header h1{font-size:1.1rem;font-weight:700;letter-spacing:0.02em}
+.page-header h1,.page-header h2{font-size:1.1rem;font-weight:700;letter-spacing:0.02em}
 .page-header p{font-size:0.75rem;color:var(--muted);margin-top:2px}
 
 /* ═══════════════════════════════════════════
@@ -1258,7 +1259,7 @@ textarea:focus{border-color:var(--orange)}
   .stats-row{grid-template-columns:1fr!important}
   .day-tabs{font-size:0.65rem}
   .day-tab{padding:4px 8px}
-  .page-header h1{font-size:1.1rem}
+  .page-header h1,.page-header h2{font-size:1.1rem}
   .shifts-grid{gap:10px}
   .shift-card-header{padding:14px 16px 12px}
   .shift-card-body{padding:14px 16px 16px}
@@ -1372,7 +1373,7 @@ section.card-block{margin-top:56px}
 /* ── DISC standalone page (hero + synergy) ── */
 .disc-hero{text-align:center;padding:30px 10px 10px;margin-bottom:8px}
 .disc-hero .eyebrow{font-family:'Orbitron',sans-serif;letter-spacing:0.35em;font-size:11px;color:var(--green);text-transform:uppercase;margin-bottom:14px}
-.disc-hero h1{font-family:'Orbitron',sans-serif;font-weight:800;font-size:clamp(22px,3.6vw,34px);margin:0 0 10px;background:linear-gradient(90deg,#fff,var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+.disc-hero h1,.disc-hero h2{font-family:'Orbitron',sans-serif;font-weight:800;font-size:clamp(22px,3.6vw,34px);margin:0 0 10px;background:linear-gradient(90deg,#fff,var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
 .disc-hero p{color:#9ca3af;font-size:13.5px;max-width:660px;margin:0 auto;line-height:1.6}
 .disc-synergy{margin-top:38px;border-radius:14px;padding:22px 24px;background:linear-gradient(160deg,rgba(19,34,69,0.6),rgba(27,40,56,0.75));border:1px solid rgba(255,255,255,0.08)}
 .disc-synergy h3{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--green);margin:0 0 14px;text-align:center;letter-spacing:0.02em}
@@ -1665,6 +1666,14 @@ section.card-block{margin-top:56px}
 </style>
 </head>
 <body>
+<noscript>
+  <div style="padding:24px;background:#1B2838;color:#F0EDE5;font-family:Arial,Helvetica,sans-serif;max-width:960px;margin:0 auto">
+    <h2 style="color:#E8A838;margin-bottom:8px;font-size:1.3rem">Каникулы с ONE!</h2>
+    <p>Школьные каникулы для детей 7–12 лет: 10 тематических смен, Anglophone-среда, спорт, IT, биотех, Art &amp; Design, предпринимательство, инженерия, дипломатия и защита проектов. Каждая смена длится 5 дней и завершается Demo Day — защитой собственных проектов.</p>
+    <p><strong>Для работы панели управления включите JavaScript.</strong></p>
+    <p>Смены программы: Кибер-атлеты, Terraforming, Meta-Agency, Future Makers, Active Tech 2077, Urban Quest, Smart City Lab, English Game Studio, Champions Academy, Island Survival.</p>
+  </div>
+</noscript>
 <a href="#app-shell" class="sr-only" style="position:absolute;top:-9999px" onfocus="this.style.top='10px'" onblur="this.style.top='-9999px'">Перейти к основному контенту</a>
 
 <!-- AUTH SCREEN -->
@@ -1715,6 +1724,7 @@ section.card-block{margin-top:56px}
 </div>
 
 <div id="app-shell" class="app-shell hidden">
+  <h1 class="sr-only">Каникулы с ONE! — панель управления</h1>
   <!-- ── SIDEBAR ── -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo" style="cursor:pointer" onclick="goHome()" title="На главную">Каникулы<br>с ONE!</div>
@@ -1763,7 +1773,7 @@ section.card-block{margin-top:56px}
     <div class="page" id="page-students">
       <div class="page-wrap">
         <div class="page-header">
-          <h1>👥 УЧАСТНИКИ</h1>
+          <h2>👥 УЧАСТНИКИ</h2>
           <p>Регистрация и управление профилями</p>
         </div>
         <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
@@ -1867,7 +1877,7 @@ section.card-block{margin-top:56px}
     <div class="page active" id="page-shifts">
       <div class="page-wrap">
         <div class="page-header">
-          <h1>🏕️ МИССИИ</h1>
+          <h2>🏕️ МИССИИ</h2>
           <p>Концепции миссий — 10 сюжетов на выбор</p>
         </div>
         <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
@@ -1879,7 +1889,7 @@ section.card-block{margin-top:56px}
     <div class="page" id="page-achievements">
       <div class="page-wrap">
         <div class="page-header">
-          <h1>🎴 КАРТОЧКИ — КОЛЛЕКЦИЯ</h1>
+          <h2>🎴 КАРТОЧКИ — КОЛЛЕКЦИЯ</h2>
           <p>Инвентарь смен, реликвии, значки, боссы, магазин и тайный сундук (84 шт.)</p>
         </div>
         <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
@@ -1891,7 +1901,7 @@ section.card-block{margin-top:56px}
     <div class="page" id="page-talents">
       <div class="page-wrap">
         <div class="page-header">
-          <h1>🎯 ПРОФИЛЬ ИГРОКА</h1>
+          <h2>🎯 ПРОФИЛЬ ИГРОКА</h2>
           <p>RPG-карточка участника каникул</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
@@ -1986,7 +1996,7 @@ section.card-block{margin-top:56px}
           <div class="gc">
             <div class="disc-hero">
               <div class="eyebrow">Каникулы с ONE! · Таланты</div>
-              <h1>🎭 DISC-профили участников</h1>
+              <h2>🎭 DISC-профили участников</h2>
               <p>4 архетипа команды. Каждый закрывает свои 25% задачи, вместе — 100% результата.</p>
             </div>
             <div class="disc-arch" id="disc-page-cards"></div>
@@ -2015,7 +2025,7 @@ section.card-block{margin-top:56px}
     <div class="page" id="page-dashboard">
       <div class="page-wrap">
         <div class="page-header">
-          <h1>📊 ДАШБОРД ОТРЯДА</h1>
+          <h2>📊 ДАШБОРД ОТРЯДА</h2>
           <p>Сводная статистика по каникулам</p>
         </div>
         <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
@@ -2065,7 +2075,7 @@ section.card-block{margin-top:56px}
       <div class="page-wrap">
         <div class="page-header">
     <button class="shift-detail-back" onclick="navigateTo('shifts')" style="margin-bottom:12px">← Назад к миссиям</button>
-            <h1 id="sd-title">📊 ДАШБОРД МИССИИ</h1>
+            <h2 id="sd-title">📊 ДАШБОРД МИССИИ</h2>
           <p id="sd-subtitle">Прогресс участников</p>
         </div>
         <div class="filter-row">
@@ -2090,7 +2100,7 @@ section.card-block{margin-top:56px}
     <div class="page" id="page-assessments">
       <div class="page-wrap">
         <div class="page-header">
-          <h1>📋 ОЦЕНКА ЗАДАНИЙ</h1>
+          <h2>📋 ОЦЕНКА ЗАДАНИЙ</h2>
           <p>Оценка выполнения миссий участниками</p>
         </div>
         
@@ -2453,7 +2463,7 @@ window.onerror = function(msg, url, line, col, error) {
 </script>
 <script src="js/logic.js?v=1"></script>
 <script src="js/pdf.js?v=1"></script>
-<script src="js/app.js?v=28"></script>
+<script src="js/app.js?v=29"></script>
 
 <!-- Mobile menu script -->
 <script>

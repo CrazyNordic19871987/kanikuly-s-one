@@ -1,6 +1,6 @@
 {
   "name": "kanikuly-s-one",
-  "version": "3.7.1",
+  "version": "3.8.0",
   "description": "Каникулы с ONE! — summer camp management SPA (GitHub Pages, Vite)",
   "private": true,
   "type": "module",
@@ -12,6 +12,7 @@
     "format": "prettier --write js/**/*.js",
     "format:check": "prettier --check js/**/*.js",
     "dev": "vite",
+    "optimize:images": "node scripts/optimize-images.mjs",
     "build": "vite build && node -e \"import{cpSync}from'fs';cpSync('js','dist/js',{recursive:true})\"",
     "preview": "vite preview"
   },
@@ -21,6 +22,7 @@
     "jsdom": "^26.1.0",
     "jspdf": "^4.2.1",
     "prettier": "^3.9.6",
+    "sharp": "^0.35.4",
     "vite": "^5.4.21",
     "vitest": "^2.1.8"
   }

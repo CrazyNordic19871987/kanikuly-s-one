@@ -296,10 +296,15 @@ async function uploadStudentAvatar(studentId, file) {
     showToast('⚠️ Не удалось загрузить аватар. Проверьте вход в аккаунт', 'error');
   }
 }
-// Изображение миссии: Supabase banner_url, иначе img/mission{n}-banner.JPG
+// Изображение миссии: Supabase banner_url, иначе img/mission{n}-banner.webp (fallback JPG)
 function shiftBannerUrl(s) {
   if (s && (s.banner_url || s.image_url)) return esc(s.banner_url || s.image_url);
-  return 'img/mission' + (s && s.id) + '-banner.JPG';
+  return 'img/mission' + (s && s.id) + '-banner.webp';
+}
+
+function bannerOnerror() {
+  this.onerror = null;
+  if (/banner\.webp$/i.test(this.src)) this.src = this.src.replace(/\.webp$/i, '.JPG');
 }
 
 // -- XP + Level system ---------------------------
@@ -1037,7 +1042,7 @@ function rebuildMainContent() {
   </div>
   <div class="page" id="page-students">
     <div class="page-wrap">
-      <div class="page-header"><h1>👥 УЧАСТНИКИ</h1><p>Регистрация и управление профилями</p></div>
+      <div class="page-header"><h2>👥 УЧАСТНИКИ</h2><p>Регистрация и управление профилями</p></div>
       <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
       <div class="form-card"><h3 style="font-size:0.85rem;margin-bottom:12px">➕ Новый участник</h3>
         <form id="student-form"><div class="form-grid">
@@ -1075,14 +1080,14 @@ function rebuildMainContent() {
   </div>
   <div class="page" id="page-shifts">
     <div class="page-wrap">
-      <div class="page-header"><h1>🏕️ МИССИИ</h1><p>Концепции миссий — 10 сюжетов на выбор</p></div>
+      <div class="page-header"><h2>🏕️ МИССИИ</h2><p>Концепции миссий — 10 сюжетов на выбор</p></div>
       <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
       <div class="shifts-grid" id="shifts-grid"></div>
     </div>
   </div>
   <div class="page" id="page-achievements">
     <div class="page-wrap">
-      <div class="page-header"><h1>🎴 КАРТОЧКИ — КОЛЛЕКЦИЯ</h1><p>Инвентарь смен, реликвии, значки, боссы, магазин и тайный сундук (84 шт.)</p></div>
+      <div class="page-header"><h2>🎴 КАРТОЧКИ — КОЛЛЕКЦИЯ</h2><p>Инвентарь смен, реликвии, значки, боссы, магазин и тайный сундук (84 шт.)</p></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
         <button class="btn-print" style="margin-bottom:0" onclick="window.print()">🖨️ Печать страницы</button>
       </div>
@@ -1091,7 +1096,7 @@ function rebuildMainContent() {
   </div>
   <div class="page" id="page-talents">
     <div class="page-wrap">
-      <div class="page-header"><h1>🎯 ПРОФИЛЬ ИГРОКА</h1><p>RPG-карточка участника каникул</p></div>
+      <div class="page-header"><h2>🎯 ПРОФИЛЬ ИГРОКА</h2><p>RPG-карточка участника каникул</p></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
         <button class="btn-primary" onclick="printStudentReport(state.currentStudentId)">🎮 Скачать репорт участника</button>
         <button class="btn-print" style="margin-bottom:0" onclick="window.print()">🖨️ Печать страницы</button>
@@ -1105,7 +1110,7 @@ function rebuildMainContent() {
       <div class="pp-panel" data-panel="inventory"><div class="gc"><h3>🎒 Инвентарь</h3><div id="talent-inventory"></div></div></div>
       <div class="pp-panel" data-panel="shifts"><div class="gc"><h3>🏕️ Миссии участника</h3><div id="pp-shifts-list"></div></div></div>
       <div class="pp-panel" data-panel="history"><div class="gc"><h3>📜 История наблюдений</h3><div class="obs-list" id="talent-obs-list"></div></div></div>
-      <div class="pp-panel" data-panel="disc"><div class="gc"><div class="disc-hero"><div class="eyebrow">Каникулы с ONE! · Таланты</div><h1>🎭 DISC-профили участников</h1><p>4 архетипа команды. Каждый закрывает свои 25% задачи, вместе — 100% результата.</p></div><div class="disc-arch" id="disc-page-cards"></div><div class="disc-synergy" id="disc-page-synergy"></div><h3 style="margin-top:26px">🧩 Ваш DISC-профиль</h3><div class="disc-bars" id="disc-bars"></div><div class="disc-combo" id="disc-combo"></div></div></div>
+      <div class="pp-panel" data-panel="disc"><div class="gc"><div class="disc-hero"><div class="eyebrow">Каникулы с ONE! · Таланты</div><h2>🎭 DISC-профили участников</h2><p>4 архетипа команды. Каждый закрывает свои 25% задачи, вместе — 100% результата.</p></div><div class="disc-arch" id="disc-page-cards"></div><div class="disc-synergy" id="disc-page-synergy"></div><h3 style="margin-top:26px">🧩 Ваш DISC-профиль</h3><div class="disc-bars" id="disc-bars"></div><div class="disc-combo" id="disc-combo"></div></div></div>
       <div class="pp-panel" data-panel="recommend"><div class="gc"><h3>🔮 Рекомендации</h3><div id="pp-recommendations"></div></div></div>
       <div class="pp-panel" data-panel="social"><div class="gc"><h3>👥 Социальное</h3><div id="pp-social"></div></div></div>
       <div class="pp-panel" data-panel="legacy"><div class="gc"><h3>🏛️ Реликвии прошлых смен</h3><div id="pp-legacy"></div></div></div>
@@ -1115,7 +1120,7 @@ function rebuildMainContent() {
   </div>
   <div class="page" id="page-dashboard">
     <div class="page-wrap">
-      <div class="page-header"><h1>📊 ДАШБОРД</h1><p>Общая статистика</p></div>
+      <div class="page-header"><h2>📊 ДАШБОРД</h2><p>Общая статистика</p></div>
       <div class="filter-row"><span class="filter-label">Кампус:</span><button class="filter-pill active" data-filter="db-campus" data-val="" onclick="setDbFilter('campus','')">Все</button><button class="filter-pill" data-filter="db-campus" data-val="ШОП" onclick="setDbFilter('campus','ШОП')">ШОП</button><button class="filter-pill" data-filter="db-campus" data-val="ШСТ" onclick="setDbFilter('campus','ШСТ')">ШСТ</button></div>
       <div class="filter-row"><span class="filter-label">Миссия:</span><select class="form-input" id="db-shift-select" onchange="onDbShiftFilter()" style="width:auto;display:inline-block"><option value="">Все миссии</option></select></div>
       <div class="filter-row"><span class="filter-label">Команда:</span><select class="form-input" id="db-squad-select" onchange="onDbSquadFilter()" style="width:auto;display:inline-block"><option value="">Все команды</option></select></div>
@@ -1125,7 +1130,7 @@ function rebuildMainContent() {
   </div>
   <div class="page" id="page-assessments">
     <div class="page-wrap">
-      <div class="page-header"><h1>📋 ОЦЕНКА МИССИЙ</h1><p>Выставление баллов за задания</p></div>
+      <div class="page-header"><h2>📋 ОЦЕНКА МИССИЙ</h2><p>Выставление баллов за задания</p></div>
       <div class="assess-selectors">
         <div><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Миссия</label><select class="form-input" id="ass-shift" onchange="onAssShiftChange()"><option value="">Выбрать миссию...</option></select></div>
         <div><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Направление</label><select class="form-input" id="ass-direction" onchange="onAssDirectionChange()"><option value="">Выбрать направление...</option></select></div>
@@ -2858,7 +2863,7 @@ function showToast(msg, type = 'success') {
 function getShiftSvg(id) {
   const s = state.shifts.find(sh => String(sh.id) === String(id));
   const pos = id === 2 ? 'object-position:center 85%' : '';
-  return `<img src="${shiftBannerUrl(s)}" alt="Миссия ${id}" loading="lazy" style="width:100%;height:100%;object-fit:cover;${pos}">`;
+  return `<img src="${shiftBannerUrl(s)}" onerror="bannerOnerror.call(this)" alt="Миссия ${id}" loading="lazy" style="width:100%;height:100%;object-fit:cover;${pos}">`;
 }
 
 function renderShiftsPage() {
@@ -3095,7 +3100,7 @@ function openShiftDetail(shiftId) {
   let html = `<div class="page-wrap shift-detail">
     <button class="shift-detail-back" onclick="navigateTo('shifts')">← Назад к миссиям</button>
     <div class="shift-detail-banner">
-      <img src="${shiftBannerUrl(s)}" alt="${esc(s.title)}" style="width:100%;height:100%;object-fit:cover">
+      <img src="${shiftBannerUrl(s)}" onerror="bannerOnerror.call(this)" alt="${esc(s.title)}" style="width:100%;height:100%;object-fit:cover">
       <div class="shift-detail-banner-overlay">
         <div class="shift-detail-num">Миссия ${s.id}</div>
         <div class="shift-detail-title">${s.title}</div>
