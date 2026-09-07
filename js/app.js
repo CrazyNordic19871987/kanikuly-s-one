@@ -298,13 +298,16 @@ async function uploadStudentAvatar(studentId, file) {
 }
 // Изображение миссии: Supabase banner_url, иначе img/mission{n}-banner.webp (fallback JPG)
 function shiftBannerUrl(s) {
-  if (s && (s.banner_url || s.image_url)) return esc(s.banner_url || s.image_url);
+  if (s && (s.banner_url || s.image_url)) {
+    const u = esc(s.banner_url || s.image_url);
+    return /mission_banner\/mission_\d+\.JPG$/i.test(u) ? u.replace(/\.JPG$/i, '.webp') : u;
+  }
   return 'img/mission' + (s && s.id) + '-banner.webp';
 }
 
 function bannerOnerror() {
   this.onerror = null;
-  if (/banner\.webp$/i.test(this.src)) this.src = this.src.replace(/\.webp$/i, '.JPG');
+  if (/\.webp$/i.test(this.src)) this.src = this.src.replace(/\.webp$/i, '.JPG');
 }
 
 // -- XP + Level system ---------------------------

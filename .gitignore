@@ -26,5 +26,8 @@ npm-debug.log*
 # Backup (local only, not deployed)
 backup/
 
+# One-off webp files for manual upload to Supabase Storage
+webp-upload/
+
 # PowerPoint sources (not build inputs)
 *.pptx

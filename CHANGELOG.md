@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [3.8.0] - 2026-09-07
+## [3.8.1] - 2026-09-07
+
+### Added
+- **WebP banners from Storage**: `npm run optimize:storage-banners` (`scripts/optimize-storage-banners.mjs`) downloads the 10 live `mission_banner/mission_{N}.JPG` files from Supabase Storage, converts them to WebP (~55–63% lighter) and saves ready files into `webp-upload/` (gitignored) for a manual drag-and-drop upload back into the `images/mission_banner/` folder. No SQL, no credentials needed.
+
+### Changed
+- **Banner loading prefers WebP**: `shiftBannerUrl()` now swaps `…/mission_banner/mission_{N}.JPG` storage URLs to `.webp`; `bannerOnerror()` generalizes the `.webp → .JPG` fallback (the storage filename `mission_N.webp` no longer matched the old `banner.webp` pattern). The old JPGs stay in Storage as graceful fallback.
+
+### Manual step
+- **Upload the 10 files from `webp-upload/mission_{N}.webp`** into Supabase Dashboard → Storage → bucket `images` → folder `mission_banner/` (drag them in; names match the existing JPGs). Until then the app keeps serving the JPG fallback automatically.
 
 ### Added
 - **Content Security Policy**: strict `Content-Security-Policy` meta in `index.html` (default-src 'self'; scripts/inline styles allowed, external scripts blocked; connect-src limited to the Supabase origin; fonts only from Google Fonts; frame-src/object-src 'none'). Lightweight protection against script/URL injection while keeping the inline-handler SPA working.
