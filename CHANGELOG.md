@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.7.1] - 2026-09-07
+
+### Fixed
+- **Avatar upload session staleness**: `uploadStudentAvatar()` now calls `ensureAuthToken()` before the request — it re-validates the session (`authGetUser`) and falls back to `authRefreshToken()` if the stored access token expired (Supabase access tokens live ~1h; the app previously only refreshed at startup, so a long-lived tab uploaded with the anon key → RLS 403 "new row violates row-level security policy"). Also added `removeOldAvatar()` to delete a previous file when the extension changes (e.g. `.png` → `.jpg`), guarded by a new `authenticated_avatar_delete` storage policy.
+- **Clearer upload errors**: the toast now detects RLS/401 responses and tells the user "Сессия истекла — выйдите и войдите заново" instead of the raw storage message.
+
+### Migration
+- **Re-run `migrations/018_avatar_upload.sql`** in the Supabase SQL Editor once (idempotent) to add the `authenticated_avatar_delete` policy (DELETE older `avatars/*` when the file extension changes). Verified: `authenticated`-role upload works — a live test with a real signed-in token returned 200.
+
 ## [3.7.0] - 2026-09-07
 
 ### Added

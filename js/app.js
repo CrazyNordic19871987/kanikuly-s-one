@@ -223,10 +223,46 @@ function extOf(filename) {
   return m ? m[1].toLowerCase() : 'jpg';
 }
 
+async function ensureAuthToken() {
+  try {
+    if (typeof authGetUser === 'function') {
+      const u = await authGetUser();
+      if (u) {
+        const t = localStorage.getItem('kanikuly_access_token');
+        if (t) return t;
+      }
+    }
+  } catch (e) {}
+  try {
+    if (typeof authRefreshToken === 'function') {
+      const s = await authRefreshToken();
+      if (s && s.access_token) return s.access_token;
+    }
+  } catch (e) {}
+  return localStorage.getItem('kanikuly_access_token') || SUPABASE_ANON_KEY;
+}
+
+async function removeOldAvatar(student) {
+  if (!student || !student.avatar_url) return;
+  try {
+    const u = student.avatar_url;
+    const prefix = '/storage/v1/object/public/images/avatars/';
+    const i = u.indexOf(prefix);
+    if (i < 0) return;
+    const name = u.slice(i + prefix.length);
+    if (!name) return;
+    const token = await ensureAuthToken();
+    await fetch(SUPABASE_URL + '/storage/v1/object/images/avatars/' + name, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + token }
+    });
+  } catch (e) {}
+}
+
 async function uploadStudentAvatar(studentId, file) {
   const ext = extOf(file.name);
   const path = 'images/avatars/' + studentId + '.' + ext;
-  const token = localStorage.getItem('kanikuly_access_token') || SUPABASE_ANON_KEY;
+  const token = await ensureAuthToken();
   try {
     const res = await fetch(SUPABASE_URL + '/storage/v1/object/' + path, {
       method: 'POST',
@@ -240,9 +276,16 @@ async function uploadStudentAvatar(studentId, file) {
     });
     if (!res.ok) {
       const txt = await res.text().catch(() => '');
-      showToast('⚠️ Ошибка загрузки (' + res.status + (txt ? ': ' + txt.slice(0, 80) : '') + '). Нужна политика записи в storage.', 'error');
+      let msg = '⚠️ Ошибка загрузки (' + res.status + ')';
+      if (/Unauthorized|AccessDenied|violates|row-level/i.test(txt)) {
+        msg += '. Сессия истекла — выйдите и войдите заново';
+      } else if (txt) {
+        msg += ': ' + txt.slice(0, 80);
+      }
+      showToast(msg, 'error');
       return;
     }
+    await removeOldAvatar(state.students.find(s => String(s.id) === String(studentId)));
     const url = avatarPublicUrl(path);
     await api.update(TABLES.STUDENTS, studentId, { avatar_url: url });
     const st = state.students.find(s => String(s.id) === String(studentId));
@@ -250,7 +293,7 @@ async function uploadStudentAvatar(studentId, file) {
     showToast('✅ Аватар загружен', 'success');
     renderTalentCard(studentId);
   } catch (err) {
-    showToast('⚠️ Не удалось загрузить аватар', 'error');
+    showToast('⚠️ Не удалось загрузить аватар. Проверьте вход в аккаунт', 'error');
   }
 }
 // Изображение миссии: Supabase banner_url, иначе img/mission{n}-banner.JPG

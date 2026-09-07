@@ -95,6 +95,7 @@ export default [
         authGetSession: 'readonly',
         authGetProfile: 'readonly',
         authGetUser: 'readonly',
+        authRefreshToken: 'readonly',
         LEVEL_NAMES: 'readonly',
         normalizeProgressRow: 'readonly',
         applyProgressToState: 'readonly',

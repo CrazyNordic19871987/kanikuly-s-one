@@ -51,6 +51,15 @@ CREATE POLICY "public_avatar_read"
   TO public
   USING (bucket_id = 'images');
 
+-- ── Удаление старых аватаров (при смене расширения) ────────────
+DROP POLICY IF EXISTS "authenticated_avatar_delete" ON storage.objects;
+
+CREATE POLICY "authenticated_avatar_delete"
+  ON storage.objects
+  FOR DELETE
+  TO authenticated
+  USING (bucket_id = 'images' AND (storage.foldername(name))[1] = 'avatars');
+
 -- ── Проверка ───────────────────────────────────────────────────
 SELECT policyname, cmd, roles
 FROM pg_policies
