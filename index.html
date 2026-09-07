@@ -185,7 +185,7 @@ body::after{
 .search-wrap input{background:none;border:none;outline:none;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:0.85rem;width:100%}
 .search-wrap input::placeholder{color:var(--muted2)}
 .search-icon{color:var(--muted);font-size:0.85rem}
-.topbar-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-right{display:flex;align-items:center;gap:12px;flex-shrink:0;position:relative}
 .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse-dot 2s infinite}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
 
@@ -286,6 +286,19 @@ body::after{
   font-family:'Space Grotesk',sans-serif;transition:all 0.2s;
 }
 .btn-print:hover{background:var(--orange-dim)}
+.topbar-export-btn{margin-bottom:0;font-size:1rem;position:relative}
+.export-center{position:absolute;top:calc(100% + 8px);right:0;z-index:300;min-width:260px;background:var(--bg-soft,rgba(27,40,56,0.98));border:1px solid var(--border);border-radius:12px;padding:8px;display:none;box-shadow:0 12px 30px rgba(0,0,0,0.45)}
+.export-center.open{display:block}
+.export-center-head{font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:6px 8px 10px}
+.export-center-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;color:var(--white);padding:9px 10px;border-radius:8px;cursor:pointer;font-family:'Space Grotesk',sans-serif}
+.export-center-item:hover{background:var(--orange-dim)}
+.export-center-ico{font-size:1.1rem}
+.export-center-txt{display:flex;flex-direction:column}
+.export-center-txt strong{font-size:0.82rem}
+.export-center-txt small{font-size:0.7rem;color:var(--muted)}
+.export-center-close{width:100%;text-align:center;background:none;border:none;color:var(--muted);font-size:0.72rem;padding:8px;cursor:pointer;margin-top:4px;border-top:1px solid var(--border)}
+.export-center-close:hover{color:var(--white)}
+
 
 /* ═══════════════════════════════════════════
    PAGE 2: ЗАДАНИЯ (KTP)
@@ -403,6 +416,8 @@ textarea:focus{border-color:var(--orange)}
 .pp-avatar-wrap{position:relative;flex-shrink:0}
 .pp-avatar{width:72px;height:72px;border-radius:50%;background:var(--orange-dim);border:3px solid var(--orange);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:var(--orange);font-family:'Orbitron',monospace}
 .pp-level-badge{position:absolute;bottom:-4px;right:-4px;width:24px;height:24px;border-radius:50%;background:var(--green);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:900;color:var(--white);font-family:'Orbitron',monospace}
+.pp-avatar-upload{position:absolute;top:-4px;left:-4px;width:22px;height:22px;border-radius:50%;background:var(--sky);border:2px solid var(--bg);color:var(--bg);font-size:0.7rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.pp-avatar-upload:hover{background:var(--white)}
 .pp-hero-info{flex:1;min-width:0}
 .pp-name{font-size:1.2rem;font-weight:900;font-family:'Orbitron',monospace;margin-bottom:2px}
 .pp-meta{font-size:0.7rem;color:var(--muted);margin-bottom:10px}
@@ -1773,11 +1788,6 @@ section.card-block{margin-top:56px}
               <div class="form-group"><label>Команда</label>
                 <select class="form-input" id="s-squad" required aria-label="Команда">
                   <option value="">Выбрать...</option>
-                  <option value="1">Команда 1</option><option value="2">Команда 2</option>
-                  <option value="3">Команда 3</option><option value="4">Команда 4</option>
-                  <option value="5">Команда 5</option><option value="6">Команда 6</option>
-                  <option value="7">Команда 7</option><option value="8">Команда 8</option>
-                  <option value="9">Команда 9</option><option value="10">Команда 10</option>
                 </select>
               </div>
               <div class="form-group"><label>Кампус</label>
@@ -2028,16 +2038,7 @@ section.card-block{margin-top:56px}
           <div class="filter-row">
             <span class="filter-label">Команда:</span>
             <button class="filter-pill active" data-filter="squad" data-val="" onclick="setFilter('squad','')">Все</button>
-            <button class="filter-pill" data-filter="squad" data-val="1" onclick="setFilter('squad','1')">Команда 1</button>
-            <button class="filter-pill" data-filter="squad" data-val="2" onclick="setFilter('squad','2')">Команда 2</button>
-            <button class="filter-pill" data-filter="squad" data-val="3" onclick="setFilter('squad','3')">Команда 3</button>
-            <button class="filter-pill" data-filter="squad" data-val="4" onclick="setFilter('squad','4')">Команда 4</button>
-            <button class="filter-pill" data-filter="squad" data-val="5" onclick="setFilter('squad','5')">Команда 5</button>
-            <button class="filter-pill" data-filter="squad" data-val="6" onclick="setFilter('squad','6')">Команда 6</button>
-            <button class="filter-pill" data-filter="squad" data-val="7" onclick="setFilter('squad','7')">Команда 7</button>
-            <button class="filter-pill" data-filter="squad" data-val="8" onclick="setFilter('squad','8')">Команда 8</button>
-            <button class="filter-pill" data-filter="squad" data-val="9" onclick="setFilter('squad','9')">Команда 9</button>
-            <button class="filter-pill" data-filter="squad" data-val="10" onclick="setFilter('squad','10')">Команда 10</button>
+            <span id="db-squad-pills"></span>
           </div>
           <div class="filter-row">
             <span class="filter-label">Миссия:</span>
@@ -2431,6 +2432,7 @@ function applyRoleRestrictions(profile) {
   if (!profile || profile.role !== 'admin') {
     hideNav('assessments');
     hideNav('students');
+    hideNav('dashboard');
     var sel = document.getElementById('talent-student-select');
     if (sel) { try { sel.style.display = 'none'; } catch(e){} }
     var vis = (typeof visibleStudents === 'function') ? visibleStudents() : [];
@@ -2451,7 +2453,7 @@ window.onerror = function(msg, url, line, col, error) {
 </script>
 <script src="js/logic.js?v=1"></script>
 <script src="js/pdf.js?v=1"></script>
-<script src="js/app.js?v=26"></script>
+<script src="js/app.js?v=27"></script>
 
 <!-- Mobile menu script -->
 <script>

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.7.0] - 2026-09-07
+
+### Added
+- **Role separation (UX)**: player (`role=player`) now hides the admin sections **Дашборд**, **Оценка** and **Участники** from both the sidebar and mobile bottom bar (`applyRoleRestrictions`), and a new guard in `navigateTo()` redirects non-admins away from `students` / `assessments` / `dashboard` even when opened via `#hash` / direct URL. Admins keep full access.
+- **Unified export center**: a `📤` button in the topbar opens a single dropdown («Экспорт и печать») via `toggleExportCenter()`, centralizing the previously scattered print/PDF actions — «Печать текущей страницы» always, plus contextual «Игровой репорт участника» on the player profile. Existing buttons still work.
+- **Avatar upload via file**: `uploadStudentAvatar()` + `onAvatarFilePicked()` upload a photo to Supabase Storage (`images/avatars/{studentId}.{ext}`) and backfill `students.avatar_url`; a 🖼️ button on the player profile avatar opens a file picker. Requires `migrations/018_avatar_upload.sql` (storage write policy for `authenticated`, folder `avatars/`) to be applied in the Supabase dashboard.
+
+### Changed
+- **Named squads**: new config-driven `SQUAD_NAMES` in `js/config.js` + `squadName()` helper replace bare «Команда N» across selects, filters, leaderboard, dashboard and reports. Default names: Титаны, Кометa, Лисы, Соколы, Драконы, Пингвины, Рыси, Фениксы, Волки, Орлы. Static selects and the dashboard squad filter-pills are now populated dynamically via `populateSquadControls()`, so renaming only touches the `SQUAD_NAMES` array.
+- **Empty states**: bare «—»/«0%» placeholders made legible — a participant with no observations now shows «нет занятий» instead of a blank-looking 0% bar, and a student not in any squad shows «Не в командах» instead of «—».
+
 ## [3.6.2] - 2026-09-04
 
 ### Fixed

@@ -137,12 +137,43 @@ function studentInAnySquad(studentId) {
 }
 
 // Краткое описание участий: "М1 · Команда 2, М3 · Команда 5"
+function squadName(squad) {
+  const names = (typeof SQUAD_NAMES !== 'undefined') ? SQUAD_NAMES : [];
+  const nm = names[Number(squad)];
+  return (nm && String(nm).trim()) ? String(nm).trim() : ('Команда ' + squad);
+}
+
 function studentParticipationLabel(s) {
   const parts = (state.participations || []).filter(r => String(r.student_id) === String(s.id));
   if (parts.length) {
-    return parts.map(r => 'М' + r.shift_id + ' · Команда ' + r.squad).join(', ');
+    return parts.map(r => 'М' + r.shift_id + ' · ' + squadName(r.squad)).join(', ');
   }
-  return '—';
+  return 'Не в командах';
+}
+
+function populateSquadControls() {
+  for (let i = 1; i <= 10; i++) {
+    const ss = ge('s-squad');
+    if (ss && !ss.querySelector('[data-squad-opt="' + i + '"]')) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.dataset.squadOpt = i;
+      opt.textContent = squadName(i);
+      ss.appendChild(opt);
+    }
+  }
+  const pillsWrap = ge('db-squad-pills');
+  if (pillsWrap && !pillsWrap.children.length) {
+    for (let i = 1; i <= 10; i++) {
+      const b = document.createElement('button');
+      b.className = 'filter-pill';
+      b.dataset.filter = 'squad';
+      b.dataset.val = i;
+      b.textContent = squadName(i);
+      b.onclick = function () { setFilter('squad', String(i)); };
+      pillsWrap.appendChild(b);
+    }
+  }
 }
 
 // Аватар-кружок: если есть avatar_url — фото, иначе инициалы
@@ -171,6 +202,56 @@ function avatarImg(studentId, fallbackInitials, size, url) {
   size = size || 80;
   const src = url || ('img/avatars/' + studentId + '.jpg');
   return '<img src="' + esc(src) + '" alt="' + esc(fallbackInitials) + '" width="' + size + '" height="' + size + '" style="border-radius:50%;object-fit:cover;border:3px solid var(--orange)" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span class="avatar-fallback" style="display:none;width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--glass-b);border:3px solid var(--orange);align-items:center;justify-content:center;font-size:' + (size * 0.4) + 'px;font-weight:700">' + fallbackInitials + '</span>';
+}
+
+function avatarPublicUrl(path) {
+  return SUPABASE_URL + '/storage/v1/object/public/' + path;
+}
+
+function onAvatarFilePicked(e) {
+  const file = e.target && e.target.files && e.target.files[0];
+  if (!file) return;
+  const sid = state.currentStudentId;
+  if (!sid) { showToast('⚠️ Сначала выберите участника', 'warn'); return; }
+  if (!file.type || file.type.indexOf('image/') !== 0) { showToast('⚠️ Выберите файл изображения', 'warn'); return; }
+  if (file.size > 2 * 1024 * 1024) { showToast('⚠️ Файл больше 2 МБ', 'warn'); return; }
+  uploadStudentAvatar(sid, file);
+}
+
+function extOf(filename) {
+  const m = /\.([a-zA-Z0-9]+)$/.exec(filename || '');
+  return m ? m[1].toLowerCase() : 'jpg';
+}
+
+async function uploadStudentAvatar(studentId, file) {
+  const ext = extOf(file.name);
+  const path = 'images/avatars/' + studentId + '.' + ext;
+  const token = localStorage.getItem('kanikuly_access_token') || SUPABASE_ANON_KEY;
+  try {
+    const res = await fetch(SUPABASE_URL + '/storage/v1/object/' + path, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': file.type || 'application/octet-stream',
+        'x-upsert': 'true'
+      },
+      body: file
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => '');
+      showToast('⚠️ Ошибка загрузки (' + res.status + (txt ? ': ' + txt.slice(0, 80) : '') + '). Нужна политика записи в storage.', 'error');
+      return;
+    }
+    const url = avatarPublicUrl(path);
+    await api.update(TABLES.STUDENTS, studentId, { avatar_url: url });
+    const st = state.students.find(s => String(s.id) === String(studentId));
+    if (st) st.avatar_url = url;
+    showToast('✅ Аватар загружен', 'success');
+    renderTalentCard(studentId);
+  } catch (err) {
+    showToast('⚠️ Не удалось загрузить аватар', 'error');
+  }
 }
 // Изображение миссии: Supabase banner_url, иначе img/mission{n}-banner.JPG
 function shiftBannerUrl(s) {
@@ -418,7 +499,8 @@ function getMissionBranch(studentId) {
 function getSquadScores() {
   const squads = {};
   state.students.forEach(s => {
-    const sq = studentInAnySquad(s.id) || 'Без команды';
+    const raw = studentInAnySquad(s.id);
+    const sq = raw ? squadName(raw) : 'Без команды';
     if (!squads[sq]) squads[sq] = { name: sq, totalXP: 0, members: 0, badges: 0 };
     squads[sq].totalXP += calcStudentXP(s.id);
     squads[sq].members++;
@@ -579,7 +661,7 @@ function populateStudentFilters() {
   for (let i = 1; i <= 10; i++) {
     const opt = document.createElement('option');
     opt.value = i;
-    opt.textContent = 'Команда ' + i;
+    opt.textContent = squadName(i);
     squadSel.appendChild(opt);
   }
   populateAddParticipationForm();
@@ -611,7 +693,7 @@ function populateAddParticipationForm() {
     for (let i = 1; i <= 10; i++) {
       const opt = document.createElement('option');
       opt.value = i;
-      opt.textContent = 'Команда ' + i;
+      opt.textContent = squadName(i);
       apSquad.appendChild(opt);
     }
   }
@@ -655,7 +737,7 @@ function populateDbFilters() {
     for (let i = 1; i <= 10; i++) {
       const opt = document.createElement('option');
       opt.value = i;
-      opt.textContent = 'Команда ' + i;
+      opt.textContent = squadName(i);
       squadSel.appendChild(opt);
     }
   }
@@ -722,6 +804,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try { setupSearch(); } catch(e) { console.error('Search error:', e); }
   try { renderShiftsPage(); } catch(e) { console.error('Shifts error:', e); }
   applyRoleRestrictions(window.__userProfile);
+  populateSquadControls();
   showLoader(false);
 
   const hash = location.hash.replace('#', '');
@@ -903,7 +986,11 @@ function rebuildMainContent() {
     <div class="topbar-logo" style="cursor:pointer" onclick="goHome()" title="На главную"><svg viewBox="0 0 200 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#FBBF24"/><circle cx="24" cy="16" r="6" fill="#FFE08A"/><line x1="24" y1="4" x2="24" y2="1" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="8" x2="34" y2="6" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="36" y1="16" x2="39" y2="16" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="8" x2="14" y2="6" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="16" x2="9" y2="16" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><polygon points="24,22 18,32 30,32" fill="#FBBF24" opacity="0.9"/><polygon points="24,22 20,32 24,31" fill="#f59e0b" opacity="0.8"/></svg></div>
     <div class="topbar-title" style="cursor:pointer" onclick="goHome()" title="На главную">КАНИКУЛЫ С ONE!</div>
     <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="Поиск участников..." value="${sq}"></div>
-    <div class="topbar-right"><div class="status-dot"></div></div>
+    <div class="topbar-right">
+      <button class="btn-print topbar-export-btn" onclick="toggleExportCenter()" title="Экспорт и печать">📤</button>
+      <div class="export-center" id="export-center"></div>
+      <div class="status-dot"></div>
+    </div>
   </div>
   <div class="page" id="page-students">
     <div class="page-wrap">
@@ -917,7 +1004,7 @@ function rebuildMainContent() {
           <div class="form-group"><label>Возраст</label><input class="form-input" id="s-age" type="number" min="7" max="12" required placeholder="7-12"></div>
           <div class="form-group"><label>Пол</label><select class="form-input" id="s-gender" required><option value="">Выбрать...</option><option value="Мужской">Мужской</option><option value="Женский">Женский</option></select></div>
           <div class="form-group"><label>Класс</label><input class="form-input" id="s-grade" type="number" min="1" max="11" required placeholder="Класс"></div>
-          <div class="form-group"><label>Команда</label><select class="form-input" id="s-squad" required><option value="">Выбрать...</option><option value="1">Команда 1</option><option value="2">Команда 2</option><option value="3">Команда 3</option><option value="4">Команда 4</option><option value="5">Команда 5</option><option value="6">Команда 6</option><option value="7">Команда 7</option><option value="8">Команда 8</option><option value="9">Команда 9</option><option value="10">Команда 10</option></select></div>
+          <div class="form-group"><label>Команда</label><select class="form-input" id="s-squad" required><option value="">Выбрать...</option></select></div>
           <div class="form-group"><label>Кампус</label><select class="form-input" id="s-campus" required><option value="">Выбрать...</option><option value="ШОП">ШОП</option><option value="ШСТ">ШСТ</option></select></div>
           <div class="form-group"><label>Миссия</label><select class="form-input" id="s-shift" required><option value="">Выбрать...</option></select></div>
         </div>
@@ -967,7 +1054,7 @@ function rebuildMainContent() {
         <button class="btn-print" style="margin-bottom:0" onclick="window.print()">🖨️ Печать страницы</button>
       </div>
       <div style="margin-bottom:12px"><label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block">Участник</label><select class="student-selector" id="talent-student-select"><option value="">— Выбрать участника —</option></select></div>
-      <div class="pp-hero" id="pp-hero"><div class="pp-avatar-wrap"><div class="pp-avatar" id="pp-avatar">--</div><div class="pp-level-badge" id="pp-level">1</div></div><div class="pp-hero-info"><div class="pp-name" id="pp-name">--</div><div class="pp-meta" id="pp-meta">--</div><div id="pp-disc-rec"></div><div id="pp-streak"></div><div id="pp-near-miss"></div><div class="pp-xp-wrap"><div class="pp-xp-header"><span>Опыт</span><span id="pp-xp-text">0 XP</span></div><div class="pp-xp-bar"><div class="pp-xp-fill" id="pp-xp-fill" style="width:0%"></div></div></div><div class="pp-shift-tag" id="pp-shift-tag">--</div><div id="pp-coins"></div></div></div>
+      <div class="pp-hero" id="pp-hero"><div class="pp-avatar-wrap"><div class="pp-avatar" id="pp-avatar">--</div><div class="pp-level-badge" id="pp-level">1</div><button class="pp-avatar-upload" onclick="document.getElementById('pp-avatar-file').click()" title="Загрузить аватар">🖼️</button><input type="file" id="pp-avatar-file" accept="image/*" style="display:none" onchange="onAvatarFilePicked(event)"></div><div class="pp-hero-info"><div class="pp-name" id="pp-name">--</div><div class="pp-meta" id="pp-meta">--</div><div id="pp-disc-rec"></div><div id="pp-streak"></div><div id="pp-near-miss"></div><div class="pp-xp-wrap"><div class="pp-xp-header"><span>Опыт</span><span id="pp-xp-text">0 XP</span></div><div class="pp-xp-bar"><div class="pp-xp-fill" id="pp-xp-fill" style="width:0%"></div></div></div><div class="pp-shift-tag" id="pp-shift-tag">--</div><div id="pp-coins"></div></div></div>
       <div class="pp-stats-grid" id="pp-stats"></div>
       <div class="pp-tabs"><button class="pp-tab active" data-tab="skills" onclick="ppTab('skills')">Навыки</button><button class="pp-tab" data-tab="badges" onclick="ppTab('badges')">Значки</button><button class="pp-tab" data-tab="inventory" onclick="ppTab('inventory')">Инвентарь</button><button class="pp-tab" data-tab="shifts" onclick="ppTab('shifts')">Миссии</button><button class="pp-tab" data-tab="history" onclick="ppTab('history')">История</button><button class="pp-tab" data-tab="disc" onclick="ppTab('disc')">DISC</button><button class="pp-tab" data-tab="social" onclick="ppTab('social')">Социальное</button><button class="pp-tab" data-tab="legacy" onclick="ppTab('legacy')">Реликвии</button><button class="pp-tab" data-tab="boss" onclick="ppTab('boss')">Босс</button><button class="pp-tab" data-tab="shop" onclick="ppTab('shop')">Магазин</button><button class="pp-tab" data-tab="recommend" onclick="ppTab('recommend')">Рекомендации</button></div>
       <div class="pp-panel active" data-panel="skills"><div class="gc"><h3>🕸️ Радар компетенций</h3><div class="radar-wrap"><canvas id="radar-canvas" width="400" height="400"></canvas></div><div id="ai-insights-section" style="margin-top:12px"></div></div><div class="gc"><h3>📈 Шкала компетенций</h3><div class="comp-bars" id="comp-bars"></div></div><div class="gc"><h3>🏆 Ключевое направление</h3><div id="career-content"></div></div></div>
@@ -1010,6 +1097,7 @@ function rebuildMainContent() {
   populateAssShiftSelect();
   populateDbFilters();
   populateStudentSelect('talent-student-select', onTalentStudentChange);
+  populateSquadControls();
   rebindSearch();
   applyRoleRestrictions(window.__userProfile);
 }
@@ -1019,9 +1107,19 @@ function goHome() {
   navigateTo('shifts');
 }
 
+const ADMIN_PAGES = ['students', 'assessments', 'dashboard'];
+
+function isAdminPage(page) {
+  return ADMIN_PAGES.indexOf(page) !== -1;
+}
+
 function navigateTo(page, skipHistory) {
   closeReport();
   if (page === state.currentPage) return;
+
+  if (isAdminPage(page) && typeof authIsAdmin === 'function' && !authIsAdmin()) {
+    page = 'shifts';
+  }
 
   document.querySelectorAll('.page').forEach(p => {
     p.classList.remove('active');
@@ -1502,7 +1600,7 @@ function populateAchFilters() {
     for (let i = 1; i <= 10; i++) {
       const opt = document.createElement('option');
       opt.value = i;
-      opt.textContent = 'Команда ' + i;
+      opt.textContent = squadName(i);
       squadSel.appendChild(opt);
     }
   }
@@ -2642,7 +2740,8 @@ function renderDashboard() {
     const score = obs.length
       ? (obs.reduce((sum, o) => sum + (o.independence + o.quality) / 2, 0) / obs.length).toFixed(1)
       : '—';
-    const progress = Math.round((obs.length / 40) * 100);
+    const progress = obs.length ? Math.round((obs.length / 40) * 100) : 0;
+    const progressLabel = obs.length ? progress + '%' : 'нет занятий';
     const trackCounts = {bio:0, eng:0, media:0, english:0};
     obs.forEach(o => { if (trackCounts[o.track] !== undefined) trackCounts[o.track]++; });
     const dominantTrack = Object.entries(trackCounts).sort((a,b) => b[1]-a[1])[0];
@@ -2662,7 +2761,7 @@ function renderDashboard() {
       <div class="db-sc-xp"><div class="db-sc-xp-bar"><div style="width:${lv.progress}%;background:linear-gradient(90deg,#FFD93D,var(--orange))"></div></div><span>${xp} XP</span></div>
       <div class="db-sc-progress">
         <div class="db-sc-bar"><div style="width:${progress}%;background:var(--orange)"></div></div>
-        <span>${progress}%</span>
+        <span>${progressLabel}</span>
       </div>
       <div class="db-sc-stats">
         <div><span>${obs.length}</span><small>занятий</small></div>
@@ -2817,7 +2916,7 @@ function renderShiftDashboard() {
       pill.dataset.filter = 'sd-squad';
       pill.dataset.val = sq;
       pill.setAttribute('onclick', "setSdFilter('squad','" + sq + "')");
-      pill.textContent = 'Команда ' + sq;
+      pill.textContent = squadName(sq);
       parent.appendChild(pill);
     });
     // Re-activate if needed
@@ -2892,7 +2991,7 @@ function renderShiftDashboard() {
           <div class="sd-lb-avatar">${avatarCircle(pd.student, initials, 40, 'var(--green)')}</div>
           <div class="sd-lb-info">
             <div class="sd-lb-name">${displayNameEsc(pd.student)}</div>
-            <div class="sd-lb-meta">команда ${squadOfIn(pd.student.id, shiftId) || '—'} · ${pd.student.campus || ''} · ${pd.topSkill}</div>
+            <div class="sd-lb-meta">команда ${(function(){ const q = squadOfIn(pd.student.id, shiftId); return q ? squadName(q) : 'без команды'; })()} · ${pd.student.campus || ''} · ${pd.topSkill}</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
               <div style="flex:1;height:3px;border-radius:2px;background:var(--glass-b);overflow:hidden"><div style="height:100%;border-radius:2px;background:linear-gradient(90deg,var(--orange),#d65a0f);width:${progressPct}%"></div></div>
               <span style="font-size:0.55rem;color:var(--muted)">${progressPct}%</span>
@@ -2926,7 +3025,7 @@ function renderShiftDashboard() {
       const pct = Math.round((data.count / maxCount) * 100);
       const avgSq = data.scoreCount > 0 ? (data.totalScore / data.scoreCount).toFixed(1) : '—';
       return `<div class="sd-squad-bar">
-        <div class="sd-squad-bar-label">Команда ${sq}</div>
+        <div class="sd-squad-bar-label">${squadName(sq)}</div>
         <div class="sd-squad-bar-track"><div class="sd-squad-bar-fill" style="width:${pct}%"></div></div>
         <div class="sd-squad-bar-val">${data.count} чел. · ${avgSq}★ · ${data.totalXp} XP</div>
         </div>`;
@@ -3355,7 +3454,7 @@ function fillReport(student) {
   set('rp-grade', student.grade != null ? student.grade + ' класс' : '—');
   const rpPrimShift = studentPrimaryShift(student.id);
   const rpPrimSquad = studentPrimarySquad(student.id);
-  set('rp-squad', rpPrimSquad != null ? 'Команда ' + rpPrimSquad : '—');
+  set('rp-squad', rpPrimSquad != null ? squadName(rpPrimSquad) : '—');
   const shiftDef = state.shifts.find(sh => sh.id == rpPrimShift);
   set('rp-shift', shiftDef ? shiftDef.name : 'Миссия ' + rpPrimShift);
   const rpCampusEl = document.getElementById('rp-campus');
@@ -3542,6 +3641,61 @@ function printStudentReport(studentId) {
   openReportPreview();
 }
 
+function toggleExportCenter() {
+  const ec = ge('export-center');
+  if (!ec) return;
+  if (ec.classList.contains('open')) {
+    closeExportCenter();
+    return;
+  }
+  const page = state.currentPage;
+  const hasStudent = !!state.currentStudentId;
+  const items = [];
+
+  items.push({
+    icon: '🖨️',
+    label: 'Печать текущей страницы',
+    hint: 'Распечатать или сохранить в PDF',
+    action: 'window.print()'
+  });
+
+  if (page === 'talents' && hasStudent) {
+    items.push({
+      icon: '🎮',
+      label: 'Игровой репорт участника',
+      hint: 'Открыть профиль-отчёт для печати',
+      action: 'printStudentReport(state.currentStudentId)'
+    });
+  }
+
+  if (!items.length) {
+    items.push({ icon: '🖨️', label: 'Печать текущей страницы', hint: '', action: 'window.print()' });
+  }
+
+  ec.innerHTML = '<div class="export-center-head">Экспорт и печать</div>' + items.map(it =>
+    '<button class="export-center-item" onclick="' + it.action + '"><span class="export-center-ico">' + it.icon + '</span>' +
+    '<span class="export-center-txt"><strong>' + it.label + '</strong><small>' + it.hint + '</small></span></button>'
+  ).join('') + '<button class="export-center-close" onclick="closeExportCenter()">✕ Закрыть</button>';
+
+  ec.classList.add('open');
+  setTimeout(() => {
+    document.addEventListener('click', exportCenterOutside);
+  }, 0);
+}
+
+function exportCenterOutside(e) {
+  const ec = ge('export-center');
+  if (!ec || !ec.classList.contains('open')) return;
+  if (ec.contains(e.target) || e.target.closest('.topbar-export-btn')) return;
+  closeExportCenter();
+}
+
+function closeExportCenter() {
+  const ec = ge('export-center');
+  if (ec) ec.classList.remove('open');
+  document.removeEventListener('click', exportCenterOutside);
+}
+
 function openReportPreview() {
   const overlay = ge('report-overlay');
   if (overlay) {
@@ -3614,7 +3768,7 @@ function onAssShiftChange() {
   squads.forEach(sq => {
     const opt = document.createElement('option');
     opt.value = sq;
-    opt.textContent = 'Команда ' + sq;
+    opt.textContent = squadName(sq);
     squadSel.appendChild(opt);
   });
 }

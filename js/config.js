@@ -144,6 +144,24 @@ const LEGENDARY_RELICS = [
 const AVATAR_COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#06B6D4','#3B82F6','#8B5CF6','#EC4899'];
 const AVATAR_ICONS = ['🦊','🐱','🐶','🦁','🐼','🦄','🐲','🤖','👾','🎯','⚡','🔥','💎','🌟','🎮','🛠️'];
 
+// ── Имена команд (отрядов) ────────────────────────────────────
+// Индекс 1..10 = номер команды (participations.squad). Чтобы
+// поменять названия — правь только этот массив. Пустая строка
+// или отсутствие имени возвращает "Команда N".
+const SQUAD_NAMES = [
+  '',
+  'Титаны',
+  'Кометa',
+  'Лисы',
+  'Соколы',
+  'Драконы',
+  'Пингвины',
+  'Рыси',
+  'Фениксы',
+  'Волки',
+  'Орлы'
+];
+
 // ── CD1/CD3: DISC Mission Recommendations ────────────────────
 const DISC_MISSION_BOOSTS = {
   D: { label:'Командир',  boost:'Лидерские и стратегические задания', icon:'👑', skills:['initiative','persistence','problem_solving'] },
@@ -170,5 +188,6 @@ window.LIMITED_BADGES = LIMITED_BADGES;
 window.LEGENDARY_RELICS = LEGENDARY_RELICS;
 window.AVATAR_COLORS = AVATAR_COLORS;
 window.AVATAR_ICONS = AVATAR_ICONS;
+window.SQUAD_NAMES = SQUAD_NAMES;
 window.DISC_MISSION_BOOSTS = DISC_MISSION_BOOSTS;
 window.SHIFT_DATES = SHIFT_DATES;

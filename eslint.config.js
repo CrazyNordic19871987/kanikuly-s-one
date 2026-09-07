@@ -63,6 +63,7 @@ export default [
         MYSTERY_BOX_INTERVAL: 'readonly',
         MYSTERY_BOX_POOL: 'readonly',
         SHIFT_DATES: 'readonly',
+        SQUAD_NAMES: 'readonly',
         STREAK_BONUS: 'readonly',
         STREAK_MILESTONES: 'readonly',
         AUTH_EMAIL_DOMAIN: 'readonly',
