@@ -1681,11 +1681,11 @@ section.card-block{margin-top:56px}
   <div class="auth-card">
     <div class="auth-logo">
       <h1>Каникулы с ONE!</h1>
-      <p>Войдите в аккаунт или создайте новый</p>
+      <p>Войдите в аккаунт</p>
     </div>
     <div class="auth-tabs">
       <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">Вход</button>
-      <button class="auth-tab" data-tab="signup" onclick="switchAuthTab('signup')">Регистрация</button>
+      <button class="auth-tab hidden" data-tab="signup" onclick="switchAuthTab('signup')">Регистрация</button>
     </div>
     <div class="auth-error" id="auth-error"></div>
     <form class="auth-form" id="auth-login-form" onsubmit="onAuthLogin(event)">
@@ -1714,7 +1714,7 @@ section.card-block{margin-top:56px}
       </div>
       <button class="auth-btn" type="submit" id="auth-signup-btn">Создать аккаунт</button>
     </form>
-    <div class="auth-hint">Игроки видят свои профили и статистику. Администраторы управляют всем.</div>
+    <div class="auth-hint">Игроки видят свои профили и статистику. Администраторы управляют всем. Аккаунты создаёт администратор.</div>
   </div>
 </div>
 
@@ -2300,7 +2300,7 @@ section.card-block{margin-top:56px}
 <div id="toast-container"></div>
 
 <!-- SCRIPTS -->
-<script src="js/config.js?v=10"></script>
+<script src="js/config.js?v=11"></script>
 <script>
 (function(){
 var AUTH_EMAIL_DOMAIN = 'kanikuly.auth';

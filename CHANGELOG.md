@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.8.2] - 2026-09-08
+
+### Security
+- **Role escalation closed (CRITICAL)**: self-registered users could promote themselves to `admin` — `profiles_insert_own`/`profiles_update_own` never restricted the `role` column. New `migrations/019_security_hardening.sql` adds trigger `trg_profiles_role` (`prevent_admin_escalation()`): only an existing admin can write `role='admin'`. Verified live: an exploit PoC created a throwaway account, read all children and granted itself admin — both now blocked after the migration.
+- **PII lockdown (CRITICAL)**: any authenticated user could read the entire children database (students/observations/badges/completions/participations) via `auth_select_*` policies with `auth.role()='authenticated'`. Migration 019 replaces them with own-only policies (`students.user_id = auth.uid()`) + `is_admin()` for admins, plus `own_select_claimable` (an unclaimed child whose `username` equals the player's login stays auto-claimable after first login).
+- **Username takeover closed**: trigger `trg_profiles_username` blocks non-admin username changes (username = login = `email@kanikuly.auth`, and renaming was the vector to "rename onto" an unclaimed child and claim them).
+- **Storage avatar cross-tenant writes closed**: `migrations/018` let any authenticated user overwrite/delete anyone's avatar. Migration 019 re-scopes INSERT/UPDATE/DELETE on `storage.objects` through security-definer `can_manage_avatar(name)` — only the owner's own child (`avatars/{student_id}.{ext}`) or admins; public read kept for `<img>` display.
+- **Public signup removed from UI**: the «Регистрация» tab is hidden (login only) in `index.html`; accounts are created by the administrator (Supabase Dashboard → Users). Dashboard-level "Disable new signups" is the recommended follow-up (manual).
+
+### Changed
+- **Dead config removed**: duplicated `AUTH_EMAIL_DOMAIN` deleted from `js/config.js` (single source of truth is the inline auth module in `index.html`).
+
+### Migration
+- **Run `migrations/019_security_hardening.sql`** in Supabase Dashboard → SQL Editor once (idempotent), then delete the throwaway audit users: `DELETE FROM auth.users WHERE email LIKE 'audit%@kanikuly.auth';`
+
 ## [3.8.1] - 2026-09-07
 
 ### Added

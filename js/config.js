@@ -5,10 +5,8 @@
 const SUPABASE_URL = 'https://xzmxxnhyvbzdebqhomzd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bXh4bmh5dmJ6ZGVicWhvbXpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNTEzNzMsImV4cCI6MjA5MzgyNzM3M30.xAKnz6ijF8H1PNHFKVjrLyD264OHCgowkPgd2DqWF18';
 
-const AUTH_EMAIL_DOMAIN = 'kanikuly.auth';
-
-// OpenAI key removed — app uses local rule-based AI engine (analyzeStudentProfile)
-
+// Auth email domain lives in the inline auth module in index.html
+// (AUTH_EMAIL_DOMAIN = 'kanikuly.auth') — the single source of truth.
 const TABLES = {
   STUDENTS:              'students',
   OBSERVATIONS:          'observations',
