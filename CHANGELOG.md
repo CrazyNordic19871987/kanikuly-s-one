@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.8.4] - 2026-09-08
+
+### Changed (Phase C: CSS split + token rename)
+- **Inline `<style>` block (~104KB) removed from `index.html`**; split into 8 files under `css/`: `base.css` (tokens/reset/body/loader/toast/student-select/focus-visible), `layout.css` (sidebar/topbar/mobile menu/page container/auth screen), `students.css` (participants), `shifts.css` (tasks/dashboard/shifts/assessment/shift-dashboard), `profile.css` (achievements/RPG profile/gamification/card collection/DISC/tiles), `report.css` (game report), `print.css` (`@media print`), `responsive.css` (all scattered `@media(max-width…)`).
+- **Token rename**: `--orange → --accent`, `--green → --gold` with legacy aliases (`--orange: var(--accent)`, `--green: var(--gold)`). Computed values unchanged; old names keep working.
+- **`vite.config.js`**: added `base: './'` so the CSS bundle uses a relative path (works on GitHub Pages sub-path).
+- **Old inline CSS preserved** in `backup/old-style-v3.8.3.html`.
+- Vite now emits a single minified `assets/index-*.css` from the 8 source files (cache-busted by content hash).
+- `AGENTS.md` palette + `README.md` updated to canonical `--accent`/`--gold`.
+
 ## [3.8.3] - 2026-09-08
 
 ### Changed

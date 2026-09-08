@@ -11,7 +11,8 @@ Summer camp management web app for kids 7-12. Vanilla JS SPA built with Vite (`n
 
 ## Architecture
 
-- `index.html` — single HTML page, all CSS inline (~1000 lines)
+- `index.html` — single HTML page, CSS split across 8 files under `css/`
+- `css/base.css, layout.css, students.css, shifts.css, profile.css, report.css, print.css, responsive.css` — CSS split (source of truth; Vite bundles them into one `assets/index-*.css` at build)
 - `js/app.js` — main application JS (single source of truth; the former root `app.js` duplicate was removed)
 - `js/logic.js` — pure, DOM-free logic (esc, sanitizeText, displayName, initialsOf, level/XP system, rarityLabel, calcXp, calcCurrency). Browser: exposed on `window` (loaded before `app.js`). Node/tests: `module.exports`. **Never put `state`/`document`/`api`/`auth*` logic here** — it must stay importable by vitest.
 - `js/config.js` — Supabase URL/key + TABLES constants + DEFAULT_* fallbacks (single source of truth; the former root `config.js` duplicate was removed)
@@ -41,10 +42,14 @@ Summer camp management web app for kids 7-12. Vanilla JS SPA built with Vite (`n
 --glass-h:   rgba(255,255,255,0.16);
 --border:    rgba(255,255,255,0.08);
 --border-h:  rgba(59,130,246,0.5);
---orange:    #3B82F6;   /* фактически СИНИЙ (используется как акцент) */
---orange-dim:rgba(59,130,246,0.15);
---green:     #FBBF24;   /* фактически ЖЁЛТЫЙ */
---green-dim: rgba(251,191,36,0.15);
+--accent:    #3B82F6;   /* canonical blue accent */
+--accent-dim:rgba(59,130,246,0.15);
+--gold:      #FBBF24;   /* canonical yellow gold */
+--gold-dim:  rgba(251,191,36,0.15);
+--orange:     var(--accent);   /* legacy alias, keep */
+--orange-dim: var(--accent-dim);
+--green:      var(--gold);     /* legacy alias, keep */
+--green-dim:  var(--gold-dim);
 --sky:       #93C5FD;
 --sky-dim:   rgba(147,197,253,0.12);
 --purple:    #8B5CF6;
@@ -58,7 +63,7 @@ Summer camp management web app for kids 7-12. Vanilla JS SPA built with Vite (`n
 --r-lg:      20px;
 ```
 
-> Замечание (дрифт имён): `--orange` хранит **синий** `#3B82F6`, а `--green` хранит **жёлтый** `#FBBF24`. Запланировано в Фазе C: переименовать в `--accent`/`--gold` с алиасами (`--orange: var(--accent)`, `--green: var(--gold)`) в один проход со сплитом CSS. Источник истины — `:root` в `index.html`.
+> Канонические имена — `--accent` (синий) и `--gold` (жёлтый); `--orange`/`--green` — легаси-алиасы для обратной совместимости. Источник истины — `css/base.css` (`:root`).
 
 ## Key Data Model
 

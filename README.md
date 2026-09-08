@@ -2,7 +2,7 @@
 
 Геймифицированная платформа для управления летними каникулами детей 7–12 лет. 10 тематических смен, 7 профессиональных направлений, Anglophone-среда, спорт, коллекционная система из **84 карточек**, DISC-профилирование и защита проектов перед родителями.
 
-![Version](https://img.shields.io/badge/version-3.8.3-orange)
+![Version](https://img.shields.io/badge/version-3.8.4-orange)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Build](https://img.shields.io/badge/deploy-GitHub%20Actions-green)
 ![Cards](https://img.shields.io/badge/cards-84-8B5CF6)
@@ -76,7 +76,16 @@
 
 ```
 kanikuly-s-one/
-├── index.html              ← Главный файл (sidebar + все страницы, единый <style>)
+├── index.html              ← Главный файл (sidebar + все страницы, 8 <link> на CSS)
+├── css/
+│   ├── base.css            ← Токены (:root), фон, loader, toast
+│   ├── layout.css          ← Sidebar, topbar, меню, auth-screen
+│   ├── students.css         ← Участники (форма, быстрый просмотр)
+│   ├── shifts.css           ← Задания, миссии, дашборд, оценка
+│   ├── profile.css          ← Профиль игрока, DISC, карточки, инвентарь
+│   ├── report.css           ← Игровой отчёт участника
+│   ├── print.css            ← Печать отчётов (@media print)
+│   └── responsive.css       ← Все @media(max-width:…)
 ├── js/
 │   ├── config.js           ← Supabase + смены + направления + экономика + реликвии + DISC
 │   ├── api.js              ← API-слой (работа с Supabase REST)
