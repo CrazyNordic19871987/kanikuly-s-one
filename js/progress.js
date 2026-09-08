@@ -120,17 +120,19 @@ function applyProgressToState(state, progressByStudent) {
 }
 
 // Extract a normalized progress object snapshot back from live state
-// (for a given student) so it can be persisted.
+// (for a given student) so it can be persisted. Only the entries that
+// belong to `studentId` are kept — never the whole multi-student map.
 function snapshotStudentProgress(state, studentId) {
   const sid = String(studentId);
+  const slice = (map) => (map && map[sid] !== undefined ? { [sid]: map[sid] } : {});
   return {
-    coins: state.coins || {},
-    streaks: state.streaks || {},
-    relics: state.relics || {},
-    bossDefeated: state.bossDefeated || {},
-    mysteryCount: state.mysteryCount || {},
-    avatars: state.avatars || {},
-    limitedEarned: state.limitedEarned || {}
+    coins: slice(state.coins),
+    streaks: slice(state.streaks),
+    relics: slice(state.relics),
+    bossDefeated: slice(state.bossDefeated),
+    mysteryCount: slice(state.mysteryCount),
+    avatars: slice(state.avatars),
+    limitedEarned: slice(state.limitedEarned)
   };
 }
 

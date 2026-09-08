@@ -1,7 +1,7 @@
 # План работ по устранению недочётов «Каникулы с ONE!»
 
-> Статус: утверждён 2026-09-07. Исполнение: **Фаза A в работе**.
-> Репозиторий: `kanikuly-s-one` · Последняя версия: 3.8.1 (коммит `0cddf87`).
+> Статус: утверждён 2026-09-07. Исполнение: **Фазы A+B ✅ завершены (2026-09-08)**, следующий шаг — Фаза C.
+> Репозиторий: `kanikuly-s-one` · Последняя версия: 3.8.3 (коммит `TBD`).
 
 ## Принципы
 
@@ -24,7 +24,7 @@ ORDER BY tablename, policyname;
 ```
 Сверить с репозиторием (migrations/001–018). Вдруг часть политик уже поправлена руками — это меняет объём A2.
 
-### A2. Миграция `migrations/019_security_hardening.sql` — ✅ написана (2026-09-08), ждёт применения в Dashboard
+### A2. Миграция `migrations/019_security_hardening.sql` — ✅ применена в Dashboard (2026-09-08)
 1. **Закрыть эскалацию роли** — триггер `prevent_admin_escalation()` на `profiles`: `role='admin'` только при `is_admin()` (INSERT и UPDATE). Живо подтверждено: self-signup мог INSERT `role:'admin'` и стать полным админом.
 2. **Закрыть rename-claim** — триггер `prevent_username_takeover()`: не-админ не может менять `profiles.username` (username = логин = email@kanikuly.auth; смена нужна только для «переименоваться в чужого ребёнка»). Админ может.
 3. **Сужение широких SELECT-политик (013)**: выброшены `auth_select_students/observations/badges/completions/participations` (`auth.role()='authenticated'` = весь банк детей). Вместо них — «только свои через `user_id=auth.uid()` + `is_admin()`», плюс `own_select_claimable` (виден только unclaimed ребёнок со своим username — сохраняет авто-claim из `selfLinkStudent`).
@@ -41,21 +41,22 @@ ORDER BY tablename, policyname;
 - **Сброс пароля** — вручную админом: Dashboard → `Authentication → Users → (пользователь) → Reset password`. Настоящий SMTP — вместе с покупкой домена позже.
 - Зафиксировано: фальшивый домен `.auth` → восстановление пароля по email не работает; письма не ходят.
 
-### A4. Ре-верификация
-- Живой PoC (до фикса) — оба критичных дыра подтверждены: self-signup прочитал всех детей (ФИО/возраст/пол/класс/notes) и INSERT-нул себе `role='admin'` с полным админ-доступом (чтение всех profiles). Audit-аккаунт: `audit290633@kanikuly.auth` (удалить после применения 019).
-- После применения 019: повторить `pg_policies` (нет `auth_select_*`), тест эскалации (INSERT `role:'admin'` → отказ), удалить audit-пользователей.
-- **Публикация кода (миграция + config.js + index.html)** — коммит `fix(security): ...`, lint/test/build, пуш, webfetch live.
+### A4. Ре-верификация — ✅ пройдена (2026-09-08)
+- Живой PoC (до фикса) — оба критичных дыра подтверждены: self-signup прочитал всех детей (ФИО/возраст/пол/класс/notes) и INSERT-нул себе `role='admin'` с полным админ-доступом (чтение всех profiles). Audit-аккаунт: `audit290633@kanikuly.auth` (удалён).
+- После применения 019 (live REST): регистрация закрыта (`signup → 422`); audit-пользователь удалён (вход → 400); INSERT `role:'admin'` → 400 `P0001`; UPDATE `role→admin` → 400; смена `username` → 400; чтение students/observations/completions игроком → 0 строк; чтение profiles → только своя (`verif1/player`). Обычный INSERT своего profile (`role:'player'`) — успешен.
+- Временный тест-юзер `verif1@kanikuly.auth` — удалить после ре-верификации (Dashboard → Users).
+- **Публикация кода (миграция + config.js + index.html)** — коммит `6bdb3fc` (`fix(security)`, v3.8.2), lint/test/build, пуш, деплой live (config.js?v=11).
 
 ---
 
-## Фаза B — Гигиена и дрифт документов (быстро)
+## Фаза B — Гигиена и дрифт документов — ✅ завершена (2026-09-08)
 
-1. **AGENTS.md — палитра** (сейчас неверна): в коде `--orange: #3B82F6` (синий!), `--green: #FBBF24` (жёлтый), `--sky: #93C5FD`, `--purple: #8B5CF6`, `--glass: rgba(255,255,255,0.06)`, `--r:12px/--r-lg:20px`. Добавить примечание: переменная названа `--orange`, но фактически синяя — при рефакторинге рассмотреть переименование с alias.
-2. **README.md**: badge `version-3.0.0` → актуальная (3.8.x). Проверить актуальность остальных бейджей.
-3. **SEO**: добавить `<link rel="canonical">`, убрать `#shifts` из `og:url`, опционально `sitemap.xml` (GitHub Pages статический — просто файлы).
-4. **Мой `noscript`**: исправить «Каждая смена длится 5 дней» → по `SHIFT_DATES` смены 1–4 — по 5 дней, смены 5–10 — по 10 дней (лето). Сформулировать нейтрально («смены 5–10 дней»).
-5. **`player_progress` cleanup** (js/progress.js): `snapshotStudentProgress`/`saveStudentProgress` кладут карту **всех** учеников в ячейку каждого — сократить до данных только своего `student_id`.
-6. **Родительская папка**: `compare.js/dump.js/inspect.js/result.csv` и чужие README-шки — проверить принадлежность (вероятно, соседние проекты); родное не удалять без подтверждения.
+1. ✅ **AGENTS.md — палитра**: обновлена под фактический `:root` (`--orange:#3B82F6` — синий, `--green:#FBBF24` — жёлтый, `--sky:#93C5FD`, `--purple:#8B5CF6`, glass/border-токены, `--r/--r-lg`, `--muted/--muted2`). Добавлено примечание: переименование в `--accent`/`--gold` — в Фазе C.
+2. ✅ **README.md**: badge `version-3.0.0` → `3.8.2`; миграции `001–008` → `001–019` (+ новый диапазон row для 009–019); «RLS публичного доступа» → актуальный статус (PII закрыт, регистрация закрыта); js/-структура дополнена logic/pdf/progress; цветовая схема исправлена (`#F97316` → фактические токены).
+3. ✅ **SEO**: `<link rel="canonical">`, `og:url` без `#shifts`, `public/sitemap.xml`, `public/robots.txt` со ссылкой на sitemap.
+4. ✅ **`noscript`**: «Каждая смена длится 5 дней» → «Смены длятся от 5 до 10 дней» (по `SHIFT_DATES`: 1–4 смены — 5 дней, 5–10 — 10 дней).
+5. ✅ **`player_progress` cleanup** (js/progress.js): `snapshotStudentProgress` теперь сохраняет только срез своего `student_id` (раньше — полная карта всех учеников в ячейку каждого); cache-bust progress.js `?v=1` → `?v=2`.
+6. ✅ **Родительская папка**: `compare.js/dump.js/inspect.js/result.csv` + `package.json`(xlsx) — скрипты учёта посещения/брони (чужой проект, не репо); `one-profile-v2-README.md`, `student_psychology_feedback_generator-README.md` — README соседних проектов; `kanikuly-s-one-README.md` — устаревшая копия README репо (вне git) — ничего не удалялось, репо не затронут.
 
 ---
 

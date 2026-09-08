@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.8.3] - 2026-09-08
+
+### Changed
+- **AGENTS.md palette corrected**: CSS `:root` tokens now accurately documented. Note added: `--orange` stores blue `#3B82F6` and `--green` stores yellow `#FBBF24` — rename to `--accent`/`--gold` planned for Phase C CSS split.
+- **README.md drift fixed**: version badge updated 3.0.0 → 3.8.3; migrations table now lists 001–019; RLS description updated to reflect current state (public signup disabled, PII locked); JS file structure corrected; color palette table now matches actual CSS variables.
+- **SEO**: added `<link rel="canonical">`, removed `#shifts` from `og:url`, added `public/sitemap.xml` and `public/robots.txt`.
+- **`<noscript>` accuracy**: "Каждая смена длится 5 дней" → "Смены длятся от 5 до 10 дней" (shifts 1–4 = 5 days, 5–10 = 10 days per `SHIFT_DATES`).
+- **`js/progress.js` privacy**: `snapshotStudentProgress` now slices only the current `studentId` entries instead of persisting the entire multi-student map into every row.
+
 ## [3.8.2] - 2026-09-08
 
 ### Security

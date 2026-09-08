@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://crazynordic19871987.github.io/kanikuly-s-one/sitemap.xml

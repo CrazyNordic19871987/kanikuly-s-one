@@ -33,13 +33,32 @@ Summer camp management web app for kids 7-12. Vanilla JS SPA built with Vite (`n
 ## Color Palette
 
 ```css
---bg: #1B2838;
---orange: #E8A838;
---green: #7CB342;
---sky: #64B5F6;
---white: #F0EDE5;
---muted: rgba(240,237,229,0.65);
+--bg:        #1B2838;
+--bg2:       #152030;
+--bg3:       #223348;
+--glass:     rgba(255,255,255,0.06);
+--glass-b:   rgba(255,255,255,0.10);
+--glass-h:   rgba(255,255,255,0.16);
+--border:    rgba(255,255,255,0.08);
+--border-h:  rgba(59,130,246,0.5);
+--orange:    #3B82F6;   /* фактически СИНИЙ (используется как акцент) */
+--orange-dim:rgba(59,130,246,0.15);
+--green:     #FBBF24;   /* фактически ЖЁЛТЫЙ */
+--green-dim: rgba(251,191,36,0.15);
+--sky:       #93C5FD;
+--sky-dim:   rgba(147,197,253,0.12);
+--purple:    #8B5CF6;
+--purple-dim:rgba(139,92,246,0.15);
+--common:    #6B7280;
+--blue:      #1B2838;
+--white:     #F0EDE5;
+--muted:     rgba(240,237,229,0.65);
+--muted2:    rgba(240,237,229,0.45);
+--r:         12px;
+--r-lg:      20px;
 ```
+
+> Замечание (дрифт имён): `--orange` хранит **синий** `#3B82F6`, а `--green` хранит **жёлтый** `#FBBF24`. Запланировано в Фазе C: переименовать в `--accent`/`--gold` с алиасами (`--orange: var(--accent)`, `--green: var(--gold)`) в один проход со сплитом CSS. Источник истины — `:root` в `index.html`.
 
 ## Key Data Model
 
