@@ -1,7 +1,7 @@
-# План работ по устранению недочётов «Каникулы с ONE!»
+﻿# План работ по устранению недочётов «Каникулы с ONE!»
 
-> Статус: утверждён 2026-09-07. Исполнение: **Фазы A+B ✅ завершены (2026-09-08)**, следующий шаг — Фаза C.
-> Репозиторий: `kanikuly-s-one` · Последняя версия: 3.8.3 (коммит `e523146`).
+> Статус: утверждён 2026-09-07. Исполнение: **Фазы A+B+C ✅ завершены (2026-09-08)**, следующий шаг — Фаза D.
+> Репозиторий: `kanikuly-s-one` · Последняя версия: 3.8.4 (коммит `f74f532`).
 
 ## Принципы
 
@@ -60,19 +60,23 @@ ORDER BY tablename, policyname;
 
 ---
 
-## Фаза C — CSS-рефакторинг (механический сплит, 1-в-1)
+## Фаза C — CSS-рефакторинг (механический сплит, 1-в-1) — ✅ завершена (2026-09-08)
 
-1. Инлайн `<style>` в `index.html` (≈104KB, ~L31–1650) разбить без изменения правил:
-   - `css/base.css` — `:root`, фон, loader, toast, helpers;
-   - `css/layout.css` — sidebar, мобильное меню, topbar, page-container, auth-screen;
-   - `css/students.css` — форма регистрации/быстрый просмотр (самый большой блок);
-   - `css/shifts.css` — миссии, shift-detail, дашборд;
-   - `css/profile.css` — профиль игрока, DISC, инвентарь, рекомендации, glassy-панели;
-   - `css/print.css` — блок `@media print` (критично: сохранить отчёты);
-   - `css/responsive.css` — все `@media(max-width:...)` вместе.
-2. Подключить через `<link rel="stylesheet">` в том же порядке. Текущий `<style>` сохранить в `backup/`.
-3. Опционально (низкий риск): 86 инлайн `style=""` → классы точечно, где паттерн повторяется.
-4. Верификация: build → деплой → `webfetch` live → постраничный визуальный проход + печать отчёта (`window.print()`).
+1. ✅ Инлайн `<style>` в `index.html` (~104KB) разбит **без изменения правил** на 8 файлов под `css/`:
+   - `css/base.css` — `:root` (+ токены `--accent`/`--gold`), фон, loader, toast, student-select, `:focus-visible`;
+   - `css/layout.css` — sidebar, мобильное меню, topbar, page-container, bottom-bar, auth-screen, `.sr-only`;
+   - `css/students.css` — участники (форма, список, quick-view), export-center;
+   - `css/shifts.css` — задания (KTP), дашборд, миссии, shift-detail, оценка, shift-dashboard;
+   - `css/profile.css` — достижения, профиль игрока, геймификация, карточки, DISC, тайлы;
+   - `css/report.css` — игровой отчёт участника (выделен из profile.css для соблюдения лимита <50KB);
+   - `css/print.css` — блок `@media print` (критично: отчёты сохранены 1-в-1);
+   - `css/responsive.css` — все `@media(max-width:...)` из всех секций.
+2. ✅ `<style>` → 8 `<link rel="stylesheet" href="css/*.css?v=1">` в `index.html` (порядок каскада сохранён: glassy-группа по-прежнему после shifts). Старый блок — в `backup/old-style-v3.8.3.html`.
+3. ✅ Переименование токенов: `--orange → --accent`, `--green → --gold` + алиасы `--orange: var(--accent)`, `--green: var(--gold)` (обратная совместимость).
+4. ✅ `vite.config.js`: добавлен `base: './'` (иначе бандл CSS получал абсолютный `/assets/...`, ломающий подпуть GitHub Pages).
+5. ✅ Vite собирает 8 файлов в один минифицированный `dist/assets/index-*.css` (93.7KB, контент-хэш = авто cache-bust).
+6. ✅ Верификация: lint 0 errors / test 36/36 / build OK → коммит `f74f532` → деплой live успешен → `webfetch` подтвердил `<link href="./assets/index-KoWvsyyh.css">`. Кодировка исходников UTF-8 без BOM (bom-проблема при записи через PowerShell была поймана и исправлена).
+7. ℹ️ Опциональный пункт «86 инлайн style= → классы» — **отложен** (низкий приоритет, визуально всё идентично).
 
 ---
 
