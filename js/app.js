@@ -865,6 +865,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   history.replaceState({ page: startPage }, '', '#' + startPage);
 });
 
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  var t = e.target;
+  if (!t) return;
+  var isCard = t.tagName === 'DIV' && (t.getAttribute('role') === 'button' || t.hasAttribute('data-card-action'));
+  if (!isCard) return;
+  e.preventDefault();
+  t.click();
+});
+
 window.addEventListener('popstate', (e) => {
   if (e.state && e.state.page) {
     const page = e.state.page;
@@ -1034,8 +1044,8 @@ function rebuildMainContent() {
   mainEl.innerHTML = `<div class="topbar">
     <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
     <button class="mobile-back-btn" id="mobile-back-btn" onclick="goBack()" style="display:none">←</button>
-    <div class="topbar-logo" style="cursor:pointer" onclick="goHome()" title="На главную"><svg viewBox="0 0 200 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#FBBF24"/><circle cx="24" cy="16" r="6" fill="#FFE08A"/><line x1="24" y1="4" x2="24" y2="1" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="8" x2="34" y2="6" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="36" y1="16" x2="39" y2="16" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="8" x2="14" y2="6" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="16" x2="9" y2="16" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><polygon points="24,22 18,32 30,32" fill="#FBBF24" opacity="0.9"/><polygon points="24,22 20,32 24,31" fill="#f59e0b" opacity="0.8"/></svg></div>
-    <div class="topbar-title" style="cursor:pointer" onclick="goHome()" title="На главную">КАНИКУЛЫ С ONE!</div>
+    <div class="topbar-logo" style="cursor:pointer" role="button" tabindex="0" onclick="goHome()" title="На главную" aria-label="На главную"><svg viewBox="0 0 200 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="16" r="11" fill="#FBBF24"/><circle cx="24" cy="16" r="6" fill="#FFE08A"/><line x1="24" y1="4" x2="24" y2="1" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="8" x2="34" y2="6" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="36" y1="16" x2="39" y2="16" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="8" x2="14" y2="6" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="16" x2="9" y2="16" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/><polygon points="24,22 18,32 30,32" fill="#FBBF24" opacity="0.9"/><polygon points="24,22 20,32 24,31" fill="#f59e0b" opacity="0.8"/></svg></div>
+    <div class="topbar-title" style="cursor:pointer" role="button" tabindex="0" onclick="goHome()" title="На главную" aria-label="На главную">КАНИКУЛЫ С ONE!</div>
     <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="Поиск участников..." value="${sq}"></div>
     <div class="topbar-right">
       <button class="btn-print topbar-export-btn" onclick="toggleExportCenter()" title="Экспорт и печать">📤</button>
@@ -1335,7 +1345,7 @@ function renderStudentList() {
     const xp = calcStudentXP(s.id);
     const lv = getLevel(xp);
     return `
-      <div class="student-card" data-id="${s.id}" onclick="quickViewStudent('${s.id}')">
+      <div class="student-card" data-id="${s.id}" data-card-action onclick="quickViewStudent('${s.id}')">
         <div class="sc-avatar">${avatarCircle(s, initials, 46)}<div class="sc-level-badge">${lv.level}</div></div>
         <div class="sc-info">
           <div class="sc-name">${displayNameEsc(s)} <span class="sc-level-tag">${lv.name}</span></div>
@@ -2240,7 +2250,7 @@ function renderTalentCard(studentId) {
     let shhtml = `<div class="shop-balance"><span>🪙</span><strong>${coins} НЕО-коинов</strong></div><div class="shop-grid">`;
     ECONOMY_SHOP.forEach(item => {
       const canBuy = coins >= item.cost;
-      shhtml += `<div class="shop-item ${canBuy ? '' : 'locked'}" onclick="${canBuy ? "buyShopItem('" + item.id + "')" : ''}">
+      shhtml += `<div class="shop-item ${canBuy ? 'buyable' : 'locked'}" ${canBuy ? 'data-card-action tabindex="0"' : ''} onclick="${canBuy ? "buyShopItem('" + item.id + "')" : ''}">
         <span class="shop-icon">${item.icon}</span>
         <strong>${item.name}</strong>
         <p>${item.desc}</p>
@@ -2258,12 +2268,12 @@ function renderTalentCard(studentId) {
     branchEl.innerHTML = `<div class="mission-branch">
       <h4>🔀 Выбери свой путь</h4>
       <div class="branch-options">
-        <div class="branch-card" onclick="selectBranch('a')">
+        <div class="branch-card" data-card-action tabindex="0" onclick="selectBranch('a')">
           <span class="branch-icon">${branch.a.icon}</span>
           <strong>${branch.a.name}</strong>
           <p>${branch.a.desc}</p>
         </div>
-        <div class="branch-card" onclick="selectBranch('b')">
+        <div class="branch-card" data-card-action tabindex="0" onclick="selectBranch('b')">
           <span class="branch-icon">${branch.b.icon}</span>
           <strong>${branch.b.name}</strong>
           <p>${branch.b.desc}</p>
@@ -2800,7 +2810,7 @@ function renderDashboard() {
     const xp = calcStudentXP(s.id);
     const lv = getLevel(xp);
 
-    return `<div class="db-student-card" onclick="openStudentTalents('${s.id}')">
+    return `<div class="db-student-card" data-card-action tabindex="0" onclick="openStudentTalents('${s.id}')">
       <div class="db-sc-top">
         <div class="db-sc-avatar">${avatarCircle(s, initialsOf(s), 44)}<div class="db-sc-level">${lv.level}</div></div>
         <div class="db-sc-info">
@@ -2879,7 +2889,7 @@ function renderShiftsPage() {
   grid.innerHTML = state.shifts.map(s => {
     const dateStr = (window.SHIFT_DATES && window.SHIFT_DATES[s.id]) ? window.SHIFT_DATES[s.id] : (window.SHIFT_DATES && window.SHIFT_DATES[parseInt(s.id)]) ? window.SHIFT_DATES[parseInt(s.id)] : '';
     return `
-    <div class="shift-card card-enter" onclick="openShiftDetail(${s.id})" style="cursor:pointer">
+    <div class="shift-card card-enter" data-card-action tabindex="0" onclick="openShiftDetail(${s.id})" style="cursor:pointer">
       <div class="shift-card-header">
         <div class="shift-card-img">
           ${getShiftSvg(s.id)}
@@ -3865,7 +3875,7 @@ function onAssStudentChange() {
   let html = '';
   shift.directions.forEach((dir, di) => {
     html += `<div class="assess-direction" id="ass-dir-${di}">
-      <div class="assess-direction-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="assess-direction-header" data-card-action tabindex="0" onclick="this.parentElement.classList.toggle('open')">
         <span class="dir-icon">${dir.icon}</span>
         <h3>${dir.name}</h3>
         <span class="dir-arrow">▶</span>

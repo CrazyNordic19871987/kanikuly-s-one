@@ -2,7 +2,7 @@
 
 Геймифицированная платформа для управления летними каникулами детей 7–12 лет. 10 тематических смен, 7 профессиональных направлений, Anglophone-среда, спорт, коллекционная система из **84 карточек**, DISC-профилирование и защита проектов перед родителями.
 
-![Version](https://img.shields.io/badge/version-3.8.4-orange)
+![Version](https://img.shields.io/badge/version-3.8.5-orange)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Build](https://img.shields.io/badge/deploy-GitHub%20Actions-green)
 ![Cards](https://img.shields.io/badge/cards-84-8B5CF6)

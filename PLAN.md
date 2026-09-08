@@ -1,7 +1,7 @@
 ﻿# План работ по устранению недочётов «Каникулы с ONE!»
 
-> Статус: утверждён 2026-09-07. Исполнение: **Фазы A+B+C ✅ завершены (2026-09-08)**, следующий шаг — Фаза D.
-> Репозиторий: `kanikuly-s-one` · Последняя версия: 3.8.4 (коммит `f74f532`).
+> Статус: утверждён 2026-09-07. Исполнение: **Фазы A+B+C+D ✅ завершены (2026-09-08)**, следующий шаг — Фаза E.
+> Репозиторий: `kanikuly-s-one` · Последняя версия: 3.8.5.
 
 ## Принципы
 
@@ -82,11 +82,11 @@ ORDER BY tablename, policyname;
 
 ## Фаза D — Доступность и качество UI
 
-1. **Клавиатура**: 9 элементов `<div onclick>` (app.js: логи, карточки студентов/смен, shop-item, branch-card, assess-direction-header) → `<button role="button">` или добавление `tabindex`, `role`, `onkeydown` (Enter/Space).
-2. **Touch targets**: проверить/поднять кнопки меню/лейблы до ≥44px.
-3. **Контраст/фокус**: уже улучшено (`--muted` 0.65, `:focus-visible`); пройтись по остальным текстам малого кегля (`--muted2` на placeholder — допустимо, но проверить `.auth-field input::placeholder`, `font-size:0.68rem` ссылки).
-4. **Шрифты**: `preload` Google Fonts; проверить необходимость 3 семейств (Space Grotesk / Orbitron / JetBrains Mono) — возможно сократить до 2.
-5. **CI-детекция**: добавить Lighthouse CI (bundle jest) или step с axe-core на деплое. От внешних непроверенных инструментов («impeccable») воздержаться.
+1. ✅ **Клавиатура**: 9 элементов `<div onclick>` в `js/app.js` (topbar-logo/title, student-card, shop-item, branch-card ×2, db-student-card, shift-card, assess-direction-header) + 5 в `index.html` (sidebar-logo, menu-overlay, topbar-logo/title, topbar-user-badge) — `role="button"`/`data-card-action` + `tabindex` + делегированный keydown Enter/Space. Вложенные реальные кнопки (sc-delete, Дашборд) сохраняют `stopPropagation` → карточка не конфликтует.
+2. ✅ **Touch targets ≥44px**: `.mobile-menu-toggle` 40→44, `.mobile-back-btn` 36→44, `.star` 36→44, `.sc-delete` 24→44; `min-height:44px` на `.btn-sm`, `.btn-print`, `.btn-primary`, `.pp-tab`, `.filter-pill`, `.day-pill`, `.shift-mission-toggle`, `.export-center-item`, `.auth-btn`. `.nav-item` 110×56 — уже ок.
+3. ✅ **Контраст/фокус**: `--muted`/`:focus-visible` уже ок; найден только `.auth-hint` (0.68rem) на `--muted2` → исправлен на `--muted`. Плейсхолдеры на `--muted2` оставлены (WCAG 1.4.3 их не покрывает).
+4. ✅ **Шрифты**: добавлены `preconnect` к `fonts.googleapis.com` + `fonts.gstatic.com` (crossorigin). Все 3 семейства оставлены — у каждого своя роль (Space Grotesk = body, Orbitron = headings, JetBrains Mono = числовые значения, 12 упоминаний).
+5. ✅ **CI-детекция**: `axe-core` + `test/a11y.test.js` — 19 структурных WCAG-правил на статическом `index.html` под jsdom, выполняется в `npm test` (уже в CI tread). Сейчас 0 нарушений. Lighthouse CI отложен за ненадобностью (axe покрыл структурный контур);
 
 ---
 
@@ -105,7 +105,7 @@ ORDER BY tablename, policyname;
 ## Фаза F — Процесс/CI (в конце)
 
 1. Обновить `AGENTS.md` под новую структуру (`css/`, модули JS, запрет инлайн-стилей, правило `?v=` — уже есть).
-2. Добавить шаг Lighthouse/axe в `.github/workflows/deploy.yml`.
+2. ~~Добавить шаг Lighthouse/axe в `.github/workflows/deploy.yml`~~ — сделано в D5 (axe-core в `npm test`, 19 правил, 0 нарушений). Lighthouse CI — опционально позже.
 3. Снапшот-тесты рендеров (опционально).
 4. Сверить `README`/`CHANGELOG`/бейджи с актуальной версией; очистить `webp-upload/`.
 

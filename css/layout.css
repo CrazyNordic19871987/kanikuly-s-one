@@ -42,7 +42,7 @@
 /* ── Mobile menu toggle ── */
 .mobile-menu-toggle{
   display:none;position:fixed;top:12px;left:12px;z-index:200;
-  width:40px;height:40px;border-radius:8px;
+  width:44px;height:44px;border-radius:8px;
   background:var(--glass);border:1px solid var(--border);
   color:var(--white);font-size:1.2rem;cursor:pointer;
   align-items:center;justify-content:center;
@@ -53,7 +53,7 @@
 .menu-overlay.show{display:block}
 
 .mobile-back-btn{
-  display:none;width:36px;height:36px;border-radius:8px;
+  display:none;width:44px;height:44px;border-radius:8px;
   background:var(--glass);border:1px solid var(--border);
   color:var(--white);font-size:1.1rem;cursor:pointer;
   align-items:center;justify-content:center;flex-shrink:0;
@@ -197,7 +197,7 @@
 }
 .auth-field input::placeholder{color:var(--muted2)}
 .auth-btn{
-  padding:13px;border:none;
+  padding:13px;border:none;min-height:44px;
   border-radius:10px;
   background:linear-gradient(135deg,var(--orange),#2563EB);
   color:#fff;font-family:'Space Grotesk',sans-serif;
@@ -218,7 +218,7 @@
 .auth-error.show{display:block}
 .auth-hint{
   text-align:center;margin-top:16px;
-  font-size:0.68rem;color:var(--muted2);
+  font-size:0.68rem;color:var(--muted);
 }
 .auth-user-badge{
   display:flex;align-items:center;gap:8px;

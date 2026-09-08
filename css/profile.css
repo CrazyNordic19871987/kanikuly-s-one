@@ -41,7 +41,7 @@
 .pp-stat-label{font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-top:2px}
 .pp-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
 .pp-tab{
-  position:relative;padding:9px 16px;border-radius:999px;
+  position:relative;padding:9px 16px;border-radius:999px;min-height:44px;display:inline-flex;align-items:center;
   background:linear-gradient(160deg,rgba(19,34,69,0.6),rgba(27,40,56,0.8));
   backdrop-filter:blur(6px);
   border:1px solid var(--border);
@@ -244,14 +244,14 @@
 .sc-progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--orange),#d65a0f);transition:width .6s}
 .sc-progress-label{font-size:.6rem;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap}
 .sc-delete{
-  width:24px;height:24px;border-radius:6px;flex-shrink:0;
+  width:44px;height:44px;border-radius:6px;flex-shrink:0;
   background:transparent;border:1px solid transparent;color:var(--muted);
   cursor:pointer;font-size:.7rem;transition:all .2s;line-height:1;
 }
 .sc-delete:hover{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#ef4444}
 
 .day-pill{
-  padding:6px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--border);
+  padding:6px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--border);min-height:44px;display:inline-flex;align-items:center;
   background:var(--glass);color:var(--muted);font-size:.75rem;font-weight:600;transition:all .2s;
 }
 .day-pill:hover{border-color:var(--border-h);color:var(--white)}

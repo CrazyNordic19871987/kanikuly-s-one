@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.8.5] - 2026-09-08
+
+### Accessibility (Phase D)
+- **Keyboard navigation (D1)**: 9 clickable `<div onclick>` in `js/app.js` (topbar logo/title, student cards, shop items, mission-branch cards, dashboard student cards, shift cards, assessment direction headers) + equivalent static ones in `index.html` (sidebar logo, topbar, user badge, menu overlay) now support Enter/Space via a delegated `keydown` handler (`role="button"`/`data-card-action` + `tabindex`). Card actions don't conflict with nested real buttons (which stop propagation).
+- **Touch targets (D2)**: raised below-44px interactive elements to ≥44px min touch area — `.mobile-menu-toggle` (40→44), `.mobile-back-btn` (36→44), `.star` (36→44), `.sc-delete` (24→44), plus `min-height:44px` on `.btn-sm`, `.btn-print`, `.btn-primary`, `.pp-tab`, `.filter-pill`, `.day-pill`, `.shift-mission-toggle`, `.export-center-item`, `.auth-btn`.
+- **Contrast (D3)**: `.auth-hint` (0.68rem small text) switched `--muted2` → `--muted` to meet WCAG AA 4.5:1; placeholders keep `--muted2` (exempt from WCAG 1.4.3).
+- **Fonts (D4)**: added `<link rel="preconnect">` to `fonts.googleapis.com` + `fonts.gstatic.com` (crossorigin). All 3 families kept (Space Grotesk = body, Orbitron = headings, JetBrains Mono = numerics, 12 usages).
+- **CI a11y detection (D5)**: added `axe-core` devDep + `test/a11y.test.js` — 19 structural WCAG rules run on static `index.html` in jsdom during `npm test` (runs in CI test step). Currently 0 violations.
+
 ## [3.8.4] - 2026-09-08
 
 ### Changed (Phase C: CSS split + token rename)

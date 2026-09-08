@@ -60,7 +60,7 @@
 .rating-group label{display:block;font-size:0.7rem;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em}
 .star-rating{display:flex;gap:4px}
 .star{
-  width:36px;height:36px;border-radius:8px;
+  width:44px;height:44px;border-radius:8px;
   background:var(--glass);border:1px solid var(--border);
   color:var(--muted);font-size:0.85rem;font-weight:700;
   cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;
@@ -102,7 +102,7 @@ textarea:focus{border-color:var(--orange)}
 .filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
 .filter-label{font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-right:4px;flex-shrink:0}
 .filter-pill{
-  padding:6px 14px;border-radius:20px;cursor:pointer;
+  padding:6px 14px;border-radius:20px;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;
   background:var(--glass);border:1px solid var(--border);
   color:var(--muted);font-size:0.75rem;font-weight:600;transition:all 0.2s;
 }
@@ -225,7 +225,7 @@ textarea:focus{border-color:var(--orange)}
 .shift-mission-info{flex:1}
 .shift-mission-name{font-size:0.85rem;font-weight:600;color:var(--white);margin-bottom:3px}
 .shift-mission-desc{font-size:0.78rem;color:var(--muted);line-height:1.55}
-.shift-mission-toggle{background:none;border:none;color:var(--orange);font-size:0.75rem;cursor:pointer;padding:4px 0;margin-top:4px;font-weight:600}
+.shift-mission-toggle{background:none;border:none;color:var(--orange);font-size:0.75rem;cursor:pointer;padding:4px 0;margin-top:4px;font-weight:600;min-height:44px}
 .shift-mission-toggle:hover{opacity:0.8}
 .shift-mission-full{display:none;margin-top:8px;padding:10px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06)}
 .shift-mission-full.open{display:block}
