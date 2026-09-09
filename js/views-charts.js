@@ -1,3 +1,4 @@
+/* exported calcCompetencies, renderRadarChart, renderCompBars, renderDISC, renderCareer */
 function calcCompetencies(obs, studentId) {
   const scores = {};
   state.competencies.forEach(c => scores[c.id] = 0);
@@ -5,7 +6,7 @@ function calcCompetencies(obs, studentId) {
   state.competencies.forEach(c => counts[c.id] = 0);
 
   const filteredCompletions = studentId
-    ? state.completions.filter(c => c.student_id == studentId)
+    ? state.completions.filter(c => c.student_id === studentId)
     : state.completions;
 
   filteredCompletions.forEach(c => {
@@ -172,7 +173,7 @@ function calcDisc(obs, studentId) {
   const counts = {D:0, I:0, S:0, C:0};
 
   const filteredCompletions = studentId
-    ? state.completions.filter(c => c.student_id == studentId)
+    ? state.completions.filter(c => c.student_id === studentId)
     : state.completions;
 
   filteredCompletions.forEach(c => {
@@ -339,7 +340,7 @@ function renderDISC(obs, studentId) {
   }
 }
 
-function renderCareer(obs, badges) {
+function renderCareer(obs, _badges) {
   const trackCounts = {bio:0, eng:0, media:0, english:0};
   obs.forEach(o => trackCounts[o.track] = (trackCounts[o.track] || 0) + 1);
   const top = Object.entries(trackCounts).sort((a,b) => b[1]-a[1]);

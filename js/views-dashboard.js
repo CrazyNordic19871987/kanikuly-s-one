@@ -1,3 +1,4 @@
+/* exported setFilter, openStudentTalents */
 // =============================================
 //  Страница 5: Дашборд
 // =============================================
@@ -7,7 +8,7 @@ function renderDashboard() {
   const shift = state.filterShift;
   const campus = state.filterCampus;
   let list = state.students;
-  if (squad) list = list.filter(s => studentInAnySquad(s.id) == squad);
+  if (squad) list = list.filter(s => String(studentInAnySquad(s.id)) === String(squad));
   if (shift) list = list.filter(s => studentShifts(s.id).map(String).includes(String(shift)));
   if (campus) list = list.filter(s => s.campus === campus);
 

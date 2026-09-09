@@ -1,3 +1,4 @@
+/* exported populateStudentSelect, onTaskStudentChange, renderDayTabs, selectDay, selectTrack, renderCurrentTask, setRating, saveObservation, getObservation, hasObservation, getShiftSvg, renderShiftsPage, openShiftDashboard, setSdFilter, renderShiftDashboard, goBack, openShiftDetail */
 // =============================================
 //  Страница 2: Задания
 // =============================================
@@ -61,7 +62,7 @@ function renderCurrentTask() {
   if (!student) { container.innerHTML = '<p class="empty-note">Участник не найден</p>'; return; }
 
   const primShift = studentPrimaryShift(student.id);
-  const shift = state.shifts.find(s => s.id == primShift);
+  const shift = state.shifts.find(s => s.id === primShift);
   if (!shift || !shift.directions) { container.innerHTML = '<p class="empty-note">Нет данных по миссии</p>'; return; }
 
   const trackDir = shift.directions.find(d => {
@@ -71,7 +72,7 @@ function renderCurrentTask() {
   });
 
   if (!trackDir || !trackDir.missions || !trackDir.missions.length) {
-    const shiftDefName = state.shifts.find(sh => sh.id == primShift)?.name || 'Миссии ' + primShift;
+    const shiftDefName = state.shifts.find(sh => sh.id === primShift)?.name || 'Миссии ' + primShift;
     container.innerHTML = '<p class="empty-note">Нет заданий для этого направления в ' + shiftDefName + '</p>';
     return;
   }
@@ -304,17 +305,17 @@ function renderShiftDashboard() {
     });
     // Re-activate if needed
     if (state.filterSdSquad) {
-      parent.querySelectorAll('.filter-pill[data-filter="sd-squad"]').forEach(p => p.classList.toggle('active', p.dataset.val == state.filterSdSquad));
+      parent.querySelectorAll('.filter-pill[data-filter="sd-squad"]').forEach(p => p.classList.toggle('active', p.dataset.val === state.filterSdSquad));
     }
   }
 
   if (state.filterSdSquad) participants = participants.filter(s => String(squadOfIn(s.id, shiftId)) === String(state.filterSdSquad));
 
   // Calculate stats
-  let totalXp = 0, totalCurrency = 0, totalAllScored = 0, totalCounted = 0, totalCompletions = 0;
+  let totalXp = 0, totalAllScored = 0, totalCounted = 0, totalCompletions = 0;
   const participantData = participants.map(s => {
     const obs = state.observations.filter(o => o.student_id === s.id);
-    const comps = state.completions.filter(c => c.student_id == s.id && c.shift_id == shiftId);
+    const comps = state.completions.filter(c => c.student_id === s.id && c.shift_id === shiftId);
     const bdgs = state.badges.filter(b => b.student_id === s.id && b.earned);
     let xp = 0, currency = 0, scoredCount = 0, scoreSum = 0;
     comps.forEach(c => {
@@ -324,7 +325,6 @@ function renderShiftDashboard() {
       totalCompletions++;
     });
     totalXp += xp;
-    totalCurrency += currency;
     const obsScore = obs.length ? (obs.reduce((sum, o) => sum + (o.independence + o.quality) / 2, 0) / obs.length) : 0;
     const avgScore = scoredCount > 0 ? (scoreSum / scoredCount) : obsScore;
     totalAllScored += scoreSum;

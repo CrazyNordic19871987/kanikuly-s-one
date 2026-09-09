@@ -1,3 +1,4 @@
+/* exported checkAndAwardBadges, onAchStudentChange, populateAchFilters, renderAchBadges, onTalentStudentChange, buyShopItem, claimBossReward, selectBranch, triggerStreakAndMystery */
 // =============================================
 //  Страница 3: Достижения (авто-начисление)
 // =============================================
@@ -158,7 +159,7 @@ function buyShopItem(itemId) {
     if (itemId === 'shop_xp_boost') {
       showToast('⚡ XP-бустер активирован! +50 XP к следующему заданию', 'success');
     } else if (itemId === 'shop_badge_hint') {
-      const unearned = state.badgeDefs.filter(b => !state.badges.find(eb => eb.student_id == state.currentStudentId && eb.badge_id === b.id && eb.earned));
+      const unearned = state.badgeDefs.filter(b => !state.badges.find(eb => eb.student_id === state.currentStudentId && eb.badge_id === b.id && eb.earned));
       if (unearned.length) {
         const hint = unearned[Math.floor(Math.random() * unearned.length)];
         showToast('💡 Подсказка: "' + hint.name + '" — ' + hint.desc, 'info');
@@ -167,7 +168,7 @@ function buyShopItem(itemId) {
         addCoins(state.currentStudentId, item.cost); // refund
       }
     } else if (itemId === 'shop_rare_chest') {
-      const student = state.students.find(s => s.id == state.currentStudentId);
+      const student = state.students.find(s => s.id === state.currentStudentId);
       const ps = student ? studentPrimaryShift(student.id) : null;
       const dbItems = state.inventoryItems.filter(it => String(it.shift_id) === String(ps));
       const inv = dbItems.length ? { items: dbItems } : SHIFT_INVENTORY[ps];
@@ -242,7 +243,7 @@ function renderTalentCard(studentId) {
   const xp = calcStudentXP(studentId);
   const lv = getLevel(xp);
   const primShift = studentPrimaryShift(studentId);
-  const shift = state.shifts.find(s => s.id == primShift);
+  const shift = state.shifts.find(s => s.id === primShift);
   const shiftName = shift ? shift.name : primShift;
 
   const initials = initialsOf(student);
@@ -265,7 +266,6 @@ function renderTalentCard(studentId) {
   // Stats grid
   const completedCount = state.completions.filter(c => c.student_id === studentId).length;
   const unlocBadges = state.badgeDefs.filter(b => earnedBadges.some(eb => eb.badge_id === b.id)).length;
-  const shiftsAttended = new Set(state.completions.filter(c => c.student_id === studentId).map(c => c.shift_id)).size;
   setEl('pp-stats', `
     <div class="pp-stat"><div class="pp-stat-num">${lv.level}</div><div class="pp-stat-label">Уровень</div></div>
     <div class="pp-stat"><div class="pp-stat-num">${xp}</div><div class="pp-stat-label">Опыт</div></div>
@@ -364,14 +364,14 @@ function renderTalentCard(studentId) {
       ppShiftsEl.innerHTML = '<p class="empty-note">Участник пока не записан ни на одну миссию</p>';
     } else {
       ppShiftsEl.innerHTML = '<div class="pp-miss">' + shiftIds.map(sid => {
-        const shiftObj = state.shifts.find(s => s.id == sid);
+        const shiftObj = state.shifts.find(s => s.id === sid);
         const shiftName = shiftObj ? shiftObj.name : 'Миссия ' + sid;
-        const shiftComps = studentCompletions.filter(c => c.shift_id == sid);
+        const shiftComps = studentCompletions.filter(c => c.shift_id === sid);
         const directions = [...new Set(shiftComps.map(c => c.direction_name))];
         const avgScore = shiftComps.reduce((sum, c) => sum + (c.score || 0), 0) / (shiftComps.length || 1);
         const badgeCount = earnedBadges.filter(b => {
           const def = state.badgeDefs.find(d => d.id === b.badge_id);
-          return def && def.shift_id == sid;
+          return def && def.shift_id === sid;
         }).length;
         const pct = Math.round(avgScore * 20);
         const tc = pct >= 80 ? 'tc-done' : pct >= 50 ? 'tc-prog' : 'tc-media';
@@ -556,7 +556,7 @@ function renderTalentCard(studentId) {
     const friends = getFriends(studentId, 5);
     shtml += '<div class="gc"><h3>👥 Друзья по уровню</h3>';
     friends.forEach((f, i) => {
-      const isMe = f.student.id == studentId;
+      const isMe = f.student.id === studentId;
       const fl = getLevel(f.xp);
       shtml += `<div class="friend-row ${isMe ? 'is-me' : ''}">
         <span class="friend-rank">#${i + 1}</span>

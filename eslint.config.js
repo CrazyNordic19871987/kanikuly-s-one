@@ -282,12 +282,12 @@ export default [
       },
     },
     rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^(e|_|err)$' }],
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^(e|_|err)$', caughtErrorsIgnorePattern: '^(e|_|err|_e)$' }],
       'no-undef': 'error',
       'no-redeclare': 'off',
       'no-constant-condition': 'warn',
       'no-empty': ['error', { allowEmptyCatch: true }],
-      eqeqeq: 'warn',
+      eqeqeq: ['error', 'smart'],
     },
   },
   {

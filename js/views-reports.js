@@ -1,3 +1,4 @@
+/* exported renderAIInsights, fillReport */
 // =============================================
 //  AI ANALYTICS (Local Rule-Based Engine)
 // =============================================
@@ -102,7 +103,6 @@ function analyzeStudentProfile(obs, badges, compScores) {
 
   const avgScore = obs.reduce((s, o) => s + (o.independence + o.quality) / 2, 0) / obs.length;
   const initiativeRate = obs.filter(o => o.initiative).length / obs.length;
-  const totalObs = obs.length;
   profile.engagementLevel = avgScore >= 4 && initiativeRate > 0.3 ? 'high' : avgScore >= 3 ? 'moderate' : 'low';
 
   if (compScores['creativity'] > 50 && compScores['communication'] > 50) {
@@ -169,8 +169,6 @@ function renderAIInsights(studentId) {
   const engagementColors = { high: '#22C55E', moderate: '#FBBF24', low: '#EF4444' };
   const engagementLabels = { high: 'Высокая', moderate: 'Средняя', low: 'Низкая' };
   const engagementIcons = { high: '🔥', moderate: '⚡', low: '📉' };
-  const growthLabels = { high: 'Низкая', moderate: 'Средняя', low: 'Высокая' };
-  const growthIcons = { high: '💚', moderate: '💛', low: '🔴' };
 
   if (!obs.length) {
     container.innerHTML = `<div style="padding:12px;background:var(--glass-b);border-radius:10px;text-align:center">
@@ -278,7 +276,7 @@ function fillReport(student) {
 
   const obs = state.observations.filter(o => o.student_id === student.id);
   const earned = state.badges.filter(b => b.student_id === student.id && b.earned);
-  const completions = state.completions.filter(c => c.student_id == student.id);
+  const completions = state.completions.filter(c => c.student_id === student.id);
   const compScores = calcCompetencies(obs, student.id);
   
   // Enrich competencies with completion data
@@ -314,7 +312,7 @@ function fillReport(student) {
   const rpPrimShift = studentPrimaryShift(student.id);
   const rpPrimSquad = studentPrimarySquad(student.id);
   set('rp-squad', rpPrimSquad != null ? squadName(rpPrimSquad) : '—');
-  const shiftDef = state.shifts.find(sh => sh.id == rpPrimShift);
+  const shiftDef = state.shifts.find(sh => sh.id === rpPrimShift);
   set('rp-shift', shiftDef ? shiftDef.name : 'Миссия ' + rpPrimShift);
   const rpCampusEl = document.getElementById('rp-campus');
   if (rpCampusEl) rpCampusEl.textContent = student.campus || '';
@@ -464,7 +462,7 @@ function fillReport(student) {
     });
     let compHtml = '';
     Object.entries(byShift).sort((a,b) => a[0]-b[0]).forEach(([sId, comps]) => {
-      const sh = state.shifts.find(x => x.id == sId);
+      const sh = state.shifts.find(x => x.id === sId);
       const sXp = comps.reduce((s,c) => s + (c.xp||0), 0);
       const sScore = comps.filter(c => c.score > 0);
       const sAvg = sScore.length ? (sScore.reduce((s,c) => s + c.score, 0) / sScore.length).toFixed(1) : '—';

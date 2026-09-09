@@ -1,3 +1,4 @@
+/* exported populateAssShiftSelect, onAssCampusChange, onAssShiftChange, onAssSquadChange, onAssStudentChange, onAssScoreChange, saveAssessments */
 // =============================================
 //  Страница 6: Оценка заданий
 // =============================================
@@ -16,8 +17,6 @@ function populateAssShiftSelect() {
 function onAssCampusChange() {
   const campusEl = ge('ass-campus');
   if (!campusEl) return;
-  const campus = campusEl.value;
-  const shiftSel = ge('ass-shift');
   const squadSel = ge('ass-squad');
   const studentSel = ge('ass-student');
   if (!squadSel || !studentSel) return;
@@ -88,7 +87,7 @@ function onAssStudentChange() {
   if (!shift) return;
 
   // Load existing completions for this student+shift
-  const existing = state.completions.filter(c => c.student_id == studentId && c.shift_id === shiftId);
+  const existing = state.completions.filter(c => c.student_id === studentId && c.shift_id === shiftId);
   
   let html = '';
   shift.directions.forEach((dir, di) => {
@@ -186,10 +185,10 @@ async function saveAssessments() {
 
   try {
     const oldIds = state.completions
-      .filter(c => c.student_id == studentId && c.shift_id === shiftId)
+      .filter(c => c.student_id === studentId && c.shift_id === shiftId)
       .map(c => c.id);
 
-    state.completions = state.completions.filter(c => !(c.student_id == studentId && c.shift_id === shiftId));
+    state.completions = state.completions.filter(c => !(c.student_id === studentId && c.shift_id === shiftId));
 
     for (const comp of completions) {
       const result = await api.insert(TABLES.COMPLETIONS, comp);
@@ -219,7 +218,7 @@ function renderAssessSummary() {
   if (!studentId || !shiftId) { summaryArea.innerHTML = ''; return; }
 
   const shift = state.shifts.find(s => s.id === shiftId);
-  const completions = state.completions.filter(c => c.student_id == studentId && c.shift_id === shiftId);
+  const completions = state.completions.filter(c => c.student_id === studentId && c.shift_id === shiftId);
   
   let totalXp = 0, totalCurrency = 0, totalScore = 0, count = 0;
   const skillsAccum = {};

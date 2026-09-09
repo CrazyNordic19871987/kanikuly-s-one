@@ -102,7 +102,7 @@ function calcXp(score) {
   return Math.round(score * score * 2);
 }
 
-function calcCurrency(score, shift) {
+function calcCurrency(score, _shift) {
   return Math.round(score * 10);
 }
 

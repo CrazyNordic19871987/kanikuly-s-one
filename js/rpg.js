@@ -1,12 +1,13 @@
+/* exported checkAndUpdateStreak, addCoins, spendCoins, getEconomyFromCompletions, getMysteryCount, incrementMysteryCount, isBossDefeated, defeatBoss, getBossTeamDamage, checkLimitedBadges, awardRelic, setAvatar, getRecentActivity, getFriends, getDiscRecommendation, getMissionBranch, getSquadScores, getNearMiss, computeInventory */
 // -- XP + Level system ---------------------------
 // LEVEL_NAMES / xpToNextLevel / getLevel live in js/logic.js (pure logic module).
 
 function calcStudentXP(studentId) {
   let xp = 0;
-  state.completions.filter(c => c.student_id == studentId).forEach(c => {
+  state.completions.filter(c => c.student_id === studentId).forEach(c => {
     xp += xpFromCompletion(c.score);
   });
-  state.badges.filter(b => b.student_id == studentId && b.earned).forEach(b => {
+  state.badges.filter(b => b.student_id === studentId && b.earned).forEach(b => {
     xp += xpFromBadge(b.rarity);
   });
   xp += getStreakBonusXP(studentId);
@@ -56,7 +57,7 @@ function spendCoins(studentId, amount) {
 }
 function getEconomyFromCompletions(studentId) {
   let coins = 0;
-  state.completions.filter(c => c.student_id == studentId).forEach(c => {
+  state.completions.filter(c => c.student_id === studentId).forEach(c => {
     const score = c.score || 1;
     coins += Math.floor(score * 2);
   });
@@ -104,15 +105,15 @@ function defeatBoss(studentId) {
   return boss.rewards;
 }
 function getBossTeamDamage(studentId) {
-  return state.completions.filter(c => c.student_id == studentId).reduce((sum, c) => sum + ((c.score || 1) * 10), 0);
+  return state.completions.filter(c => c.student_id === studentId).reduce((sum, c) => sum + ((c.score || 1) * 10), 0);
 }
 
 // ── CD6: Limited-Time Badges ──────────────────────────────────
 function checkLimitedBadges(studentId) {
   const earned = state.limitedEarned[studentId] || [];
   const today = new Date().toISOString().slice(0, 10);
-  const todayComps = state.completions.filter(c => c.student_id == studentId && c.created_at && c.created_at.slice(0, 10) === today);
-  const student = state.students.find(s => s.id == studentId);
+  const todayComps = state.completions.filter(c => c.student_id === studentId && c.created_at && c.created_at.slice(0, 10) === today);
+  const student = state.students.find(s => s.id === studentId);
   const shiftId = student ? parseInt(studentPrimaryShift(student.id) || 0) : 0;
   const myShifts = student ? studentShifts(student.id).map(String) : [];
   const newlyEarned = [];
@@ -122,7 +123,7 @@ function checkLimitedBadges(studentId) {
     let met = false;
     if (lb.condition === '3 completions in 1 day') met = todayComps.length >= 3;
     else if (lb.condition === '5 perfect scores in a row') {
-      const last5 = state.completions.filter(c => c.student_id == studentId).slice(-5);
+      const last5 = state.completions.filter(c => c.student_id === studentId).slice(-5);
       met = last5.length === 5 && last5.every(c => (c.score || 0) >= 5);
     }
     else if (lb.condition === 'completion after 20:00') {
@@ -134,7 +135,7 @@ function checkLimitedBadges(studentId) {
       met = h < 10 && todayComps.length > 0;
     }
     else if (lb.condition === 'all 7 directions in 1 shift') {
-      const dirs = new Set(state.completions.filter(c => c.student_id == studentId && parseInt(c.shift_id) === shiftId).map(c => (c.direction_name||'').toLowerCase()));
+      const dirs = new Set(state.completions.filter(c => c.student_id === studentId && parseInt(c.shift_id) === shiftId).map(c => (c.direction_name||'').toLowerCase()));
       met = dirs.size >= 7;
     }
     if (met) {
@@ -179,7 +180,7 @@ function getRecentActivity(limit = 10) {
     .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
     .slice(0, limit);
   return all.map(c => {
-    const s = state.students.find(st => st.id == c.student_id);
+    const s = state.students.find(st => st.id === c.student_id);
     return s ? { student: s, completion: c } : null;
   }).filter(Boolean);
 }
@@ -192,7 +193,7 @@ function getLeaderboard() {
 }
 function getFriends(studentId, limit = 5) {
   const lb = getLeaderboard();
-  const idx = lb.findIndex(e => e.student.id == studentId);
+  const idx = lb.findIndex(e => e.student.id === studentId);
   if (idx === -1) return lb.slice(0, limit);
   const start = Math.max(0, idx - 2);
   return lb.slice(start, start + 5);
@@ -200,9 +201,8 @@ function getFriends(studentId, limit = 5) {
 
 // ── CD1/CD3: DISC Mission Recommendations ────────────────────
 function getDiscType(studentId) {
-  const xp = calcStudentXP(studentId);
   const comps = {};
-  state.completions.filter(c => c.student_id == studentId).forEach(c => {
+  state.completions.filter(c => c.student_id === studentId).forEach(c => {
     const d = (c.direction_name || '').toLowerCase();
     comps[d] = (comps[d] || 0) + (c.score || 1);
   });
@@ -243,7 +243,7 @@ function getSquadScores() {
     if (!squads[sq]) squads[sq] = { name: sq, totalXP: 0, members: 0, badges: 0 };
     squads[sq].totalXP += calcStudentXP(s.id);
     squads[sq].members++;
-    squads[sq].badges += state.badges.filter(b => b.student_id == s.id && b.earned).length;
+    squads[sq].badges += state.badges.filter(b => b.student_id === s.id && b.earned).length;
   });
   return Object.values(squads).sort((a, b) => b.totalXP - a.totalXP);
 }
@@ -335,7 +335,7 @@ const INVENTORY_SLOTS_BASE = 6;
 
 function computeInventory(studentId) {
   const items = [];
-  const completions = state.completions.filter(c => c.student_id == studentId);
+  const completions = state.completions.filter(c => c.student_id === studentId);
   const student = state.students.find(s => s.id === studentId);
   const shiftId = student ? studentPrimaryShift(student.id) : null;
   // Предметы: из Supabase (content_inventory_items) приоритетно, иначе встроенные

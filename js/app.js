@@ -1,3 +1,4 @@
+/* exported tempRatings, visibleStudents, shiftParticipants, squadOfIn, studentPrimaryShift, studentPrimarySquad, studentShifts, studentInAnySquad, studentParticipationLabel, avatarCircle, badgeImg, itemImg, avatarImg, onAvatarFilePicked, shiftBannerUrl, bannerOnerror, onAddParticipation, onStFilterChange, getStudentFilters, goHome, v, printStudentReport, toggleExportCenter, printReportNow */
 // =============================================
 //  Каникулы с ONE! — Летние каникулы 2026
 // =============================================
