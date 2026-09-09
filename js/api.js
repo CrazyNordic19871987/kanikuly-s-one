@@ -9,6 +9,7 @@ class SupabaseAPI {
     this._updateHeaders();
     this._retryCount = 1;
     this._retryDelay = 800;
+    this._timeoutMs = 15000;
   }
 
   _updateHeaders() {
@@ -47,14 +48,28 @@ class SupabaseAPI {
       for (const k2 in options.headers) headers[k2] = options.headers[k2];
     }
 
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this._timeoutMs);
+    if (options.signal) {
+      if (options.signal.aborted) controller.abort();
+      else options.signal.addEventListener('abort', () => controller.abort(), { once: true });
+    }
+
     let r;
     try {
       r = await fetch(url, {
         method: options.method || 'GET',
         headers: headers,
-        body: options.body
+        body: options.body,
+        signal: controller.signal
       });
     } catch (fetchErr) {
+      clearTimeout(timer);
+      if (fetchErr && fetchErr.name === 'AbortError') {
+        if (options.signal && options.signal.aborted) throw fetchErr;
+        this._toast('Сервер не отвечает. Попробуйте позже.', 'error');
+        throw new Error('TIMEOUT: ' + url);
+      }
       if (attempt < this._retryCount) {
         await new Promise(function (res) { setTimeout(res, this._retryDelay * (attempt + 1)); }.bind(this));
         return this._req(url, opts, attempt + 1);
@@ -62,6 +77,7 @@ class SupabaseAPI {
       this._toast('Сеть недоступна. Проверьте подключение.', 'error');
       throw new Error('NETWORK_ERROR: ' + fetchErr.message);
     }
+    clearTimeout(timer);
 
     if (!r.ok) {
       const errBody = await r.text().catch(function () { return ''; });
@@ -70,6 +86,14 @@ class SupabaseAPI {
       if (r.status === 401) {
         this._toast('Сессия истекла. Войдите снова.', 'error');
         throw new Error('AUTH_EXPIRED: ' + msg);
+      }
+      if (r.status === 429) {
+        if (attempt < this._retryCount) {
+          await new Promise(function (res) { setTimeout(res, this._retryDelay * (attempt + 1)); }.bind(this));
+          return this._req(url, opts, attempt + 1);
+        }
+        this._toast('Слишком много запросов. Повторите позже.', 'error');
+        throw new Error('RATE_LIMITED: ' + msg);
       }
       if (r.status >= 500 && attempt < this._retryCount) {
         await new Promise(function (res) { setTimeout(res, this._retryDelay * (attempt + 1)); }.bind(this));
@@ -82,7 +106,12 @@ class SupabaseAPI {
     }
 
     const text = await r.text();
-    return text ? JSON.parse(text) : [];
+    try {
+      return text ? JSON.parse(text) : [];
+    } catch {
+      this._toast('Некорректный ответ сервера.', 'error');
+      throw new Error('PARSE_ERROR: ' + text.substring(0, 200));
+    }
   }
 
   async getAll(table) {

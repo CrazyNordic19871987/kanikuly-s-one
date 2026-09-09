@@ -10,6 +10,7 @@ export default [
       sourceType: 'script',
       globals: {
         'ADMIN_PAGES': 'readonly',
+        'AbortController': 'readonly',
         'AI_EXTRA_CURRICULAR': 'readonly',
         'AI_LEARNING_STYLES': 'readonly',
         'AUTH_EMAIL_DOMAIN': 'readonly',
