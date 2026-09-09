@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.9.0] - 2026-09-09
+
+### Changed (Phase E: app.js split into <50KB modules)
+- **`js/app.js` (217KB monolith) split into 10 plain `<script>` files** (all <50KB, no ES modules — Vite copies them to `dist/js/` as-is):
+  - `js/app.js` — core: state, loadData, shell/nav/search, utils (v/showToast), export center (47.6KB)
+  - `js/rpg.js` — XP/level, streak, economy, mystery boxes, bosses, relics, inventory (20.7KB)
+  - `js/views-students.js` (6.1KB), `js/views-shifts.js` (24.6KB), `js/views-profile.js` (38.5KB), `js/views-charts.js` (18.7KB), `js/views-dashboard.js` (4.7KB), `js/views-reports.js` (26.2KB), `js/views-assessments.js` (12.1KB), `js/views-cards.js` (13.5KB)
+- **Script order in `index.html`**: config → api → purify → progress → logic → pdf → rpg → views-* → app.js (core last, so `let state` is declared before any view runs). Each new file added with `?v=1`; `app.js` cache-bust bumped `?v=31 → ?v=40`.
+- **ESLint globals expanded** from 104 → 270 identifiers (all cross-file function/const references) so `no-undef` stays green file-per-file. 0 lint errors, 38 tests pass.
+
 ## [3.8.5] - 2026-09-08
 
 ### Accessibility (Phase D)

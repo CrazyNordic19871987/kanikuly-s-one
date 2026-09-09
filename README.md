@@ -2,7 +2,7 @@
 
 Геймифицированная платформа для управления летними каникулами детей 7–12 лет. 10 тематических смен, 7 профессиональных направлений, Anglophone-среда, спорт, коллекционная система из **84 карточек**, DISC-профилирование и защита проектов перед родителями.
 
-![Version](https://img.shields.io/badge/version-3.8.5-orange)
+![Version](https://img.shields.io/badge/version-3.9.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Build](https://img.shields.io/badge/deploy-GitHub%20Actions-green)
 ![Cards](https://img.shields.io/badge/cards-84-8B5CF6)
@@ -92,7 +92,16 @@ kanikuly-s-one/
 │   ├── logic.js            ← Чистая DOM-free логика (XP, редкости, displayName)
 │   ├── progress.js         ← Персистентность player_progress (Supabase)
 │   ├── pdf.js              ← Печать PDF-отчётов (window.print)
-│   └── app.js              ← Логика приложения (страницы, карточки, DISC, коллекция)
+│   ├── app.js              ← Ядро приложения: state, загрузка данных, навигация, shell, экспорт
+│   ├── rpg.js              ← RPG-системы: XP, streak, экономика, баджи, боссы, инвентарь
+│   ├── views-students.js   ← Страница 1: участники
+│   ├── views-shifts.js     ← Страница 2: задания + дашборд/детали смен
+│   ├── views-profile.js    ← Достижения + профиль игрока (talent card, профессии)
+│   ├── views-charts.js     ← Радар компетенций, DISC, карьерные пути
+│   ├── views-dashboard.js  ← Страница 5: дашборд
+│   ├── views-reports.js    ← AI-аналитика + игровой отчёт
+│   ├── views-assessments.js← Страница 6: оценка заданий
+│   └── views-cards.js      ← Коллекция из 84 карточек
 ├── migrations/             ← Пошаговые SQL-миграции (001–019)
 ├── player/                 ← Прототип профиля игрока + дизайн-доки
 ├── .github/workflows/      ← Автодеплой на GitHub Pages

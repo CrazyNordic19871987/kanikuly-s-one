@@ -1,7 +1,7 @@
 ﻿# План работ по устранению недочётов «Каникулы с ONE!»
 
-> Статус: утверждён 2026-09-07. Исполнение: **Фазы A+B+C+D ✅ завершены (2026-09-08)**, следующий шаг — Фаза E.
-> Репозиторий: `kanikuly-s-one` · Последняя версия: 3.8.5 (коммит `f8176f4`).
+> Статус: утверждён 2026-09-07. Исполнение: **Фазы A+B+C+D+E ✅ завершены (2026-09-09)**, следующий шаг — Фаза F.
+> Репозиторий: `kanikuly-s-one` · Последняя версия: 3.9.0 (коммит `e19db15`).
 
 ## Принципы
 
@@ -90,15 +90,15 @@ ORDER BY tablename, policyname;
 
 ---
 
-## Фаза E — JS-рефакторинг (отдельный тикет, не сейчас)
+## Фаза E — JS-рефакторинг (✅ завершена 2026-09-09, v3.9.0)
 
-1. Разложить `js/app.js` (217KB / ~4326 строк) по существующим `// ====` секциям:
-   - `js/app.js` — ядро: init, auth/navigation, shell, экспорт-центр (<50KB);
-   - `js/rpg.js` — XP/level/streak/currency/shop/badges/boss/mystery/legacy;
-   - `js/views-students.js`, `js/views-shifts.js`, `js/views-profile.js`, `js/views-dashboard.js`, `js/views-assessments.js`.
-2. **Вариант исполнения — (A) plain-скрипты**: физическое разбиение на несколько `<script>` в нужном порядке в `index.html` (минимальный риск для деплоя; Vite копирует как есть). ES-модули (B) — не переходим.
-3. Каждый файл — отдельный коммит; после каждого: lint/test/build + ручной проход вкладок.
-4. Ожидаемый бонус: легче писать vitest на чистую логику рендера.
+1. Разложить `js/app.js` (217KB / ~4336 строк) по существующим `// ====` секциям — **сделано**, итог — 10 файлов (<50KB каждый):
+   - `js/app.js` — ядро: state, loadData, shell/nav/search, утилиты, экспорт-центр (47.6KB);
+   - `js/rpg.js` — XP/level/streak/currency/shop/badges/boss/mystery/legacy (20.7KB);
+   - `js/views-students.js`, `js/views-shifts.js`, `js/views-profile.js`, `js/views-charts.js`, `js/views-dashboard.js`, `js/views-reports.js`, `js/views-assessments.js`, `js/views-cards.js`.
+2. **Вариант исполнения — (A) plain-скрипты**: физическое разбиение на несколько `<script>` в нужном порядке в `index.html` — Vite копирует как есть. Порядок: config → api → purify → progress → logic → pdf → rpg → views-* → app.js (ядро последним, `let state` до любого view). ES-модули (B) — не переходили.
+3. Каждый файл — отдельный коммит; после каждого: lint/test/build + пуш. ESLint globals расширены 104 → 270 идентификаторов; 0 ошибок, 38/38 тестов.
+4. Ожидаемый бонус — легче писать vitest на чистую логику рендера (не делалось).
 
 ---
 

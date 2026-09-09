@@ -13,7 +13,9 @@ Summer camp management web app for kids 7-12. Vanilla JS SPA built with Vite (`n
 
 - `index.html` — single HTML page, CSS split across 8 files under `css/`
 - `css/base.css, layout.css, students.css, shifts.css, profile.css, report.css, print.css, responsive.css` — CSS split (source of truth; Vite bundles them into one `assets/index-*.css` at build)
-- `js/app.js` — main application JS (single source of truth; the former root `app.js` duplicate was removed)
+- `js/app.js` — main application JS core (single source of truth; the former root `app.js` duplicate was removed)
+- `js/rpg.js` — RPG systems (XP, streak, economy, badges, bosses, mystery, relics, inventory)
+- `js/views-*.js` — page views, one file per section (students, shifts, profile, charts, dashboard, reports, assessments, cards)
 - `js/logic.js` — pure, DOM-free logic (esc, sanitizeText, displayName, initialsOf, level/XP system, rarityLabel, calcXp, calcCurrency). Browser: exposed on `window` (loaded before `app.js`). Node/tests: `module.exports`. **Never put `state`/`document`/`api`/`auth*` logic here** — it must stay importable by vitest.
 - `js/config.js` — Supabase URL/key + TABLES constants + DEFAULT_* fallbacks (single source of truth; the former root `config.js` duplicate was removed)
 - `js/api.js` — Supabase REST wrapper with pagination + retry/offline handling
@@ -110,7 +112,7 @@ Deploy = git push to master (GitHub Actions builds with Vite + deploys dist/)
 
 ## Rules for Agents
 
-1. **Edit files in `js/` only** — `js/app.js`, `js/config.js`, `js/api.js`. There are no root-level JS duplicates anymore; don't recreate them.
+1. **Edit files in `js/` only** — split by module: `js/app.js` (core), `js/rpg.js` (RPG systems), `js/views-*.js` (per-page views). Do not recreate root-level duplicates.
 2. **Never remove existing features** — only add or fix
 3. **Use existing CSS variables** — don't hardcode colors
 4. **Test with `webfetch`** on live site after pushing
