@@ -83,7 +83,6 @@ const STREAK_MILESTONES = [
 ];
 
 // ── CD4/CD6: Economy System ──────────────────────────────────
-const ECONOMY_CURRENCY = { name:'НЕО-коины', icon:'🪙', abbrev:'NC' };
 const ECONOMY_SHOP = [
   { id:'shop_xp_boost',    name:'XP-бустер',       icon:'⚡', cost:50,  desc:'+50 XP к следующему заданию', type:'consumable' },
   { id:'shop_badge_hint',  name:'Подсказка баджа', icon:'💡', cost:30,  desc:'Показать критерий случайного баджа', type:'consumable' },
@@ -140,7 +139,6 @@ const LEGENDARY_RELICS = [
 
 // ── CD3: Avatar Customization ─────────────────────────────────
 const AVATAR_COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#06B6D4','#3B82F6','#8B5CF6','#EC4899'];
-const AVATAR_ICONS = ['🦊','🐱','🐶','🦁','🐼','🦄','🐲','🤖','👾','🎯','⚡','🔥','💎','🌟','🎮','🛠️'];
 
 // ── Имена команд (отрядов) ────────────────────────────────────
 // Индекс 1..10 = номер команды (participations.squad). Чтобы
@@ -177,7 +175,6 @@ window.DEFAULT_DISC_CONFIG = DEFAULT_DISC_CONFIG;
 window.DEFAULT_SHIFTS = DEFAULT_SHIFTS;
 window.STREAK_BONUS = STREAK_BONUS;
 window.STREAK_MILESTONES = STREAK_MILESTONES;
-window.ECONOMY_CURRENCY = ECONOMY_CURRENCY;
 window.ECONOMY_SHOP = ECONOMY_SHOP;
 window.MYSTERY_BOX_INTERVAL = MYSTERY_BOX_INTERVAL;
 window.MYSTERY_BOX_POOL = MYSTERY_BOX_POOL;
@@ -185,7 +182,6 @@ window.BOSS_BATTLES = BOSS_BATTLES;
 window.LIMITED_BADGES = LIMITED_BADGES;
 window.LEGENDARY_RELICS = LEGENDARY_RELICS;
 window.AVATAR_COLORS = AVATAR_COLORS;
-window.AVATAR_ICONS = AVATAR_ICONS;
 window.SQUAD_NAMES = SQUAD_NAMES;
 window.DISC_MISSION_BOOSTS = DISC_MISSION_BOOSTS;
 window.SHIFT_DATES = SHIFT_DATES;
