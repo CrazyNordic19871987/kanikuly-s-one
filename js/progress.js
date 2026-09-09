@@ -136,8 +136,19 @@ function snapshotStudentProgress(state, studentId) {
   };
 }
 
-window.loadAllProgress = loadAllProgress;
-window.saveStudentProgress = saveStudentProgress;
-window.debouncedSaveProgress = debouncedSaveProgress;
-window.applyProgressToState = applyProgressToState;
-window.snapshotStudentProgress = snapshotStudentProgress;
+if (typeof window !== 'undefined') {
+  window.loadAllProgress = loadAllProgress;
+  window.saveStudentProgress = saveStudentProgress;
+  window.debouncedSaveProgress = debouncedSaveProgress;
+  window.applyProgressToState = applyProgressToState;
+  window.snapshotStudentProgress = snapshotStudentProgress;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    normalizeProgressRow,
+    toProgressPayload,
+    applyProgressToState,
+    snapshotStudentProgress
+  };
+}

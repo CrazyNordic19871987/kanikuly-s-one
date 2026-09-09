@@ -374,3 +374,39 @@ function computeInventory(studentId) {
   const maxSlots = INVENTORY_SLOTS_BASE + Math.floor(completedCount / 3);
   return { items, maxSlots: Math.min(maxSlots, 12), shiftName: shiftData.name };
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    calcStudentXP,
+    getStreak,
+    checkAndUpdateStreak,
+    getStreakBonusXP,
+    getCoins,
+    persistProgress,
+    addCoins,
+    spendCoins,
+    getEconomyFromCompletions,
+    getMysteryCount,
+    incrementMysteryCount,
+    rollMysteryBox,
+    getCurrentBoss,
+    isBossDefeated,
+    defeatBoss,
+    getBossTeamDamage,
+    checkLimitedBadges,
+    getRelics,
+    awardRelic,
+    getRelicBonus,
+    getAvatar,
+    setAvatar,
+    getRecentActivity,
+    getLeaderboard,
+    getFriends,
+    getDiscType,
+    getDiscRecommendation,
+    getMissionBranch,
+    getSquadScores,
+    getNearMiss,
+    computeInventory
+  };
+}
