@@ -27,12 +27,7 @@ jobs:
       - run: npm run lint
       - run: npm test
       - name: JS syntax check (browser files)
-        run: |
-          node --check js/config.js
-          node --check js/api.js
-          node --check js/logic.js
-          node --check js/progress.js
-          node --check js/app.js
+        run: node scripts/check-syntax.mjs
 
   build:
     name: Build (Vite)

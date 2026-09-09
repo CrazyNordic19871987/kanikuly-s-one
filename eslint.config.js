@@ -297,7 +297,6 @@ export default [
       'dist/**',
       'backup/**',
       'gen-og.js',
-      'deploy.sh',
       '*.config.js',
       'test/**',
     ],

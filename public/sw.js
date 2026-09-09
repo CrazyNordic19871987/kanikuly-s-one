@@ -1,5 +1,5 @@
-var CACHE_NAME = 'kanikuly-v2';
-var PRECACHE = ['index.html', 'logo.svg', 'manifest.json'];
+var CACHE_NAME = 'kanikuly-v3';
+var PRECACHE = ['index.html', 'logo.svg', 'manifest.json', 'js/config.js'];
 
 self.addEventListener('install', function(e) {
   e.waitUntil(
@@ -27,7 +27,7 @@ self.addEventListener('fetch', function(e) {
     return;
   }
   e.respondWith(
-    caches.match(e.request).then(function(r) {
+    caches.match(e.request, { ignoreSearch: true }).then(function(r) {
       return r || fetch(e.request).then(function(resp) {
         var clone = resp.clone();
         caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });

@@ -9,6 +9,7 @@
     "test:watch": "vitest",
     "lint": "eslint js/",
     "lint:fix": "eslint js/ --fix",
+    "check": "node scripts/check-syntax.mjs",
     "format": "prettier --write js/**/*.js",
     "format:check": "prettier --check js/**/*.js",
     "dev": "vite",
