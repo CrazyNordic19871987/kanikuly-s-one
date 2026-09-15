@@ -73,8 +73,9 @@ beforeEach(() => {
     { id: 'limited_explorer', name: 'Исследователь', icon: '🧭', rarity: 'legendary', condition: 'all 7 directions in 1 shift', shift_ids: [1, 2, 3] }
   ];
   globalThis.LEGENDARY_RELICS = [
-    { id: 'relic_dragon_scale', name: 'Чешуя Дракона', icon: '🐉', from_shift: 1 },
-    { id: 'relic_terra_seed', name: 'Семя Теры', icon: '🌱', from_shift: 2 }
+    { id: 'relic_scout_compass', name: 'Компас первопроходца', icon: '🧭', from_shift: 1 },
+    { id: 'relic_terra_seed', name: 'Семя Теры', icon: '🌱', from_shift: 2 },
+    { id: 'relic_dragon_scale', name: 'Чешуя Дракона', icon: '🐉', from_shift: 11 }
   ];
   globalThis.DISC_MISSION_BOOSTS = {
     D: { label: 'Командир', boost: 'x', icon: '👑', skills: [] },
@@ -344,8 +345,8 @@ describe('limited-time badges', () => {
 describe('relics', () => {
   it('awardRelic grants the shift relic once', () => {
     const relic = awardRelic(1, 1);
-    expect(relic.id).toBe('relic_dragon_scale');
-    expect(getRelics(1)).toEqual(['relic_dragon_scale']);
+    expect(relic.id).toBe('relic_scout_compass');
+    expect(getRelics(1)).toEqual(['relic_scout_compass']);
     expect(globalThis.debouncedSaveProgress).toHaveBeenCalled();
   });
 
@@ -523,7 +524,7 @@ describe('getNearMiss', () => {
 describe('computeInventory', () => {
   it('returns base slots and only common items with no completions', () => {
     const inv = computeInventory(1);
-    expect(inv.shiftName).toBe('Кибер-Атлеты');
+    expect(inv.shiftName).toBe('Scout Tech');
     expect(inv.maxSlots).toBe(6);
     expect(inv.items).toHaveLength(3);
     expect(inv.items.every(i => i.rarity === 'common')).toBe(true);
@@ -557,12 +558,12 @@ describe('computeInventory', () => {
   it('prefers DB inventory items when available', () => {
     globalThis.state = makeState({
       inventoryItems: [{ shift_id: 1, id: 'custom_1', icon: '🔮', name: 'Кастом', rarity: 'common', bonus: 'x' }],
-      shifts: [{ id: 1, name: 'Кибер-Атлеты' }]
+      shifts: [{ id: 1, name: 'Scout Tech' }]
     });
     setGlobalHelpers(globalThis.state);
     const inv = computeInventory(1);
     expect(inv.items[0].id).toBe('custom_1');
-    expect(inv.shiftName).toBe('Кибер-Атлеты');
+    expect(inv.shiftName).toBe('Scout Tech');
   });
 
   it('caps slots at 12 and grows every 3 completions', () => {

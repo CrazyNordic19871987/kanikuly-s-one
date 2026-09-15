@@ -73,7 +73,7 @@ Summer camp management web app for kids 7-12. Vanilla JS SPA built with Vite (`n
 **Content tables**: content_shifts, content_competencies, content_badge_definitions, content_disc_config, content_missions
 
 - `content_shifts` has **NO `name` column** — the field is `title` with angle brackets `<...>`. Fix applied: `name: (s.title || s.name || ('Миссия ' + s.shift_id)).replace(/^<|>$/g, '').trim()`
-- 10 shifts: КИБЕР-АТЛЕТЫ, TERRAFORMING, META-AGENCY, FUTURE MAKERS, ACTIVE TECH 2077, URBAN QUEST, SMART CITY LAB, ENGLISH GAME STUDIO, CHAMPIONS ACADEMY, ISLAND SURVIVAL
+- 11 shifts: SCOUT TECH, TERRAFORMING, META-AGENCY, FUTURE MAKERS, ACTIVE TECH 2077, URBAN QUEST, SMART CITY LAB, ENGLISH GAME STUDIO, CHAMPIONS ACADEMY, ISLAND SURVIVAL, КИБЕР-АТЛЕТЫ
 - 84 badge definitions in content_badge_definitions
 - 8 competencies in content_competencies
 

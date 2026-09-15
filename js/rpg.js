@@ -259,12 +259,12 @@ function getNearMiss(studentId) {
 
 // -- Inventory system ---------------------------
 const SHIFT_INVENTORY = {
-  1: { name:'Кибер-Атлеты', items:[
-    { id:'cyber_neuropod', icon:'⚡', name:'Нейро-под', rarity:'common', bonus:'+5% к спорту' },
-    { id:'cyber_blazecore', icon:'🔥', name:'Blaze-ядро', rarity:'rare', bonus:'+10% к спорту' },
-    { id:'cyber_lasergun', icon:'🔫', name:'Лазер-пистолет', rarity:'common', bonus:'+5% к тактике' },
-    { id:'cyber_balance', icon:'⚖️', name:'Балансборд', rarity:'common', bonus:'+5% к координации' },
-    { id:'cyber_chip', icon:'💾', name:'Нейро-чип', rarity:'rare', bonus:'+10% к IT' }
+  1: { name:'Scout Tech', items:[
+    { id:'scout_compass', icon:'🧭', name:'Полевой компас', rarity:'common', bonus:'+5% к навигации' },
+    { id:'scout_beacon', icon:'🔦', name:'Сигнальный фонарь', rarity:'common', bonus:'+5% к выживанию' },
+    { id:'scout_firstaid', icon:'🩹', name:'Полевая аптечка', rarity:'common', bonus:'+5% к биотеху' },
+    { id:'scout_repair', icon:'🔧', name:'Ремкомплект гаджета', rarity:'rare', bonus:'+10% к IT' },
+    { id:'scout_broadcaster', icon:'📡', name:'Спасательный маяк', rarity:'rare', bonus:'+10% к координации' }
   ]},
   2: { name:'Terraforming', items:[
     { id:'terra_seedpod', icon:'🌱', name:'Капсула-семя', rarity:'common', bonus:'+5% к биотеху' },
@@ -328,6 +328,13 @@ const SHIFT_INVENTORY = {
     { id:'island_cam', icon:'📹', name:'Экспедиционная камера', rarity:'common', bonus:'+5% к медиа' },
     { id:'island_knife', icon:'🔪', name:'Сапёрный нож', rarity:'common', bonus:'+5% к выживанию' },
     { id:'island_beacon', icon:'📡', name:'Спасательный маяк', rarity:'legendary', bonus:'+20% ко всем' }
+  ]},
+  11: { name:'Кибер-Атлеты', items:[
+    { id:'cyber_neuropod', icon:'⚡', name:'Нейро-под', rarity:'common', bonus:'+5% к спорту' },
+    { id:'cyber_blazecore', icon:'🔥', name:'Blaze-ядро', rarity:'rare', bonus:'+10% к спорту' },
+    { id:'cyber_lasergun', icon:'🔫', name:'Лазер-пистолет', rarity:'common', bonus:'+5% к тактике' },
+    { id:'cyber_balance', icon:'⚖️', name:'Балансборд', rarity:'common', bonus:'+5% к координации' },
+    { id:'cyber_chip', icon:'💾', name:'Нейро-чип', rarity:'rare', bonus:'+10% к IT' }
   ]}
 };
 

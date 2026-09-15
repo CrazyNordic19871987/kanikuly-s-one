@@ -116,16 +116,16 @@ const BOSS_BATTLES = [
 
 // ── CD6: Limited-Time Badges ──────────────────────────────────
 const LIMITED_BADGES = [
-  { id:'limited_speedrunner',  name:'Спидраннер',     icon:'⏱️', desc:'Заверши 3 задания за день', rarity:'rare',     condition:'3 completions in 1 day', shift_ids:[1,2,3,4,5,6,7,8,9,10] },
-  { id:'limited_perfectionist',name:'Перфекционист',  icon:'💎', desc:'Получи 5/5 в 5 заданиях подряд', rarity:'epic',  condition:'5 perfect scores in a row', shift_ids:[1,2,3,4,5,6,7,8,9,10] },
-  { id:'limited_nightowl',     name:'Ночная Сова',    icon:'🦉', desc:'Выполни задание после 20:00',   rarity:'rare',   condition:'completion after 20:00', shift_ids:[1,2,3,4,5,6,7,8,9,10] },
-  { id:'limited_earlybird',    name:'Ранняя Пташка',  icon:'🐦', desc:'Выполни задание до 10:00',      rarity:'rare',   condition:'completion before 10:00', shift_ids:[1,2,3,4,5,6,7,8,9,10] },
-  { id:'limited_explorer',     name:'Исследователь',  icon:'🧭', desc:'Попробуй все 7 направлений за смену', rarity:'legendary', condition:'all 7 directions in 1 shift', shift_ids:[1,2,3,4,5,6,7,8,9,10] }
+  { id:'limited_speedrunner',  name:'Спидраннер',     icon:'⏱️', desc:'Заверши 3 задания за день', rarity:'rare',     condition:'3 completions in 1 day', shift_ids:[1,2,3,4,5,6,7,8,9,10,11] },
+  { id:'limited_perfectionist',name:'Перфекционист',  icon:'💎', desc:'Получи 5/5 в 5 заданиях подряд', rarity:'epic',  condition:'5 perfect scores in a row', shift_ids:[1,2,3,4,5,6,7,8,9,10,11] },
+  { id:'limited_nightowl',     name:'Ночная Сова',    icon:'🦉', desc:'Выполни задание после 20:00',   rarity:'rare',   condition:'completion after 20:00', shift_ids:[1,2,3,4,5,6,7,8,9,10,11] },
+  { id:'limited_earlybird',    name:'Ранняя Пташка',  icon:'🐦', desc:'Выполни задание до 10:00',      rarity:'rare',   condition:'completion before 10:00', shift_ids:[1,2,3,4,5,6,7,8,9,10,11] },
+  { id:'limited_explorer',     name:'Исследователь',  icon:'🧭', desc:'Попробуй все 7 направлений за смену', rarity:'legendary', condition:'all 7 directions in 1 shift', shift_ids:[1,2,3,4,5,6,7,8,9,10,11] }
 ];
 
 // ── CD1: Legacy Relics (cross-shift) ──────────────────────────
 const LEGENDARY_RELICS = [
-  { id:'relic_dragon_scale',    name:'Чешуя Дракона',      icon:'🐉', from_shift:1, desc:'Реликвия Кибер-Атлетов. +10 XP ко всем заданиям.' },
+  { id:'relic_scout_compass',   name:'Компас первопроходца', icon:'🧭', from_shift:1, desc:'Реликвия Полевых Инженеров. +10 XP ко всем заданиям.' },
   { id:'relic_terra_seed',      name:'Семя Теры',          icon:'🌱', from_shift:2, desc:'Реликвия Терраформеров. +10% к биотеху.' },
   { id:'relic_time_crystal',    name:'Кристалл Времени',   icon:'🔮', from_shift:3, desc:'Реликвия Детективов. +10% к аналитике.' },
   { id:'relic_maker_gear',      name:'Шестерёнка Будущего', icon:'⚙️', from_shift:4, desc:'Реликвия Инноваторов. +10% к IT.' },
@@ -134,7 +134,8 @@ const LEGENDARY_RELICS = [
   { id:'relic_smart_chip',      name:'Smart-Чип',          icon:'💾', from_shift:7, desc:'Реликвия Архитекторов. +10% к проектированию.' },
   { id:'relic_game_coin',       name:'Монета Студии',      icon:'🪙', from_shift:8, desc:'Реликвия Геймдева. +10% к креативу.' },
   { id:'relic_champion_medal',  name:'Медаль Чемпиона',    icon:'🏅', from_shift:9, desc:'Реликвия Чемпионов. +10% к настойчивости.' },
-  { id:'relic_island_relic',    name:'Артефакт Острова',   icon:'🗿', from_shift:10, desc:'Реликвия Выживших. +10% ко всем навыкам.' }
+  { id:'relic_island_relic',    name:'Артефакт Острова',   icon:'🗿', from_shift:10, desc:'Реликвия Выживших. +10% ко всем навыкам.' },
+  { id:'relic_dragon_scale',    name:'Чешуя Дракона',      icon:'🐉', from_shift:11, desc:'Реликвия Кибер-Атлетов. +10 XP ко всем заданиям.' }
 ];
 
 // ── CD3: Avatar Customization ─────────────────────────────────

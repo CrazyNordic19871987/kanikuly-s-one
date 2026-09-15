@@ -725,7 +725,7 @@ function rebuildMainContent() {
   </div>
   <div class="page" id="page-achievements">
     <div class="page-wrap">
-      <div class="page-header"><h2>🎴 КАРТОЧКИ — КОЛЛЕКЦИЯ</h2><p>Инвентарь смен, реликвии, значки, боссы, магазин и тайный сундук (84 шт.)</p></div>
+      <div class="page-header"><h2>🎴 КАРТОЧКИ — КОЛЛЕКЦИЯ</h2><p>Инвентарь смен, реликвии, значки, боссы, магазин и тайный сундук (90 шт.)</p></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
         <button class="btn-print" style="margin-bottom:0" onclick="window.print()">🖨️ Печать страницы</button>
       </div>

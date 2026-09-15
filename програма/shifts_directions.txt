@@ -1,53 +1,50 @@
-﻿=== Shift 1 : «Кибер-Атлеты: Хроники Будущего» ===
+﻿=== Shift 1 : «Scout Tech: Полевые Инженеры» ===
   Direction: 🏅 Спорт
-    Mission: Нейрофитнес на Blazepod
-      Desc: Тренировка реакции и координации с LED-панелями
+    Mission: Полоса препятствий Ranger
+      Desc: Преодоление канатов, тоннелей, баланс-препятствий как настоящие рейнджеры
       Skills: persistence, adaptability
-    Mission: Балансборды и стабильность
-      Desc: Работа на нестабильных платформах для укрепления кора
+    Mission: Стрельба из лука
+      Desc: Мягкий лук по мишеням — точность и концентрация
       Skills: persistence, self_organization
-    Mission: Лазертаг-миссия
-      Desc: Командная тактическая игра в условиях «цифровой вселенной»
-      Skills: cooperation, problem_solving
-    Mission: Archery Tag
-      Desc: Стрельба из лука мягкими стрелами в формате соревнования
-      Skills: persistence, self_organization
-    Mission: Мечевой бой
-      Desc: Современный фехтовальный бой с безопасным инвентарём
-      Skills: initiative, adaptability
-  Direction: 💻 IT
-    Mission: Программирование на micro:bit
-      Desc: Настройка сенсоров и первые шаги в коде
-      Skills: problem_solving, learning_ability
-    Mission: Сборка датчика-гаджета
-      Desc: Конструирование персонального устройства из компонентов
+    Mission: Лазертаг «Захват флага»
+      Desc: Командная тактическая игра захват территории
+      Skills: cooperation, initiative
+    Mission: Спортивное ориентирование
+      Desc: Бег по точкам с компасом и картой территории
+      Skills: adaptability, problem_solving
+  Direction: 💻 IT & Gadgets
+    Mission: Сборка компаса из иглы
+      Desc: Намагниченная игла, пробка, стакан воды = рабочий компас
       Skills: creativity, problem_solving
-    Mission: Основы анализа данных
-      Desc: Сбор данных с датчиков и визуализация результатов
-      Skills: critical_thinking, learning_ability
-    Mission: Эко-полис: мини-проект
-      Desc: Проектирование элемента умного города с 3D-моделированием
-      Skills: creativity, communication
+    Mission: Сигнальный фонарь
+      Desc: Сборка LED-устройства для подачи сигналов SOS морзянкой
+      Skills: problem_solving, learning_ability
+    Mission: Спасательный гаджет на micro:bit
+      Desc: Датчик температуры и SOS-морзянка на плате micro:bit
+      Skills: creativity, learning_ability
+    Mission: GPS-квест с QR-точками
+      Desc: Ориентирование по координатам с QR-метками на территории
+      Skills: problem_solving, curiosity
   Direction: 🧬 Биотех
-    Mission: Биохакинг: пульс и反应
-      Desc: Измерение реакции и пульса до и после нагрузки
+    Mission: Полевой дневник исследователя
+      Desc: Наблюдение за природой, зарисовки растений, определение видов
+      Skills: curiosity, learning_ability
+    Mission: Биометрия исследователя
+      Desc: Измерение пульса и реакции до и после нагрузки
       Skills: curiosity, critical_thinking
-    Mission: Анализ данных тела
-      Desc: Сравнение биометрических показателей участников
-      Skills: critical_thinking, problem_solving
-    Mission: Эко-полис: зелёные технологии
-      Desc: Проектирование экологичных решений для умного города
-      Skills: creativity, social_position
+    Mission: Очистка воды
+      Desc: Сборка простейшего фильтра из подручных материалов
+      Skills: problem_solving, adaptability
   Direction: 📊 Предпринимательство
-    Mission: Нейро-коины: внутренняя валюта
-      Desc: Заработок и управление игровой валютой через задания
-      Skills: self_organization, problem_solving
-    Mission: Питчинг гаджета
-      Desc: Защита своего проекта перед «инвестиционным комитетом»
+    Mission: Патентное бюро
+      Desc: Оформление и защита идеи своего гаджета перед комиссией лагеря
       Skills: communication, initiative
-    Mission: Юнит-экономика продукта
-      Desc: Расчёт стоимости и ценности созданного устройства
+    Mission: Юнит-экономика снаряжения
+      Desc: Расчёт стоимости оборудования экспедиции и управления бюджетом
       Skills: critical_thinking, problem_solving
+    Mission: Demo Day: питч гаджета
+      Desc: Финальная презентация изобретения родителям и жюри
+      Skills: communication, social_position
 
 === Shift 2 : «Terraforming: Колонизаторы Новых Миров» ===
   Direction: 🏅 Спорт
@@ -506,4 +503,55 @@
     Mission: Бизнес-план экоотдыха
       Desc: Расчёт ресурсов и планирование инфраструктуры
       Skills: critical_thinking, creativity
+
+=== Shift 11 : «Кибер-Атлеты: Хроники Будущего» ===
+  Direction: 🏅 Спорт
+    Mission: Нейрофитнес на Blazepod
+      Desc: Тренировка реакции и координации с LED-панелями
+      Skills: persistence, adaptability
+    Mission: Балансборды и стабильность
+      Desc: Работа на нестабильных платформах для укрепления кора
+      Skills: persistence, self_organization
+    Mission: Лазертаг-миссия
+      Desc: Командная тактическая игра в условиях «цифровой вселенной»
+      Skills: cooperation, problem_solving
+    Mission: Archery Tag
+      Desc: Стрельба из лука мягкими стрелами в формате соревнования
+      Skills: persistence, self_organization
+    Mission: Мечевой бой
+      Desc: Современный фехтовальный бой с безопасным инвентарём
+      Skills: initiative, adaptability
+  Direction: 💻 IT
+    Mission: Программирование на micro:bit
+      Desc: Настройка сенсоров и первые шаги в коде
+      Skills: problem_solving, learning_ability
+    Mission: Сборка датчика-гаджета
+      Desc: Конструирование персонального устройства из компонентов
+      Skills: creativity, problem_solving
+    Mission: Основы анализа данных
+      Desc: Сбор данных с датчиков и визуализация результатов
+      Skills: critical_thinking, learning_ability
+    Mission: Эко-полис: мини-проект
+      Desc: Проектирование элемента умного города с 3D-моделированием
+      Skills: creativity, communication
+  Direction: 🧬 Биотех
+    Mission: Биохакинг: пульс и реакция
+      Desc: Измерение реакции и пульса до и после нагрузки
+      Skills: curiosity, critical_thinking
+    Mission: Анализ данных тела
+      Desc: Сравнение биометрических показателей участников
+      Skills: critical_thinking, problem_solving
+    Mission: Эко-полис: зелёные технологии
+      Desc: Проектирование экологичных решений для умного города
+      Skills: creativity, social_position
+  Direction: 📊 Предпринимательство
+    Mission: Нейро-коины: внутренняя валюта
+      Desc: Заработок и управление игровой валютой через задания
+      Skills: self_organization, problem_solving
+    Mission: Питчинг гаджета
+      Desc: Защита своего проекта перед «инвестиционным комитетом»
+      Skills: communication, initiative
+    Mission: Юнит-экономика продукта
+      Desc: Расчёт стоимости и ценности созданного устройства
+      Skills: critical_thinking, problem_solving
 
