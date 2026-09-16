@@ -301,7 +301,7 @@ async function uploadStudentAvatar(studentId, file) {
 function shiftBannerUrl(s) {
   if (s && (s.banner_url || s.image_url)) {
     const u = esc(s.banner_url || s.image_url);
-    return /mission_banner\/mission_\d+\.JPG$/i.test(u) ? u.replace(/\.JPG$/i, '.webp') : u;
+    return /(?:mission_banner\/mission_\d+|img\/mission\d+-banner)\.JPG$/i.test(u) ? u.replace(/\.JPG$/i, '.webp') : u;
   }
   return 'img/mission' + (s && s.id) + '-banner.webp';
 }
