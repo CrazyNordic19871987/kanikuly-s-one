@@ -718,7 +718,7 @@ function rebuildMainContent() {
   </div>
   <div class="page" id="page-shifts">
     <div class="page-wrap">
-      <div class="page-header"><h2>🏕️ МИССИИ</h2><p>Концепции миссий — 10 сюжетов на выбор</p></div>
+      <div class="page-header"><h2>🏕️ МИССИИ</h2><p>Концепции миссий — 11 сюжетов на выбор</p></div>
       <button class="btn-print" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
       <div class="shifts-grid" id="shifts-grid"></div>
     </div>

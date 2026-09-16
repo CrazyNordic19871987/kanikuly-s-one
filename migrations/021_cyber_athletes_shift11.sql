@@ -58,7 +58,8 @@ VALUES (
   ]'::jsonb,
   'img/mission11-banner.webp'
 )
-ON CONFLICT (shift_id) DO NOTHING;
+ON CONFLICT (shift_id) DO UPDATE SET
+  banner_url = EXCLUDED.banner_url;
 
 -- 2. content_inventory_items — Shift 11 items (Кибер-Атлеты)
 DELETE FROM public.content_inventory_items WHERE shift_id = 11;
@@ -84,6 +85,6 @@ ON CONFLICT (num) DO NOTHING;
 
 -- ═══════════════════════════════════════════════════════════════════
 -- Done. This migration is idempotent (ON CONFLICT / DELETE+INSERT).
--- Note: banner_url points to img/mission11-banner.webp (already placed
--- to public/img/ so it exists on the live site).
+-- Note: banner_url points to img/mission11-banner.webp (check it exists
+-- in public/img/ so it loads on the live site).
 -- ═══════════════════════════════════════════════════════════════════
